@@ -33,6 +33,11 @@
   --border: var(--paper-deep);
   --ring: var(--cinnabar-soft);
 
+  /* 细线（编辑设计层）：日读为暖灰细线 */
+  --hairline: color-mix(in srgb, var(--paper-deep) 75%, transparent);
+  /* 水墨转场墨色：日读即深墨 */
+  --ink-flash-color: var(--ink-strong);
+
   /* 字体族 */
   --font-serif: "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
   --font-sans: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -40,17 +45,20 @@
 }
 
 html.dark {
-  --paper-base: #16130F;
-  --paper-soft: #211C16;
-  --paper-deep: #322B22;
+  /* 灯下纸墨：深褐而非纯黑，暖调，层次分明 */
+  --paper-base: #1A1611;
+  --paper-soft: #241E17;
+  --paper-deep: #332B21;
 
-  --ink-strong: #E8E3D8;
-  --ink-normal: #CFC8BA;
-  --ink-soft: #9E9585;
-  --ink-faint: #6E6659;
+  /* 文字层级：深底上整体提亮，保证 11px 编目标签仍可读 */
+  --ink-strong: #EFE9DC;
+  --ink-normal: #D4CCBC;
+  --ink-soft: #A99F8C;
+  --ink-faint: #8B8070;
 
-  --cinnabar: #C9564A;
-  --cinnabar-soft: #D97568;
+  /* 朱砂：夜读提亮为「灯火朱」，比日读更亮更透 */
+  --cinnabar: #DE5A42;
+  --cinnabar-soft: #EC7B62;
 
   --background: var(--paper-base);
   --foreground: var(--ink-strong);
@@ -60,8 +68,13 @@ html.dark {
   --primary-foreground: #FFFFFF;
   --muted: var(--paper-deep);
   --muted-foreground: var(--ink-soft);
-  --border: var(--paper-deep);
+  --border: #453A2C;
   --ring: var(--cinnabar-soft);
+
+  /* 细线：深底改用半透明浅色，任何底色上都可见 */
+  --hairline: color-mix(in srgb, var(--ink-strong) 16%, transparent);
+  /* 水墨转场必须用真深墨，否则夜读会晕出亮光 */
+  --ink-flash-color: #0B0906;
 }
 
 /* ── 一朝一色 · 朝代主题色（与日/夜正交，随 html[data-dynasty] 切换）── */
@@ -87,12 +100,12 @@ html[data-dynasty='qing'] {
   --dynasty-accent-soft: #4A6E8E;
 }
 
-/* 夜读下朝代色整体提亮，避免暗底失真 */
-html.dark[data-dynasty='han'] { --dynasty-accent: #8E8EA0; --dynasty-accent-soft: #A5A5B5; }
-html.dark[data-dynasty='tang'] { --dynasty-accent: #D4AC5B; --dynasty-accent-soft: #E0C078; }
-html.dark[data-dynasty='song'] { --dynasty-accent: #8FB8CA; --dynasty-accent-soft: #A8CBDA; }
-html.dark[data-dynasty='ming'] { --dynasty-accent: #C9564A; --dynasty-accent-soft: #D97568; }
-html.dark[data-dynasty='qing'] { --dynasty-accent: #7FA3C4; --dynasty-accent-soft: #9ABBD6; }
+/* 夜读下朝代色整体提亮（灯火下的各色釉），避免暗底失真 */
+html.dark[data-dynasty='han'] { --dynasty-accent: #9E9EB2; --dynasty-accent-soft: #B4B4C6; }
+html.dark[data-dynasty='tang'] { --dynasty-accent: #E0B968; --dynasty-accent-soft: #EDCB87; }
+html.dark[data-dynasty='song'] { --dynasty-accent: #9CC4D6; --dynasty-accent-soft: #B4D5E4; }
+html.dark[data-dynasty='ming'] { --dynasty-accent: #DE5A42; --dynasty-accent-soft: #EC7B62; }
+html.dark[data-dynasty='qing'] { --dynasty-accent: #8FB2D2; --dynasty-accent-soft: #A8C6E0; }
 
 body {
   background-color: var(--paper-base);
@@ -377,7 +390,7 @@ body {
 /* 纸纹升级：点阵底纹上叠加 SVG 纤维噪声（极低透明度宣纸肌理） */
 .paper-texture {
   background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E"),
     radial-gradient(var(--paper-deep) 0.65px, transparent 0.65px);
   background-size: 140px 140px, 24px 24px;
 }
@@ -421,7 +434,7 @@ html.dark .paper-texture {
   content: "";
   position: absolute;
   inset: -20%;
-  background: radial-gradient(circle at 50% 46%, var(--ink-strong) 0%, var(--ink-strong) 42%, transparent 68%);
+  background: radial-gradient(circle at 50% 46%, var(--ink-flash-color) 0%, var(--ink-flash-color) 42%, transparent 68%);
   animation: inkFlashExpand 0.9s cubic-bezier(0.55, 0.06, 0.35, 1) forwards;
 }
 .ink-flash-overlay::after {
@@ -534,7 +547,7 @@ html.dark .paper-texture {
   box-shadow: 0 6px 18px rgba(31, 27, 22, 0.1);
 }
 html.dark .hover-lift:hover {
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
 }
 
 /* ── 检索联想 / 键帽 / 命中高亮 / 钤印按钮 / 点墨拾遗 ───────────── */
@@ -566,8 +579,8 @@ kbd.kbd {
 }
 
 mark.suggest-hit {
-  background: color-mix(in srgb, var(--dynasty-accent) 14%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--dynasty-accent) 55%, transparent);
+  background: color-mix(in srgb, var(--dynasty-accent) 18%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--dynasty-accent) 60%, transparent);
   color: inherit;
 }
 
@@ -623,5 +636,132 @@ mark.suggest-hit {
 @keyframes guidePop {
   0% { opacity: 0; transform: translateY(16px) scale(0.96); }
   100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── 排印纪律层 v4：编辑设计尺度 + 编目工具类 ─────────────────────── */
+
+:root {
+  /* 排印三级尺度：巨 / 中 / 微，中间不设过渡字号 */
+  --type-hero: clamp(2.5rem, 5.4vw, 4rem);
+  --type-display: clamp(1.75rem, 3.2vw, 2.375rem);
+  --type-label: 0.6875rem;
+  --track-hero: -0.01em;
+  --track-label: 0.22em;
+  --leading-hero: 1.14;
+}
+
+/* 编目小标签：11px + 大字距 + 朱色方点前缀（M1/M3） */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  font-weight: 400;
+  letter-spacing: var(--track-label);
+  line-height: 1.6;
+  color: var(--ink-faint);
+}
+.eyebrow::before {
+  content: "";
+  flex: none;
+  width: 5px;
+  height: 5px;
+  background-color: var(--dynasty-accent);
+}
+.eyebrow.is-plain::before {
+  display: none;
+}
+
+/* 细线分组：替代大部分双线框（M6） */
+.rule {
+  border: 0;
+  border-top: 1px solid var(--hairline);
+}
+
+/* 主张式巨标题（M2） */
+.display-title {
+  font-family: var(--font-serif);
+  font-size: var(--type-hero);
+  font-weight: 400;
+  line-height: var(--leading-hero);
+  letter-spacing: var(--track-hero);
+  color: var(--ink-strong);
+}
+
+/* 巨标题中的强调短语：朱色楷体（中文语境的"斜体强调"等价物） */
+.display-em {
+  font-family: var(--font-kai);
+  font-style: italic;
+  color: var(--dynasty-accent);
+}
+
+/* 区块级大标题（词条名 / 栏目主张），比 .display-title 小一档 */
+.display-heading {
+  font-family: var(--font-serif);
+  font-size: clamp(1.9rem, 3.4vw, 2.6rem);
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.005em;
+  color: var(--ink-strong);
+}
+
+/* 数据带：大数字 + 微型标签（M4） */
+.spec-number {
+  font-family: var(--font-serif);
+  font-size: var(--type-display);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--ink-strong);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.spec-label {
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  letter-spacing: 0.18em;
+  line-height: 1.6;
+  color: var(--ink-faint);
+}
+
+/* 编目式索引行（M3） */
+.index-row {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--hairline);
+  color: var(--ink-normal);
+  transition: color 0.2s ease;
+}
+.index-row:hover {
+  color: var(--dynasty-accent);
+}
+.index-no {
+  flex: none;
+  width: 1.75rem;
+  font-family: var(--font-mono, ui-monospace, "SFMono-Regular", Menlo, monospace);
+  font-size: var(--type-label);
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+.index-name {
+  flex: 1;
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+}
+.index-meta {
+  flex: none;
+  font-family: var(--font-sans);
+  font-size: var(--type-label);
+  letter-spacing: 0.16em;
+  color: var(--ink-faint);
+}
+
+/* 卷心：详情页正文主体，全站唯一保留重装帧的内边距高地 */
+.scroll-core {
+  padding-left: clamp(1.5rem, 4vw, 3.5rem);
+  padding-right: clamp(1.5rem, 4vw, 3.5rem);
 }
 

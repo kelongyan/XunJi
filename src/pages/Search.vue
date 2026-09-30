@@ -4,6 +4,7 @@ import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { RefreshCw, ExternalLink } from 'lucide-vue-next'
 import TextbookHeader from '../components/common/TextbookHeader.vue'
 import SealStamp from '../components/common/SealStamp.vue'
+import Masthead from '../components/common/Masthead.vue'
 import SearchSuggest from '../components/search/SearchSuggest.vue'
 import { useSearch } from '../composables/useSearch'
 import { useTypewriter } from '../composables/useTypewriter'
@@ -91,7 +92,7 @@ onMounted(() => {
 
       <main class="max-w-7xl mx-auto px-6 py-10">
         <!-- 检索栏与分类筛选条 (文武双线装帧) -->
-        <div v-reveal class="border-wenwu p-8 md:p-10 bg-card/75 mb-10 shadow-sm space-y-6">
+        <div v-reveal class="mb-12 space-y-7">
           <form @submit.prevent="handleSearchSubmit" class="relative flex flex-col md:flex-row gap-4">
             <div class="relative flex-1 flex">
               <SearchSuggest
@@ -120,65 +121,65 @@ onMounted(() => {
           </form>
 
           <!-- 分类筛选器 -->
-          <div class="pt-5 border-t-2 border-border/70 flex flex-wrap items-center justify-between gap-4 text-xs font-serif">
-            <div class="flex items-center space-x-2.5">
-              <span class="text-foreground/85 font-bold tracking-wider">分类筛选：</span>
+          <div class="pt-6 border-t border-border/60 flex flex-wrap items-center justify-between gap-4 text-xs">
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+              <span class="eyebrow is-plain">分类筛选</span>
               <button 
                 @click="selectType('all')" 
-                :class="currentType === 'all' ? 'bg-primary text-primary-foreground font-bold shadow-sm' : 'bg-background border border-border text-muted-foreground hover:text-foreground'"
-                class="px-3.5 py-1.5 transition-colors cursor-pointer"
+                :class="currentType === 'all' ? 'text-[var(--dynasty-accent)]' : 'text-muted-foreground hover:text-foreground'"
+                class="px-3 py-1 text-[11px] tracking-[0.16em] transition-colors cursor-pointer"
               >
                 全部检索
               </button>
               <button 
                 @click="selectType('emperor')" 
-                :class="currentType === 'emperor' ? 'bg-primary text-primary-foreground font-bold shadow-sm' : 'bg-background border border-border text-muted-foreground hover:text-foreground'"
-                class="px-3.5 py-1.5 transition-colors cursor-pointer"
+                :class="currentType === 'emperor' ? 'text-[var(--dynasty-accent)]' : 'text-muted-foreground hover:text-foreground'"
+                class="px-3 py-1 text-[11px] tracking-[0.16em] transition-colors cursor-pointer"
               >
                 帝王
               </button>
               <button 
                 @click="selectType('figure')" 
-                :class="currentType === 'figure' ? 'bg-primary text-primary-foreground font-bold shadow-sm' : 'bg-background border border-border text-muted-foreground hover:text-foreground'"
-                class="px-3.5 py-1.5 transition-colors cursor-pointer"
+                :class="currentType === 'figure' ? 'text-[var(--dynasty-accent)]' : 'text-muted-foreground hover:text-foreground'"
+                class="px-3 py-1 text-[11px] tracking-[0.16em] transition-colors cursor-pointer"
               >
                 人物
               </button>
               <button 
                 @click="selectType('event')" 
-                :class="currentType === 'event' ? 'bg-primary text-primary-foreground font-bold shadow-sm' : 'bg-background border border-border text-muted-foreground hover:text-foreground'"
-                class="px-3.5 py-1.5 transition-colors cursor-pointer"
+                :class="currentType === 'event' ? 'text-[var(--dynasty-accent)]' : 'text-muted-foreground hover:text-foreground'"
+                class="px-3 py-1 text-[11px] tracking-[0.16em] transition-colors cursor-pointer"
               >
                 事件
               </button>
               <button 
                 @click="selectType('classic')" 
-                :class="currentType === 'classic' ? 'bg-primary text-primary-foreground font-bold shadow-sm' : 'bg-background border border-border text-muted-foreground hover:text-foreground'"
-                class="px-3.5 py-1.5 transition-colors cursor-pointer"
+                :class="currentType === 'classic' ? 'text-[var(--dynasty-accent)]' : 'text-muted-foreground hover:text-foreground'"
+                class="px-3 py-1 text-[11px] tracking-[0.16em] transition-colors cursor-pointer"
               >
                 典籍
               </button>
               <button 
                 @click="selectType('system')" 
-                :class="currentType === 'system' ? 'bg-primary text-primary-foreground font-bold shadow-sm' : 'bg-background border border-border text-muted-foreground hover:text-foreground'"
-                class="px-3.5 py-1.5 transition-colors cursor-pointer"
+                :class="currentType === 'system' ? 'text-[var(--dynasty-accent)]' : 'text-muted-foreground hover:text-foreground'"
+                class="px-3 py-1 text-[11px] tracking-[0.16em] transition-colors cursor-pointer"
               >
                 制度
               </button>
             </div>
-            <div class="text-muted-foreground tracking-wide">
-              <span>全文匹配：纯本地 MiniSearch 索引</span>
+            <div class="index-meta">
+              <span>全文匹配 · 纯本地 MiniSearch 索引</span>
             </div>
           </div>
         </div>
 
         <!-- 结果展示区 -->
         <div class="space-y-8">
-          <div v-reveal class="flex items-center justify-between text-xs font-serif text-muted-foreground pb-3 border-b-2 border-border/80">
-            <div class="flex items-center space-x-3">
-              <span>检索核心词：<strong class="text-foreground text-sm font-black">「{{ query || '历代通览' }}」</strong></span>
-              <span class="text-border">/</span>
-              <span class="tracking-wide">寻得相关文献 {{ searchResults.length }} 卷</span>
+          <div v-reveal class="flex items-center justify-between gap-4 pb-3.5 border-b border-border/60">
+            <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1.5">
+              <span class="eyebrow">检索核心词</span>
+              <strong class="text-foreground text-sm">「{{ query || '历代通览' }}」</strong>
+              <span class="index-meta">寻得相关文献 {{ searchResults.length }} 卷</span>
             </div>
             <div class="flex items-center space-x-4">
               <span v-if="isTyping" class="inline-flex items-center text-primary font-bold tracking-wider">
@@ -195,15 +196,15 @@ onMounted(() => {
             </div>
           </div>
 
-          <div v-if="searchResults.length === 0" class="border-wenwu p-12 text-center bg-card/40 my-8">
+          <div v-if="searchResults.length === 0" class="py-16 text-center">
             <p class="font-serif text-base text-foreground/80">未寻见相关史料词条</p>
-            <p class="text-xs font-serif text-muted-foreground mt-2">试试拼音首字母（如 zjz）或从高频词条索引入手：</p>
-            <div class="mt-4 flex flex-wrap justify-center gap-2 text-xs font-serif">
+            <p class="text-xs font-serif text-muted-foreground mt-2.5">试试拼音首字母（如 zjz）或从高频词条索引入手：</p>
+            <div class="mt-6 flex flex-wrap justify-center gap-x-4 gap-y-2.5 text-xs font-serif">
               <button
                 v-for="tag in hotTags"
                 :key="tag"
                 type="button"
-                class="px-2.5 py-1 bg-background border border-border hover:border-primary hover:text-primary transition-colors cursor-pointer"
+                class="text-muted-foreground hover:text-[var(--dynasty-accent)] transition-colors cursor-pointer"
                 @click="query = tag; doSearch()"
               >
                 {{ tag }}
@@ -216,26 +217,25 @@ onMounted(() => {
               v-for="(entry, index) in searchResults"
               :key="entry.id"
               v-reveal="index * 70"
-              :class="index === 0 ? 'border-wenwu-primary bg-card/90 p-7 md:p-9' : 'border-wenwu bg-card/65 p-7 md:p-8'"
-              class="result-card relative shadow-sm space-y-4"
+              class="result-card relative pt-7 border-t border-border/60 space-y-4"
             >
-              <div class="flex items-start justify-between gap-4">
-                <div class="space-y-1">
-                  <div class="flex flex-wrap items-center gap-3">
-                    <span class="px-2.5 py-0.5 bg-primary text-primary-foreground text-xs font-serif font-bold">
+              <div class="flex items-start justify-between gap-6">
+                <div class="space-y-2.5 flex-1 min-w-0">
+                  <div class="flex flex-wrap items-baseline gap-x-4 gap-y-2">
+                    <span class="text-[11px] tracking-[0.2em] text-[var(--dynasty-accent)]">
                       {{ entry.type === 'emperor' ? '帝王' : entry.type === 'figure' ? '人物' : entry.type === 'event' ? '事件' : entry.type === 'classic' ? '典籍' : '制度' }}
                     </span>
-                    <h2 class="text-2xl md:text-3xl font-serif font-black text-foreground">
-                      <RouterLink :to="`/entry/${entry.id}`" class="hover:text-primary transition-colors flex items-center space-x-2">
+                    <h2 class="text-2xl md:text-3xl text-foreground" style="font-family: var(--font-serif)">
+                      <RouterLink :to="`/entry/${entry.id}`" class="hover:text-[var(--dynasty-accent)] transition-colors inline-flex items-center gap-2">
                         <span>{{ entry.name }}</span>
                         <ExternalLink class="w-4 h-4 text-muted-foreground" />
                       </RouterLink>
                     </h2>
-                    <span class="text-xs md:text-sm font-serif text-muted-foreground">
+                    <span class="index-meta">
                       {{ entry.pinyin }} · {{ entry.era || entry.dynasty }}
                     </span>
                   </div>
-                  <p class="text-xs md:text-[13px] font-serif text-muted-foreground pt-1">
+                  <p class="text-xs md:text-[13px] font-serif text-muted-foreground">
                     <template v-for="(seg, si) in splitHighlight(entry.summary, query)" :key="si">
                       <mark v-if="seg.hit" class="suggest-hit">{{ seg.text }}</mark>
                       <template v-else>{{ seg.text }}</template>
@@ -246,7 +246,7 @@ onMounted(() => {
               </div>
 
               <!-- 若有历史配图，在检索卡片中展示缩略图版 -->
-              <div v-if="entry.image" class="mt-4 p-3 bg-background border border-border flex items-center gap-4">
+              <div v-if="entry.image" class="mt-4 py-3.5 border-y border-border/60 flex items-center gap-4">
                 <img :src="entry.image.src" :alt="entry.image.caption" class="w-32 h-20 object-contain border border-border/60 bg-card/40 shrink-0" />
                 <div class="text-xs font-serif text-muted-foreground">
                   <span class="text-foreground font-bold block mb-0.5">【历史插图资料】</span>
@@ -255,7 +255,7 @@ onMounted(() => {
               </div>
 
               <!-- 第一条结果启用流式解读展示 -->
-              <div v-if="index === 0" class="pt-4 border-t border-border font-serif text-[15px] leading-relaxed text-foreground textbook-reading-column font-textbook-body">
+              <div v-if="index === 0" class="pt-5 border-t border-border/60 font-serif text-[15px] leading-relaxed text-foreground max-w-3xl">
                 <div class="text-indent-chinese">
                   {{ displayedText }}
                   <span v-if="isTyping" class="ink-cursor"></span>
@@ -263,13 +263,13 @@ onMounted(() => {
               </div>
 
               <!-- 标签与关联网脉 -->
-              <div class="pt-4 border-t border-border/60 flex flex-wrap items-center gap-2.5 text-xs font-serif">
-                <span class="text-foreground/80 font-bold tracking-wider">关联网脉：</span>
+              <div class="pt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-serif">
+                <span class="eyebrow is-plain">关联网脉</span>
                 <RouterLink 
                   v-for="tag in entry.tags" 
                   :key="tag" 
                   :to="`/search?q=${tag}`" 
-                  class="px-2.5 py-0.5 bg-background border border-border hover:border-primary text-muted-foreground hover:text-primary transition-colors"
+                  class="text-muted-foreground hover:text-[var(--dynasty-accent)] transition-colors"
                 >
                   {{ tag }}
                 </RouterLink>
@@ -281,12 +281,6 @@ onMounted(() => {
     </div>
 
     <!-- 底部版心页码 -->
-    <footer class="mt-20 border-t border-border bg-card/40 py-8 text-center text-xs text-muted-foreground font-serif">
-      <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
-        <div>寻迹中国风历史检索 · 检索流式呈现引擎</div>
-        <div class="textbook-folio font-bold text-foreground/70">· 043 ·</div>
-        <div>古籍装帧信息层级与排印规制</div>
-      </div>
-    </footer>
+    <Masthead left="寻迹 · 检索流式呈现引擎" note="古籍装帧信息层级与排印规制" folio="043" />
   </div>
 </template>

@@ -32,7 +32,7 @@ const DAY = {
   lamp: new THREE.Color('#E8B96A')
 }
 const NIGHT = {
-  paper: new THREE.Color('#16130F'),
+  paper: new THREE.Color('#1A1611'),
   ink: new THREE.Color('#B8B2A4'),
   mountain: new THREE.Color('#8F887A'),
   lamp: new THREE.Color('#E8B96A')

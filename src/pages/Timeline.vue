@@ -4,6 +4,7 @@ import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { ExternalLink } from 'lucide-vue-next'
 import TextbookHeader from '../components/common/TextbookHeader.vue'
 import SealStamp from '../components/common/SealStamp.vue'
+import Masthead from '../components/common/Masthead.vue'
 import CounterfactualPanel from '../components/ai/CounterfactualPanel.vue'
 import { dynastyTimelines } from '../data/timelines'
 import { dynastyThemes, getDynastyTheme, defaultDynasty } from '../data/dynastyThemes'
@@ -57,13 +58,13 @@ function selectDynasty(id: string) {
             type="button"
             :disabled="!['tang', 'song', 'ming'].includes(d.id)"
             @click="selectDynasty(d.id)"
-            class="px-5 py-2 border-2 text-sm font-serif font-bold tracking-widest transition-colors"
+            class="px-4 py-1.5 text-[11px] tracking-[0.22em] border-b border-transparent transition-colors"
             :class="[
               currentId === d.id
-                ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                ? 'text-[var(--dynasty-accent)] border-[var(--dynasty-accent)]'
                 : ['tang', 'song', 'ming'].includes(d.id)
-                  ? 'border-border text-muted-foreground hover:border-primary hover:text-primary bg-background cursor-pointer'
-                  : 'border-border/60 text-muted-foreground/50 bg-background/50 cursor-not-allowed'
+                  ? 'text-muted-foreground hover:text-foreground cursor-pointer'
+                  : 'text-muted-foreground/40 cursor-not-allowed'
             ]"
           >
             {{ d.hanzi }}<span v-if="!['tang', 'song', 'ming'].includes(d.id)" class="text-[10px] ml-1 opacity-70">修典中</span>
@@ -71,29 +72,26 @@ function selectDynasty(id: string) {
         </div>
 
         <!-- 长卷说明头 (仿古籍文武双线框) -->
-        <div v-reveal class="border-wenwu p-8 md:p-12 bg-card/75 mb-14 flex flex-col md:flex-row justify-between items-start md:items-center gap-8 shadow-sm">
-          <div class="space-y-3">
-            <div class="inline-flex items-center space-x-2 px-3 py-1 bg-primary/10 border border-primary/20 text-primary text-xs font-bold tracking-widest">
-              <span>【时空通览 · 经折长卷】</span>
-            </div>
-            <h1 class="font-textbook-hero text-foreground">{{ theme.hanzi }}朝历史编年通览 ({{ theme.span }})</h1>
-            <p class="text-sm md:text-base font-serif text-muted-foreground max-w-2xl leading-relaxed font-textbook-body pt-1">
-              {{ theme.tagline }}——公元纪年与帝王年号双轨互见，理顺本朝兴衰的关键脉络。
+        <div v-reveal class="mb-16 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+          <div class="space-y-4">
+            <div class="eyebrow">时空通览 · 经折长卷</div>
+            <h1 class="display-title">{{ theme.hanzi }}朝编年通览</h1>
+            <p class="text-sm md:text-base font-serif text-muted-foreground max-w-2xl leading-relaxed">
+              {{ theme.tagline }}——公元纪年与帝王年号双轨互见（{{ theme.span }}），理顺本朝兴衰的关键脉络。
             </p>
           </div>
-          <div class="flex items-center space-x-5 shrink-0 pt-2 md:pt-0">
+          <div class="flex items-center gap-6 shrink-0">
             <SealStamp :text="theme.sealText" />
-            <div class="text-xs font-serif text-muted-foreground text-right border-l-2 border-border/80 pl-4 space-y-1">
-              <div class="font-black text-foreground text-sm">国祚 {{ years }} 年</div>
-              <div class="tracking-wider">编年大事总表</div>
-              <div class="text-[10px] dynasty-accent-text font-bold">收录词条 {{ events.length }} 事</div>
+            <div class="text-right space-y-2.5">
+              <div class="spec-number">{{ years }}</div>
+              <div class="index-meta">国祚年数 · 收录 {{ events.length }} 事</div>
             </div>
           </div>
         </div>
 
         <!-- 编年时间轴（朝代切换时内容淡入替换） -->
         <Transition name="fade-swap" mode="out-in">
-          <div :key="currentId" class="space-y-16 relative before:absolute before:inset-0 before:left-8 before:w-0.5 before:bg-border md:before:left-1/2">
+          <div :key="currentId" class="space-y-16 relative before:absolute before:inset-0 before:left-8 before:w-px before:bg-border/70 md:before:left-1/2">
           <div
             v-for="(ev, idx) in events"
             :key="ev.title"
@@ -105,17 +103,17 @@ function selectDynasty(id: string) {
               v-if="idx % 2 === 0"
               class="md:w-5/12 text-left md:text-right pr-0 md:pr-12 pl-16 md:pl-0 space-y-2"
             >
-              <span class="text-xs font-mono font-bold dynasty-accent-text px-3 py-1 bg-primary/10 border border-primary/20 tracking-wider">
+              <span class="block text-2xl md:text-3xl" style="font-family: var(--font-serif); color: var(--dynasty-accent); line-height: 1">
                 {{ ev.year }}
               </span>
-              <h3 class="text-2xl font-serif font-black text-foreground pt-1">
-                <RouterLink v-if="ev.entryId" :to="`/entry/${ev.entryId}`" class="hover:text-primary transition-colors flex items-center md:justify-end space-x-2">
+              <h3 class="text-xl md:text-2xl text-foreground mt-3" style="font-family: var(--font-serif)">
+                <RouterLink v-if="ev.entryId" :to="`/entry/${ev.entryId}`" class="hover:text-[var(--dynasty-accent)] transition-colors flex items-center gap-2 md:justify-end">
                   <span>{{ ev.title }}</span>
                   <ExternalLink class="w-4 h-4 text-muted-foreground" />
                 </RouterLink>
                 <span v-else>{{ ev.title }}</span>
               </h3>
-              <p class="text-xs md:text-sm font-serif text-muted-foreground leading-relaxed font-textbook-body">
+              <p class="text-xs md:text-sm font-serif text-muted-foreground leading-relaxed mt-2.5">
                 {{ ev.desc }}
               </p>
             </div>
@@ -123,30 +121,22 @@ function selectDynasty(id: string) {
               v-else
               class="md:w-5/12 pl-16 md:pl-12 order-2 md:order-1 mt-4 md:mt-0"
             >
-              <div class="p-5 bg-card border-wenwu text-xs font-serif text-muted-foreground shadow-sm space-y-1.5">
-                <div class="text-foreground font-bold flex items-center space-x-2 text-sm">
-                  <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
-                  <span>史事要义</span>
-                </div>
+              <div class="pl-4 border-l-2 text-xs font-serif text-muted-foreground" style="border-color: color-mix(in srgb, var(--dynasty-accent) 40%, transparent)">
+                <div class="eyebrow mb-2">史事要义</div>
                 <p class="leading-relaxed">{{ ev.gist }}</p>
               </div>
             </div>
 
             <!-- 中心光标圆点（进入视口点亮） -->
-            <div class="dot-pop absolute left-8 md:left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-primary border-4 border-background flex items-center justify-center shadow-md">
-              <span class="w-2 h-2 rounded-full bg-white"></span>
-            </div>
+            <div class="dot-pop absolute left-8 md:left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-[var(--dynasty-accent)] border-[3px] border-background"></div>
 
             <!-- 右侧内容 (偶数行要义 / 奇数行文) -->
             <div
               v-if="idx % 2 === 0"
               class="md:w-5/12 pl-16 md:pl-12 mt-4 md:mt-0"
             >
-              <div class="p-5 bg-card border-wenwu text-xs font-serif text-muted-foreground shadow-sm space-y-1.5">
-                <div class="text-foreground font-bold flex items-center space-x-2 text-sm">
-                  <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
-                  <span>史事要义</span>
-                </div>
+              <div class="pl-4 border-l-2 text-xs font-serif text-muted-foreground" style="border-color: color-mix(in srgb, var(--dynasty-accent) 40%, transparent)">
+                <div class="eyebrow mb-2">史事要义</div>
                 <p class="leading-relaxed">{{ ev.gist }}</p>
               </div>
             </div>
@@ -154,17 +144,17 @@ function selectDynasty(id: string) {
               v-else
               class="md:w-5/12 text-left pl-16 md:pl-12 order-1 md:order-2 space-y-2"
             >
-              <span class="text-xs font-mono font-bold dynasty-accent-text px-3 py-1 bg-primary/10 border border-primary/20 tracking-wider">
+              <span class="block text-2xl md:text-3xl" style="font-family: var(--font-serif); color: var(--dynasty-accent); line-height: 1">
                 {{ ev.year }}
               </span>
-              <h3 class="text-2xl font-serif font-black text-foreground pt-1">
-                <RouterLink v-if="ev.entryId" :to="`/entry/${ev.entryId}`" class="hover:text-primary transition-colors flex items-center md:justify-end space-x-2">
+              <h3 class="text-xl md:text-2xl text-foreground mt-3" style="font-family: var(--font-serif)">
+                <RouterLink v-if="ev.entryId" :to="`/entry/${ev.entryId}`" class="hover:text-[var(--dynasty-accent)] transition-colors flex items-center gap-2 md:justify-end">
                   <span>{{ ev.title }}</span>
                   <ExternalLink class="w-4 h-4 text-muted-foreground" />
                 </RouterLink>
                 <span v-else>{{ ev.title }}</span>
               </h3>
-              <p class="text-xs md:text-sm font-serif text-muted-foreground leading-relaxed font-textbook-body">
+              <p class="text-xs md:text-sm font-serif text-muted-foreground leading-relaxed mt-2.5">
                 {{ ev.desc }}
               </p>
             </div>
@@ -173,12 +163,9 @@ function selectDynasty(id: string) {
         </Transition>
 
         <!-- 编年综述板块 -->
-        <div v-reveal class="mt-20 p-8 border-wenwu bg-card/75 shadow-sm space-y-3">
-          <h4 class="text-base font-textbook-title text-foreground tracking-wide flex items-center space-x-2">
-            <span class="text-primary">◆</span>
-            <span>编年史事综述</span>
-          </h4>
-          <p class="text-xs md:text-[14px] font-serif text-muted-foreground leading-loose font-textbook-quote pt-1 border-t border-border/60">
+        <div v-reveal class="mt-20">
+          <div class="eyebrow mb-4">编年史事综述</div>
+          <p class="text-[13px] md:text-sm font-serif text-muted-foreground leading-loose">
             {{ summaries[currentId] }}
           </p>
         </div>
@@ -189,12 +176,6 @@ function selectDynasty(id: string) {
     </div>
 
     <!-- 底部版心页码 -->
-    <footer class="mt-20 border-t border-border bg-card/40 py-8 text-center text-xs text-muted-foreground font-serif">
-      <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
-        <div>寻迹中国风历史检索系统 · 编年通览长卷</div>
-        <div class="textbook-folio font-bold text-foreground/70">· 089 ·</div>
-        <div>{{ theme.hanzi }}朝纪年时序知识谱系</div>
-      </div>
-    </footer>
+    <Masthead left="寻迹 · 编年通览长卷" :note="`${theme.hanzi}朝纪年时序知识谱系`" folio="089" />
   </div>
 </template>

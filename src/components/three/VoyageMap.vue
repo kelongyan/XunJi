@@ -17,7 +17,7 @@ const reducedMotion =
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 const PAPER_DAY = new THREE.Color('#F2EDDC')
-const PAPER_NIGHT = new THREE.Color('#16130F')
+const PAPER_NIGHT = new THREE.Color('#1A1611')
 const CHART_TINT_DAY = new THREE.Color('#FFFFFF')
 const CHART_TINT_NIGHT = new THREE.Color('#5E584C')
 

@@ -1,24 +1,31 @@
 # 依赖与构建产物
 node_modules/
 dist/
+dist-ssr/
+*.local
 
 # 本地内部文档（不随仓库发布）
 /docs/
 /RULE.md
 /AGENTS.md
-/寻迹-中国风历史检索站方案书.md
-/xunji-app/README.md
 
-# 早期设计稿（本地保留）
-/xunji/
+# 编辑器目录
+.vscode/*
+!.vscode/extensions.json
 
 # 工作产物
 .playwright-mcp/
+.playwright-cli/
 *.log
 /ref-*.png
 /p0-*.png
 /p1-*.png
 /anim-*.png
+/github-*.png
+/opbar-*.png
+
+# AI 工作区数据（本地）
+.workbuddy/
 
 # 系统文件
 Thumbs.db

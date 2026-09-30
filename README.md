@@ -50,6 +50,8 @@ Vue 3（Composition API）· TypeScript · Vite · Tailwind CSS v4 · Three.js�
 
 需要 Node.js 18+ 与 pnpm。
 
+以下命令均在仓库根目录运行。
+
 ```bash
 pnpm install
 pnpm dev        # 开发：http://localhost:5173
@@ -60,7 +62,6 @@ pnpm preview    # 预览生产构建
 ## 目录结构
 
 ```
-xunji-app/
 ├─ src/
 │  ├─ pages/            # 首页 / 检索 / 词条详情 / 编年长卷 / 朝代对读
 │  ├─ components/

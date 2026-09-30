@@ -95,44 +95,39 @@ onMounted(() => {
       <TextbookHeader folio="116" :subChapter="`${entry.dynasty}代 · ${entry.name}词条详述`" />
 
       <main class="max-w-7xl mx-auto px-6 py-12">
-        <!-- 词条头信息：仿经典古籍文武双线框 -->
-        <div v-reveal class="border-wenwu p-8 md:p-12 mb-12 bg-card/65 relative shadow-sm">
-          <div class="flex items-start justify-between gap-6">
-            <div class="space-y-4">
-              <!-- 词条章节小引与考据层级 -->
+        <!-- 词条头信息：编目式刊头（去框，靠细线与留白组织层级） -->
+        <div v-reveal class="mb-14">
+          <div class="flex items-baseline justify-between gap-4 pb-4 border-b border-border/60">
+            <span class="eyebrow">{{ entry.dynasty }}代 · {{ entry.name }}</span>
+            <span class="index-meta">{{ entry.sources[0] }}</span>
+          </div>
+
+          <div class="flex items-start justify-between gap-8 mt-8">
+            <div class="space-y-5 flex-1 min-w-0">
               <div class="flex flex-wrap items-center gap-2.5 text-xs font-serif text-muted-foreground">
-                <span class="dynasty-chip px-2.5 py-0.5 font-bold tracking-wider">
+                <span class="dynasty-chip px-2.5 py-0.5 tracking-wider">
                   {{ entry.type === 'emperor' ? '帝王篇' : entry.type === 'figure' ? '人物篇' : entry.type === 'event' ? '重大事件' : '典章制度' }}
                 </span>
-                <span class="text-border">/</span>
-                <span class="text-foreground/80 font-medium">{{ entry.sources[0] }}</span>
-                <span class="text-border">/</span>
-                <span class="px-2 py-0.5 bg-background border border-border text-muted-foreground">正史核心词条</span>
+                <span class="index-meta">正史核心词条</span>
               </div>
 
-              <!-- 名字与字号阶梯 -->
-              <div class="pt-1">
+              <div>
                 <div class="flex flex-wrap items-baseline gap-x-5 gap-y-2">
-                  <h1 class="text-4xl md:text-5xl font-serif font-black tracking-tight text-foreground leading-none">
-                    {{ entry.name }}
-                  </h1>
-                  <span class="text-base md:text-lg font-serif text-muted-foreground/90 font-medium tracking-wide">
-                    {{ entry.pinyin }}
-                  </span>
-                  <span v-if="entry.lifespan" class="text-xs md:text-sm font-serif px-3 py-1 bg-background border border-border text-foreground/85 tracking-widest">
-                    公元 {{ entry.lifespan.birth }} 年 — {{ entry.lifespan.death }} 年
+                  <h1 class="display-title">{{ entry.name }}</h1>
+                  <span class="index-meta">{{ entry.pinyin }}</span>
+                  <span v-if="entry.lifespan" class="index-meta">
+                    公元 {{ entry.lifespan.birth }} — {{ entry.lifespan.death }} 年
                   </span>
                 </div>
-                <p v-if="entry.roles?.length" class="text-xs font-serif text-muted-foreground mt-2 tracking-wider">
+                <p v-if="entry.roles?.length" class="index-meta mt-3">
                   {{ entry.roles.join(' · ') }}
                 </p>
               </div>
 
-              <p class="text-sm md:text-[15px] font-serif text-foreground/85 max-w-2xl leading-relaxed pt-2 border-t border-border/60">
+              <p class="text-sm md:text-[15px] font-serif text-foreground/85 max-w-2xl leading-relaxed">
                 {{ entry.summary }}
               </p>
 
-              <!-- 钤印收藏 -->
               <div class="pt-1">
                 <button
                   type="button"
@@ -146,19 +141,19 @@ onMounted(() => {
                 </button>
               </div>
 
-              <!-- 历史背景通识引言卡片 -->
-              <div v-if="entry.background" class="mt-4 p-5 bg-background/80 border-l-4 border-l-primary border border-border/70 text-xs md:text-sm font-serif leading-relaxed text-foreground/90">
-                <div class="text-primary font-bold mb-1 flex items-center space-x-2">
-                  <span>◆</span>
-                  <span>【时代大背景通识】</span>
-                </div>
-                <p class="text-muted-foreground leading-relaxed">
+              <div
+                v-if="entry.background"
+                class="mt-5 pl-5 border-l-2"
+                :style="{ borderColor: 'color-mix(in srgb, var(--dynasty-accent) 45%, transparent)' }"
+              >
+                <div class="eyebrow mb-2">时代大背景</div>
+                <p class="text-xs md:text-sm font-serif text-muted-foreground leading-relaxed">
                   {{ entry.background }}
                 </p>
               </div>
             </div>
 
-            <SealStamp :text="entry.type === 'emperor' ? '大明天子' : entry.type === 'figure' ? '正史名贤' : '制度典章'" subtext="钦定正史" class="seal-drop" />
+            <SealStamp :text="entry.type === 'emperor' ? '大明天子' : entry.type === 'figure' ? '正史名贤' : '制度典章'" subtext="钦定正史" class="seal-drop hidden sm:block shrink-0" />
           </div>
         </div>
 
@@ -173,12 +168,9 @@ onMounted(() => {
               v-reveal
               class="textbook-reading-column space-y-4"
             >
-              <div class="flex items-center justify-between pb-3 mb-5 border-b-2 border-border/80">
-                <div class="flex items-center space-x-3">
-                  <span class="w-2.5 h-4 bg-primary inline-block"></span>
-                  <h2 class="font-textbook-chapter text-foreground">{{ chapter.heading }}</h2>
-                </div>
-                <span class="text-xs font-serif text-muted-foreground tracking-wider">第 {{ cIdx + 1 }} 节</span>
+              <div class="flex items-baseline justify-between gap-4 pb-3.5 mb-7 border-b border-border/60">
+                <h2 class="text-xl md:text-2xl text-foreground" style="font-family: var(--font-serif)">{{ chapter.heading }}</h2>
+                <span class="index-meta">第 {{ cIdx + 1 }} 节</span>
               </div>
 
               <div class="text-indent-chinese text-[15px] md:text-base text-foreground/90 font-textbook-body space-y-4">
@@ -225,12 +217,9 @@ onMounted(() => {
 
             <!-- 史学纵横（流式解读核心区） -->
             <section v-reveal class="border-wenwu-primary p-7 md:p-9 bg-card/85 relative shadow-sm textbook-reading-column my-8">
-              <div class="flex items-center justify-between pb-3.5 mb-5 border-b-2 border-border/80">
-                <div class="flex items-center space-x-2.5">
-                  <span class="w-2.5 h-2.5 bg-primary"></span>
-                  <h3 class="text-lg font-textbook-title text-foreground tracking-wide">史学纵横 · 深度解读</h3>
-                </div>
-                <span class="text-xs font-serif text-primary font-bold tracking-wider">本地预置流式呈现</span>
+              <div class="flex items-baseline justify-between gap-4 pb-3.5 mb-6 border-b border-border/60">
+                <h3 class="text-lg text-foreground tracking-wide" style="font-family: var(--font-serif)">史学纵横 · 深度解读</h3>
+                <span class="index-meta">本地预置流式呈现</span>
               </div>
 
               <div class="font-serif text-[15px] leading-loose text-foreground">
@@ -259,9 +248,9 @@ onMounted(() => {
             </aside>
 
             <!-- 器物 3D 展台 -->
-            <aside v-if="entry.relic" v-reveal class="border-wenwu bg-card/85 p-5 shadow-sm space-y-3">
-              <div class="flex items-center justify-between text-xs text-muted-foreground pb-2 border-b border-border/60">
-                <span class="font-serif text-primary font-bold tracking-wide whitespace-nowrap">【器物展台 · {{ entry.relic.name }}】</span>
+            <aside v-if="entry.relic" v-reveal class="space-y-3">
+              <div class="flex items-baseline justify-between gap-3 pb-3 border-b border-border/60">
+                <span class="eyebrow whitespace-nowrap">器物展台 · {{ entry.relic.name }}</span>
                 <span class="seal-stamp seal-stamp-sm shrink-0">器</span>
               </div>
               <RelicViewer :kind="entry.relic.kind" />
@@ -273,13 +262,14 @@ onMounted(() => {
               v-for="(q, qIdx) in entry.quotes"
               :key="qIdx"
               v-reveal="qIdx * 90"
-              class="border-wenwu bg-card/90 border-l-4 border-l-primary p-5 shadow-sm"
+              class="pl-5 border-l-2"
+              :style="{ borderColor: 'color-mix(in srgb, var(--dynasty-accent) 45%, transparent)' }"
             >
-              <div class="flex items-center justify-between gap-2 text-xs text-muted-foreground pb-2 border-b border-border/60">
-                <span class="font-serif text-primary font-bold tracking-wide whitespace-nowrap shrink-0">【史料原文 · 卷 {{ qIdx + 1 }}】</span>
-                <span class="font-serif text-right truncate">{{ q.source }}</span>
+              <div class="flex items-baseline justify-between gap-3 pb-3 border-b border-border/60">
+                <span class="eyebrow whitespace-nowrap shrink-0">史料原文 · 卷 {{ qIdx + 1 }}</span>
+                <span class="index-meta text-right truncate">{{ q.source }}</span>
               </div>
-              <div class="flex items-start justify-end gap-4 pt-3">
+              <div class="flex items-start justify-end gap-4 pt-4">
                 <blockquote class="vertical-quote font-textbook-quote text-sm text-foreground/95">
                   「{{ q.text }}」
                 </blockquote>
@@ -288,22 +278,21 @@ onMounted(() => {
             </aside>
 
             <!-- 知识链接 -->
-            <div v-if="entry.relations?.length" v-reveal class="border-wenwu p-6 bg-card/60 shadow-sm space-y-4">
-              <div class="flex items-center space-x-2 pb-2.5 border-b-2 border-border/80">
-                <span class="text-primary font-bold">◆</span>
-                <h4 class="text-xs font-textbook-title text-foreground tracking-wider">知识链接 · 关联谱系</h4>
+            <div v-if="entry.relations?.length" v-reveal class="space-y-1">
+              <div class="pb-3 border-b border-border/60">
+                <span class="eyebrow">知识链接 · 关联谱系</span>
               </div>
-              <div class="space-y-3.5 text-xs font-serif">
+              <div class="text-xs font-serif">
                 <div 
                   v-for="(rel, rIdx) in entry.relations" 
                   :key="rIdx"
-                  class="p-3 bg-background border border-border hover:border-primary transition-colors"
+                  class="py-3.5 border-b border-border/40 last:border-b-0"
                 >
                   <div class="flex justify-between items-center font-bold pb-1">
                     <RouterLink :to="`/entry/${rel.targetId}`" class="hover:text-primary text-sm">
                       {{ rel.name }}
                     </RouterLink>
-                    <span class="text-primary text-[11px] px-1.5 py-0.2 bg-primary/10 border border-primary/20">
+                    <span class="index-meta">
                       {{ rel.type }}
                     </span>
                   </div>
@@ -313,8 +302,8 @@ onMounted(() => {
             </div>
 
             <!-- 资料考证出处 -->
-            <div v-reveal class="border border-border p-5 bg-background text-xs font-serif text-muted-foreground space-y-2">
-              <span class="font-bold text-foreground block tracking-wider">【考证典据源流】</span>
+            <div v-reveal class="text-xs font-serif text-muted-foreground space-y-3">
+              <span class="eyebrow block">考证典据源流</span>
               <ul class="list-disc list-inside space-y-1.5 leading-relaxed">
                 <li v-for="src in entry.sources" :key="src">{{ src }}</li>
               </ul>
@@ -323,24 +312,21 @@ onMounted(() => {
         </div>
 
         <!-- 词条底部横向生平时间轴 -->
-        <section v-if="entry.timeline?.length" v-reveal class="mt-14 pt-8 border-t-2 border-border">
-          <div class="flex items-center justify-between mb-6">
-            <div class="flex items-center space-x-2">
-              <SealStamp text="年表" />
-              <h3 class="text-xl font-textbook-title text-foreground">{{ entry.name }}纪年时序</h3>
-            </div>
-            <span class="text-xs font-serif text-muted-foreground">横向时间轴</span>
+        <section v-if="entry.timeline?.length" v-reveal class="mt-16">
+          <div class="flex items-baseline justify-between gap-4 pb-3.5 border-b border-border/60">
+            <span class="eyebrow">{{ entry.name }}纪年时序</span>
+            <span class="index-meta">横向时间轴</span>
           </div>
 
           <div class="relative overflow-x-auto pb-4 no-scrollbar">
-            <div class="min-w-[760px] flex items-start justify-between border-t-2 border-primary pt-4 relative">
+            <div class="min-w-[760px] flex items-start justify-between border-t pt-4 relative" :style="{ borderColor: 'color-mix(in srgb, var(--dynasty-accent) 45%, transparent)' }">
               <div 
                 v-for="(tNode, tIdx) in entry.timeline" 
                 :key="tIdx"
                 class="flex-1 pr-4 relative"
               >
-                <div class="dot-pop w-3.5 h-3.5 rounded-full bg-primary -mt-6 mb-2 border-2 border-background"></div>
-                <span class="text-xs font-mono font-bold text-primary block">{{ tNode.year }}</span>
+                <div class="dot-pop w-3.5 h-3.5 rounded-full bg-[var(--dynasty-accent)] -mt-6 mb-2 border-2 border-background"></div>
+                <span class="text-base block" style="font-family: var(--font-serif); color: var(--dynasty-accent)">{{ tNode.year }}</span>
                 <p class="text-xs font-serif text-foreground/90 mt-1 leading-relaxed">{{ tNode.event }}</p>
               </div>
             </div>
@@ -348,19 +334,16 @@ onMounted(() => {
         </section>
         <!-- 读此卷者亦读：词条关联推荐 -->
         <section v-if="related.length" v-reveal class="mt-14">
-          <div class="flex items-center justify-between mb-6">
-            <div class="flex items-center space-x-2">
-              <span class="text-primary font-bold">◆</span>
-              <h3 class="text-xl font-textbook-title text-foreground">读此卷者亦读</h3>
-            </div>
-            <span class="text-xs font-serif text-muted-foreground">词条关联推荐</span>
+          <div class="flex items-baseline justify-between gap-4 pb-3.5 border-b border-border/60 mb-8">
+            <span class="eyebrow">读此卷者亦读</span>
+            <span class="index-meta">词条关联推荐</span>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
             <RouterLink
               v-for="rel in related"
               :key="rel.id"
               :to="`/entry/${rel.id}`"
-              class="border-wenwu bg-card/60 p-5 shadow-sm hover-lift group block"
+              class="border-t border-border/60 pt-5 hover-lift group block"
             >
               <div class="flex items-center justify-between mb-2">
                 <span class="text-xs font-serif text-muted-foreground">{{ rel.dynasty }}<template v-if="rel.era"> · {{ rel.era }}</template></span>
@@ -375,16 +358,17 @@ onMounted(() => {
     </div>
 
     <!-- 底部版心页码 -->
-    <footer class="mt-20 border-t border-border bg-card/40 py-8 text-center text-xs text-muted-foreground font-serif">
-      <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
-        <div class="flex items-center space-x-2">
-          <RouterLink to="/search" class="hover:text-primary flex items-center space-x-1">
-            <ArrowLeft class="w-3.5 h-3.5" />
+    <footer class="mt-20">
+      <div class="max-w-7xl mx-auto px-6">
+        <div class="rule"></div>
+        <div class="pt-5 pb-9 flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left">
+          <RouterLink to="/search" class="eyebrow is-plain hover:text-[var(--dynasty-accent)] transition-colors">
+            <ArrowLeft class="w-3 h-3" />
             <span>返回检索</span>
           </RouterLink>
+          <span class="index-meta">{{ entry.dynasty }}代历史词条 · {{ entry.name }}</span>
+          <span class="index-no">· 117 ·</span>
         </div>
-        <div class="textbook-folio font-bold text-foreground/70">· 117 ·</div>
-        <div>{{ entry.dynasty }}代历史词条 · {{ entry.name }}</div>
       </div>
     </footer>
   </div>
