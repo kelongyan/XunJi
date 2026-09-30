@@ -1135,6 +1135,11 @@ export const qingEntries: HistoryEntry[] = [
         source: "《清史稿·高宗本纪》"
       }
     ],
+    image: {
+      src: '/images/entries/qing/emperor-hongli.webp',
+      caption: '【图版】弘历御容坐像摹本 · 选自清代重摹历代帝王像',
+      source: '南薰殿旧藏历代帝王像'
+    },
     sources: [
       "《清史稿》",
       "《清高宗实录》",
@@ -2429,6 +2434,11 @@ export const qingEntries: HistoryEntry[] = [
         source: "《清史稿·林则徐传》"
       }
     ],
+    image: {
+      src: '/images/entries/qing/figure-lin-zexu.webp',
+      caption: '【图版】林则徐先生画像摹本 · 选自明清名贤画传',
+      source: '《晚笑堂画传》'
+    },
     sources: [
       "《清史稿》",
       "《清史列传》",
@@ -2718,6 +2728,11 @@ export const qingEntries: HistoryEntry[] = [
         source: "《清史稿·太祖本纪》"
       }
     ],
+    image: {
+      src: '/images/entries/qing/emperor-nuerhaci.webp',
+      caption: '【图版】努尔哈赤御容坐像摹本 · 选自清代重摹历代帝王像',
+      source: '南薰殿旧藏历代帝王像'
+    },
     sources: [
       "《清史稿》",
       "《明史》",
@@ -2868,6 +2883,11 @@ export const qingEntries: HistoryEntry[] = [
         source: "《清史稿·职官志》"
       }
     ],
+    image: {
+      src: '/images/entries/qing/event-pingding-zhungaer.webp',
+      caption: '【图版】平定准噶尔历史长卷全景图摹本',
+      source: '明清纪事版画舆图'
+    },
     sources: [
       "《清史稿》",
       "《清实录》",
@@ -3139,6 +3159,11 @@ export const qingEntries: HistoryEntry[] = [
         source: "《清史稿·世祖本纪》"
       }
     ],
+    image: {
+      src: '/images/entries/qing/event-qingjun-ruguan.webp',
+      caption: '【图版】清军入关历史长卷全景图摹本',
+      source: '明清纪事版画舆图'
+    },
     sources: [
       "《明史》",
       "《清史稿》",
@@ -4734,6 +4759,11 @@ export const qingEntries: HistoryEntry[] = [
         source: "《清史稿·宣统皇帝本纪》"
       }
     ],
+    image: {
+      src: '/images/entries/qing/event-xinhai-geming.webp',
+      caption: '【图版】辛亥革命历史长卷全景图摹本',
+      source: '明清纪事版画舆图'
+    },
     sources: [
       "《清史稿》",
       "《清史列传》",
@@ -4886,6 +4916,11 @@ export const qingEntries: HistoryEntry[] = [
         source: "《清史稿·圣祖本纪》"
       }
     ],
+    image: {
+      src: '/images/entries/qing/emperor-xuanye.webp',
+      caption: '【图版】玄烨御容坐像摹本 · 选自清代重摹历代帝王像',
+      source: '南薰殿旧藏历代帝王像'
+    },
     sources: [
       "《清史稿》",
       "《清圣祖实录》",
@@ -6258,6 +6293,11 @@ export const qingEntries: HistoryEntry[] = [
         source: "《清史稿·卷四百五十·曾国藩传》"
       }
     ],
+    image: {
+      src: '/images/entries/qing/figure-zeng-guofan.webp',
+      caption: '【图版】曾国藩先生画像摹本 · 选自明清名贤画传',
+      source: '《晚笑堂画传》'
+    },
     sources: [
       "《清史稿》",
       "《清史列传》",

@@ -39,6 +39,11 @@ export const tangEntries: HistoryEntry[] = [
       { year: 623, event: "基本削平北方割据势力" },
       { year: 626, event: "玄武门之变后禅位，称太上皇" }
     ],
+    image: {
+      src: '/images/entries/tang/emperor-tang-gaozu-liyuan.webp',
+      caption: '【图版】李渊御容坐像摹本 · 选自清代重摹历代帝王像',
+      source: '南薰殿旧藏历代帝王像'
+    },
     sources: ["《旧唐书·高祖本纪》", "《资治通鉴·唐纪》"],
     tags: ["开国", "晋阳起兵", "关陇贵族"]
   },
@@ -85,6 +90,11 @@ export const tangEntries: HistoryEntry[] = [
       { targetId: "xuanwumen-zhibian", name: "玄武门之变", type: "夺位之始" },
       { targetId: "weizheng", name: "魏征", type: "君臣" }
     ],
+    image: {
+      src: '/images/entries/tang/emperor-tang-taizong-lishimin.webp',
+      caption: '【图版】李世民御容坐像摹本 · 选自清代重摹历代帝王像',
+      source: '南薰殿旧藏历代帝王像'
+    },
     sources: ["《旧唐书·太宗本纪》", "《贞观政要》"],
     tags: ["贞观之治", "天可汗", "纳谏"]
   },
@@ -127,6 +137,11 @@ export const tangEntries: HistoryEntry[] = [
       { year: 702, event: "创设武举" },
       { year: 705, event: "神龙政变，退位，同年崩" }
     ],
+    image: {
+      src: '/images/entries/tang/emperor-wuzetian.webp',
+      caption: '【图版】武则天御容坐像摹本 · 选自清代重摹历代帝王像',
+      source: '南薰殿旧藏历代帝王像'
+    },
     sources: ["《旧唐书·则天皇后本纪》", "《资治通鉴·唐纪》"],
     tags: ["女皇", "武周", "殿试", "寒门"]
   },
@@ -166,6 +181,11 @@ export const tangEntries: HistoryEntry[] = [
     relations: [
       { targetId: "anshi-zhiluan", name: "安史之乱", type: "由盛转衰" }
     ],
+    image: {
+      src: '/images/entries/tang/emperor-tang-xuanzong-lilongji.webp',
+      caption: '【图版】李隆基御容坐像摹本 · 选自清代重摹历代帝王像',
+      source: '南薰殿旧藏历代帝王像'
+    },
     sources: ["《旧唐书·玄宗本纪》", "《资治通鉴·唐纪》"],
     tags: ["开元盛世", "天宝危机", "马嵬坡"]
   },
@@ -212,6 +232,11 @@ export const tangEntries: HistoryEntry[] = [
       { targetId: "tang-taizong-lishimin", name: "李世民", type: "君臣" },
       { targetId: "zhenguan-zhizhi", name: "贞观之治", type: "缔造者之一" }
     ],
+    image: {
+      src: '/images/entries/tang/figure-weizheng.webp',
+      caption: '【图版】魏征先生画像摹本 · 选自明清名贤画传',
+      source: '《晚笑堂画传》'
+    },
     sources: ["《旧唐书·魏徵传》", "《贞观政要·任贤》"],
     tags: ["谏臣", "贞观", "人镜"]
   },
@@ -257,6 +282,11 @@ export const tangEntries: HistoryEntry[] = [
     relations: [
       { targetId: "kaiyuan-shengshi", name: "开元盛世", type: "时代底色" }
     ],
+    image: {
+      src: '/images/entries/tang/figure-libai.webp',
+      caption: '【图版】李白先生画像摹本 · 选自明清名贤画传',
+      source: '《晚笑堂画传》'
+    },
     sources: ["《旧唐书·文苑传》", "《新唐书·文艺传》"],
     tags: ["诗仙", "盛唐", "浪漫主义"]
   },
@@ -302,6 +332,11 @@ export const tangEntries: HistoryEntry[] = [
     relations: [
       { targetId: "anshi-zhiluan", name: "安史之乱", type: "亲历实录" }
     ],
+    image: {
+      src: '/images/entries/tang/figure-dufu.webp',
+      caption: '【图版】杜甫先生画像摹本 · 选自明清名贤画传',
+      source: '《晚笑堂画传》'
+    },
     sources: ["《旧唐书·文苑传》", "《新唐书·文艺传》"],
     tags: ["诗圣", "诗史", "安史之乱"]
   },
@@ -347,6 +382,11 @@ export const tangEntries: HistoryEntry[] = [
     relations: [
       { targetId: "datang-xiyuji", name: "《大唐西域记》", type: "口述亲撰" }
     ],
+    image: {
+      src: '/images/entries/tang/figure-xuanzang.webp',
+      caption: '【图版】玄奘先生画像摹本 · 选自明清名贤画传',
+      source: '《晚笑堂画传》'
+    },
     sources: ["《旧唐书·方伎传》", "《大慈恩寺三藏法师传》"],
     tags: ["西行求法", "译经", "那烂陀"]
   },
@@ -392,6 +432,11 @@ export const tangEntries: HistoryEntry[] = [
     relations: [
       { targetId: "anshi-zhiluan", name: "安史之乱", type: "平叛主帅" }
     ],
+    image: {
+      src: '/images/entries/tang/figure-guo-ziyi.webp',
+      caption: '【图版】郭子仪先生画像摹本 · 选自明清名贤画传',
+      source: '《晚笑堂画传》'
+    },
     sources: ["《旧唐书·郭子仪传》", "《新唐书·郭子仪传》"],
     tags: ["中兴名将", "再造唐室", "单骑退虏"]
   },
@@ -434,6 +479,11 @@ export const tangEntries: HistoryEntry[] = [
       { year: 753, event: "第六次东渡成功，抵日本九州" },
       { year: 759, event: "创建唐招提寺" }
     ],
+    image: {
+      src: '/images/entries/tang/figure-jianzhen.webp',
+      caption: '【图版】鉴真先生画像摹本 · 选自明清名贤画传',
+      source: '《晚笑堂画传》'
+    },
     sources: ["《唐大和上东征传》", "《宋高僧传》"],
     tags: ["东渡", "律宗", "中日交流"]
   },
@@ -505,6 +555,11 @@ export const tangEntries: HistoryEntry[] = [
       { targetId: "tang-taizong-lishimin", name: "李世民", type: "主谋" },
       { targetId: "jinyang-qibing", name: "晋阳起兵", type: "前史" }
     ],
+    image: {
+      src: '/images/entries/tang/event-xuanwumen-zhibian.webp',
+      caption: '【图版】玄武门之变历史长卷全景图摹本',
+      source: '明清纪事版画舆图'
+    },
     sources: ["《旧唐书·太宗本纪》", "《资治通鉴·唐纪》"],
     tags: ["宫廷政变", "皇统", "贞观前夜"]
   },
@@ -550,6 +605,11 @@ export const tangEntries: HistoryEntry[] = [
       { targetId: "tang-taizong-lishimin", name: "李世民", type: "缔造者" },
       { targetId: "san-sheng-liu-bu", name: "三省六部制", type: "制度支撑" }
     ],
+    image: {
+      src: '/images/entries/tang/event-zhenguan-zhizhi.webp',
+      caption: '【图版】贞观之治历史长卷全景图摹本',
+      source: '明清纪事版画舆图'
+    },
     sources: ["《贞观政要》", "《资治通鉴·唐纪》"],
     tags: ["治世典范", "纳谏", "轻徭薄赋"]
   },
@@ -595,6 +655,11 @@ export const tangEntries: HistoryEntry[] = [
       { targetId: "tang-xuanzong-lilongji", name: "李隆基", type: "缔造者" },
       { targetId: "anshi-zhiluan", name: "安史之乱", type: "盛极而衰" }
     ],
+    image: {
+      src: '/images/entries/tang/event-kaiyuan-shengshi.webp',
+      caption: '【图版】开元盛世历史长卷全景图摹本',
+      source: '明清纪事版画舆图'
+    },
     sources: ["《旧唐书·玄宗本纪》", "《新唐书·食货志》"],
     tags: ["盛世巅峰", "开元", "盛唐气象"]
   },
@@ -640,6 +705,11 @@ export const tangEntries: HistoryEntry[] = [
       { targetId: "guo-ziyi", name: "郭子仪", type: "平叛主帅" },
       { targetId: "tumu-zhi-bian", name: "土木堡之变", type: "同为盛衰转折" }
     ],
+    image: {
+      src: '/images/entries/tang/event-anshi-zhiluan.webp',
+      caption: '【图版】安史之乱历史长卷全景图摹本',
+      source: '明清纪事版画舆图'
+    },
     sources: ["《旧唐书·安禄山传》", "《资治通鉴·唐纪》"],
     tags: ["藩镇", "由盛转衰", "中古分水岭"]
   },
@@ -2857,6 +2927,11 @@ export const tangEntries: HistoryEntry[] = [
         source: "《资治通鉴·卷一百九十六》"
       }
     ],
+    image: {
+      src: '/images/entries/tang/event-wencheng-gongzhu-rucang.webp',
+      caption: '【图版】文成公主入藏历史长卷全景图摹本',
+      source: '明清纪事版画舆图'
+    },
     sources: [
       "《旧唐书》",
       "《新唐书》",
@@ -3645,6 +3720,11 @@ export const tangEntries: HistoryEntry[] = [
         source: "《新唐书·逆臣传上》"
       }
     ],
+    image: {
+      src: '/images/entries/tang/figure-an-lushan.webp',
+      caption: '【图版】安禄山先生画像摹本 · 选自明清名贤画传',
+      source: '《晚笑堂画传》'
+    },
     sources: [
       "《旧唐书》",
       "《新唐书》",
@@ -3799,6 +3879,11 @@ export const tangEntries: HistoryEntry[] = [
         source: "《旧唐书·白居易传》"
       }
     ],
+    image: {
+      src: '/images/entries/tang/figure-bai-juyi.webp',
+      caption: '【图版】白居易先生画像摹本 · 选自明清名贤画传',
+      source: '《晚笑堂画传》'
+    },
     sources: [
       "《旧唐书》",
       "《新唐书》",
@@ -3944,6 +4029,11 @@ export const tangEntries: HistoryEntry[] = [
         source: "《旧唐书·狄仁杰传》"
       }
     ],
+    image: {
+      src: '/images/entries/tang/figure-diren-jie.webp',
+      caption: '【图版】狄仁杰先生画像摹本 · 选自明清名贤画传',
+      source: '《晚笑堂画传》'
+    },
     sources: [
       "《旧唐书》",
       "《新唐书》",
@@ -4074,6 +4164,11 @@ export const tangEntries: HistoryEntry[] = [
         source: "《旧唐书·杜如晦传》"
       }
     ],
+    image: {
+      src: '/images/entries/tang/figure-duruhui.webp',
+      caption: '【图版】杜如晦先生画像摹本 · 选自明清名贤画传',
+      source: '《晚笑堂画传》'
+    },
     sources: [
       "《旧唐书》",
       "《新唐书》",
@@ -4222,6 +4317,11 @@ export const tangEntries: HistoryEntry[] = [
         source: "《旧唐书·房玄龄传》"
       }
     ],
+    image: {
+      src: '/images/entries/tang/figure-fang-xuanling.webp',
+      caption: '【图版】房玄龄先生画像摹本 · 选自明清名贤画传',
+      source: '《晚笑堂画传》'
+    },
     sources: [
       "《旧唐书》",
       "《新唐书》",
@@ -4499,6 +4599,11 @@ export const tangEntries: HistoryEntry[] = [
         source: "《旧唐书·韩愈传》"
       }
     ],
+    image: {
+      src: '/images/entries/tang/figure-han-yu.webp',
+      caption: '【图版】韩愈先生画像摹本 · 选自明清名贤画传',
+      source: '《晚笑堂画传》'
+    },
     sources: [
       "《旧唐书》",
       "《新唐书》",
@@ -4747,6 +4852,11 @@ export const tangEntries: HistoryEntry[] = [
         source: "《旧唐书·李林甫传》"
       }
     ],
+    image: {
+      src: '/images/entries/tang/figure-li-linfu.webp',
+      caption: '【图版】李林甫先生画像摹本 · 选自明清名贤画传',
+      source: '《晚笑堂画传》'
+    },
     sources: [
       "《旧唐书》",
       "《新唐书》",
@@ -5017,6 +5127,11 @@ export const tangEntries: HistoryEntry[] = [
         source: "《旧唐书·李光弼传》"
       }
     ],
+    image: {
+      src: '/images/entries/tang/figure-liguangbi.webp',
+      caption: '【图版】李光弼先生画像摹本 · 选自明清名贤画传',
+      source: '《晚笑堂画传》'
+    },
     sources: [
       "《旧唐书》",
       "《新唐书》",
@@ -5147,6 +5262,11 @@ export const tangEntries: HistoryEntry[] = [
         source: "《新唐书·柳宗元传》"
       }
     ],
+    image: {
+      src: '/images/entries/tang/figure-liu-zongyuan.webp',
+      caption: '【图版】柳宗元先生画像摹本 · 选自明清名贤画传',
+      source: '《晚笑堂画传》'
+    },
     sources: [
       "《旧唐书》",
       "《新唐书》",
@@ -5395,6 +5515,11 @@ export const tangEntries: HistoryEntry[] = [
         source: "《旧唐书·宋璟传》"
       }
     ],
+    image: {
+      src: '/images/entries/tang/figure-song-jing.webp',
+      caption: '【图版】宋璟先生画像摹本 · 选自明清名贤画传',
+      source: '《晚笑堂画传》'
+    },
     sources: [
       "《旧唐书》",
       "《新唐书》",
@@ -5648,6 +5773,11 @@ export const tangEntries: HistoryEntry[] = [
         source: "朱景玄《唐朝名画录》"
       }
     ],
+    image: {
+      src: '/images/entries/tang/figure-wudaozi.webp',
+      caption: '【图版】吴道子先生画像摹本 · 选自明清名贤画传',
+      source: '《晚笑堂画传》'
+    },
     sources: [
       "《新唐书》",
       "《历代名画记》",
@@ -5795,6 +5925,11 @@ export const tangEntries: HistoryEntry[] = [
         source: "《新唐书·颜真卿传》"
       }
     ],
+    image: {
+      src: '/images/entries/tang/figure-yan-zhenqing.webp',
+      caption: '【图版】颜真卿先生画像摹本 · 选自明清名贤画传',
+      source: '《晚笑堂画传》'
+    },
     sources: [
       "《旧唐书》",
       "《新唐书》",
@@ -5917,6 +6052,11 @@ export const tangEntries: HistoryEntry[] = [
         source: "《新唐书·杨国忠传》"
       }
     ],
+    image: {
+      src: '/images/entries/tang/figure-yang-guozhong.webp',
+      caption: '【图版】杨国忠先生画像摹本 · 选自明清名贤画传',
+      source: '《晚笑堂画传》'
+    },
     sources: [
       "《旧唐书》",
       "《新唐书》",
@@ -6051,6 +6191,11 @@ export const tangEntries: HistoryEntry[] = [
         source: "《资治通鉴》"
       }
     ],
+    image: {
+      src: '/images/entries/tang/figure-yao-chong.webp',
+      caption: '【图版】姚崇先生画像摹本 · 选自明清名贤画传',
+      source: '《晚笑堂画传》'
+    },
     sources: [
       "《旧唐书》",
       "《新唐书》",
@@ -6314,6 +6459,11 @@ export const tangEntries: HistoryEntry[] = [
         source: "《资治通鉴·卷二百》"
       }
     ],
+    image: {
+      src: '/images/entries/tang/figure-zhangsun-wuji.webp',
+      caption: '【图版】长孙无忌先生画像摹本 · 选自明清名贤画传',
+      source: '《晚笑堂画传》'
+    },
     sources: [
       "《旧唐书》",
       "《新唐书》",

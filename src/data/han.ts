@@ -1064,6 +1064,11 @@ export const hanEntries: HistoryEntry[] = [
         source: "《史记·项羽本纪》"
       }
     ],
+    image: {
+      src: '/images/entries/han/event-chu-han-zhizheng.webp',
+      caption: '【图版】楚汉之争历史长卷全景图摹本',
+      source: '明清纪事版画舆图'
+    },
     sources: [
       "《史记》",
       "《汉书》",
@@ -2583,6 +2588,11 @@ export const hanEntries: HistoryEntry[] = [
         source: "《史记·卫将军骠骑列传》"
       }
     ],
+    image: {
+      src: '/images/entries/han/figure-huo-qubing.webp',
+      caption: '【图版】霍去病先生画像摹本 · 选自明清名贤画传',
+      source: '《晚笑堂画传》'
+    },
     sources: [
       "《史记》",
       "《汉书》",
@@ -2959,6 +2969,11 @@ export const hanEntries: HistoryEntry[] = [
         source: "《后汉书·光武帝纪》"
       }
     ],
+    image: {
+      src: '/images/entries/han/event-kunyang-zhizhan.webp',
+      caption: '【图版】昆阳之战历史长卷全景图摹本',
+      source: '明清纪事版画舆图'
+    },
     sources: [
       "《后汉书》",
       "《汉书》",
@@ -3243,6 +3258,11 @@ export const hanEntries: HistoryEntry[] = [
         source: "《汉书·武帝纪》"
       }
     ],
+    image: {
+      src: '/images/entries/han/emperor-liu-che.webp',
+      caption: '【图版】刘彻御容坐像摹本 · 选自清代重摹历代帝王像',
+      source: '南薰殿旧藏历代帝王像'
+    },
     sources: [
       "《史记》",
       "《汉书》",
@@ -3370,6 +3390,11 @@ export const hanEntries: HistoryEntry[] = [
         source: "《汉书·刑法志》"
       }
     ],
+    image: {
+      src: '/images/entries/han/emperor-liu-heng.webp',
+      caption: '【图版】刘恒御容坐像摹本 · 选自清代重摹历代帝王像',
+      source: '南薰殿旧藏历代帝王像'
+    },
     sources: [
       "《史记》",
       "《汉书》",
@@ -3614,6 +3639,11 @@ export const hanEntries: HistoryEntry[] = [
         source: "《后汉书·光武帝纪》"
       }
     ],
+    image: {
+      src: '/images/entries/han/emperor-liu-xiu.webp',
+      caption: '【图版】刘秀御容坐像摹本 · 选自清代重摹历代帝王像',
+      source: '南薰殿旧藏历代帝王像'
+    },
     sources: [
       "《后汉书》",
       "《资治通鉴》",
@@ -4031,6 +4061,11 @@ export const hanEntries: HistoryEntry[] = [
         source: "《史记·高祖本纪》"
       }
     ],
+    image: {
+      src: '/images/entries/han/emperor-liubang.webp',
+      caption: '【图版】刘邦御容坐像摹本 · 选自清代重摹历代帝王像',
+      source: '南薰殿旧藏历代帝王像'
+    },
     sources: [
       "《史记》",
       "《汉书》",
@@ -4167,6 +4202,11 @@ export const hanEntries: HistoryEntry[] = [
         source: "《史记·孝景本纪》"
       }
     ],
+    image: {
+      src: '/images/entries/han/emperor-liuqi.webp',
+      caption: '【图版】刘启御容坐像摹本 · 选自清代重摹历代帝王像',
+      source: '南薰殿旧藏历代帝王像'
+    },
     sources: [
       "《史记》",
       "《汉书》",
@@ -5039,6 +5079,11 @@ export const hanEntries: HistoryEntry[] = [
         source: "《汉书·司马迁传》"
       }
     ],
+    image: {
+      src: '/images/entries/han/figure-sima.webp',
+      caption: '【图版】司马迁先生画像摹本 · 选自明清名贤画传',
+      source: '《晚笑堂画传》'
+    },
     sources: [
       "《史记》",
       "《汉书》",
@@ -6630,6 +6675,11 @@ export const hanEntries: HistoryEntry[] = [
         source: "《汉书·张骞李广利传》"
       }
     ],
+    image: {
+      src: '/images/entries/han/event-zhangqian-tongxiyu.webp',
+      caption: '【图版】张骞通西域历史长卷全景图摹本',
+      source: '明清纪事版画舆图'
+    },
     sources: [
       "《史记》",
       "《汉书》",
