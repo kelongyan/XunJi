@@ -1,0 +1,280 @@
+<script setup lang="ts">
+/**
+ * 万卷星图 · 全站关系图谱页
+ * 五朝为星，万卷为野：339 词条 + 940 段关系的三维可漫游网络。
+ * 派生数据由 src/data/graph.ts 构建，场景由 StarGraph.vue 渲染。
+ */
+import { computed, defineAsyncComponent, onBeforeUnmount, ref, watch } from 'vue'
+import { RouterLink } from 'vue-router'
+import { ArrowRight, X } from 'lucide-vue-next'
+import TextbookHeader from '../components/common/TextbookHeader.vue'
+import Masthead from '../components/common/Masthead.vue'
+import SealStamp from '../components/common/SealStamp.vue'
+import { graphData, type GraphNode } from '../data/graph'
+import { RELATION_FAMILIES, RELATION_FAMILY_META, type RelationFamily } from '../data/relationTaxonomy'
+import { defaultDynasty, getDynastyTheme } from '../data/dynastyThemes'
+
+const StarGraph = defineAsyncComponent(() => import('../components/three/StarGraph.vue'))
+
+const show3d = ref(true)
+const focused = ref<GraphNode | null>(null)
+const hovered = ref<GraphNode | null>(null)
+
+/* 页面进入即复位朝代染色（星图以全朝视角呈现，页面主题取明并为默认） */
+watch(
+  () => true,
+  () => {
+    document.documentElement.dataset.dynasty = defaultDynasty.id
+  },
+  { immediate: true }
+)
+onBeforeUnmount(() => {
+  document.documentElement.dataset.dynasty = defaultDynasty.id
+})
+
+/** 聚焦节点的关系清单（按关系族分组，供侧栏"关联谱系"） */
+const focusRelations = computed(() => {
+  const node = focused.value
+  if (!node || node.kind !== 'entry') return []
+  const byId = new Map(graphData.nodes.map(n => [n.id, n]))
+  const rows: Array<{ other: string; otherId: string; family: RelationFamily; raw: string; dir: '出' | '入' }> = []
+  for (const e of graphData.edges) {
+    if (e.kind !== 'relation') continue
+    if (e.source === node.id) {
+      const o = byId.get(e.target)
+      if (o) rows.push({ other: o.name, otherId: o.id, family: e.family, raw: e.rawType, dir: '出' })
+    } else if (e.target === node.id) {
+      const o = byId.get(e.source)
+      if (o) rows.push({ other: o.name, otherId: o.id, family: e.family, raw: e.rawType, dir: '入' })
+    }
+  }
+  return rows.slice(0, 18)
+})
+
+/** 聚焦节点的连边数（含入向与出向） */
+const focusLinkCount = computed(() => {
+  const node = focused.value
+  if (!node) return 0
+  return graphData.edges.filter(
+    e => e.kind === 'relation' && (e.source === node.id || e.target === node.id)
+  ).length
+})
+
+/** 侧栏摘要（截断长文） */
+const focusSummary = computed(() => {
+  const s = focused.value?.entry?.summary
+  if (!s) return ''
+  return s.length > 120 ? s.slice(0, 118) + '……' : s
+})
+
+const stat = computed(() => {
+  const entries = graphData.nodes.filter(n => n.kind === 'entry')
+  const relations = graphData.edges.filter(e => e.kind === 'relation')
+  return { entries: entries.length, relations: relations.length }
+})
+
+const typeLabel = (t: string) =>
+  t === 'emperor' ? '帝王篇' : t === 'figure' ? '人物篇' : t === 'event' ? '重大事件' : t === 'classic' ? '传世典籍' : t === 'system' ? '典章制度' : t
+
+const familyLine = (f: RelationFamily) => RELATION_FAMILY_META[f]?.line ?? 'solid'
+
+function onFocus(node: GraphNode | null) {
+  focused.value = node
+}
+function onHover(node: GraphNode | null) {
+  hovered.value = node
+}
+function closeFocus() {
+  focused.value = null
+}
+/** 星图聚焦事件 → 同步高亮侧栏印章色 */
+const focusedTheme = computed(() => (focused.value ? getDynastyTheme(focused.value.dynastyId) : null))
+</script>
+
+<template>
+  <div class="min-h-screen font-sans text-foreground paper-texture flex flex-col justify-between">
+    <div>
+      <TextbookHeader folio="071" subChapter="万卷星图 · 全站关系网络" />
+
+      <main class="max-w-[1500px] mx-auto px-6 py-8">
+        <!-- 页头 -->
+        <div v-reveal class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-5">
+          <div class="space-y-3">
+            <div class="eyebrow">星野分野 · 关系总览</div>
+            <h1 class="display-title">万卷星图</h1>
+            <p class="text-[15px] font-serif text-muted-foreground max-w-2xl leading-relaxed">
+              五朝为定盘之星，词条作漫天星野——{{ stat.entries }} 颗星辰、{{ stat.relations }} 缕星光。拖拽环视，点击星辰聚焦，一眼看清人物与事件的千古因缘。
+            </p>
+          </div>
+          <div class="flex items-center gap-5 shrink-0">
+            <div class="text-right space-y-1.5">
+              <div class="spec-number">{{ stat.entries }}</div>
+              <div class="spec-label">词条星辰</div>
+            </div>
+            <div class="text-right space-y-1.5">
+              <div class="spec-number">{{ stat.relations }}</div>
+              <div class="spec-label">关系星光</div>
+            </div>
+            <SealStamp text="星图" class="seal-drop hidden sm:block" />
+          </div>
+        </div>
+
+        <!-- 星图画布 -->
+        <div
+          class="relative w-full overflow-hidden border border-border/70 bg-background/40"
+          :style="{ height: 'clamp(620px, 78vh, 920px)' }"
+        >
+          <template v-if="show3d">
+            <StarGraph @focus="onFocus" @hover="onHover" @fallback="show3d = false" />
+
+            <!-- 操作提示（底部细条） -->
+            <div class="absolute bottom-0 inset-x-0 px-4 py-2 flex flex-wrap items-center gap-x-5 gap-y-1 text-[12px] text-muted-foreground bg-gradient-to-t from-[color:var(--paper-base)] to-transparent pointer-events-none">
+              <span>拖动环视</span>
+              <span>滚轮推近</span>
+              <span>点击星辰聚焦</span>
+              <span>空白处取消</span>
+            </div>
+
+            <!-- 悬停题名（左上角即时反馈） -->
+            <Transition name="fade-swap">
+              <div
+                v-if="hovered && (!focused || hovered.id !== focused.id)"
+                class="absolute top-3 left-3 px-3 py-1.5 bg-card/90 border border-border/70 text-[13px] font-serif pointer-events-none"
+              >
+                {{ hovered.name }}
+                <span class="text-muted-foreground/80 ml-2">{{ hovered.dynasty }}</span>
+              </div>
+            </Transition>
+
+            <!-- 聚焦侧栏 -->
+            <Transition name="guide-fade">
+              <aside
+                v-if="focused"
+                class="absolute top-0 right-0 h-full w-full sm:w-[340px] bg-card/95 backdrop-blur-sm border-l border-border/70 overflow-y-auto"
+              >
+                <div class="p-5 space-y-5">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                      <span
+                        class="w-2.5 h-2.5 shrink-0"
+                        :style="{ backgroundColor: focusedTheme?.accent }"
+                      ></span>
+                      <span class="index-meta truncate">{{ focused.dynasty }}{{ focused.entry?.era ? ' · ' + focused.entry.era : '' }}</span>
+                    </div>
+                    <button
+                      type="button"
+                      class="text-muted-foreground hover:text-foreground cursor-pointer shrink-0"
+                      aria-label="收起侧栏"
+                      @click="closeFocus"
+                    >
+                      <X class="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div class="space-y-2">
+                    <div class="flex flex-wrap items-baseline gap-x-3 gap-y-2">
+                      <h2 class="display-heading !text-[1.6rem]">{{ focused.name }}</h2>
+                      <span class="index-meta">{{ typeLabel(focused.type) }}</span>
+                    </div>
+                    <p class="text-[13px] font-serif text-muted-foreground">星度 {{ focused.degree }} 途 · {{ focusLinkCount }} 缕星光相连</p>
+                  </div>
+
+                  <p v-if="focusSummary" class="text-[13px] font-serif text-foreground/85 leading-relaxed">
+                    {{ focusSummary }}
+                  </p>
+
+                  <RouterLink
+                    v-if="focused.kind === 'entry'"
+                    :to="`/entry/${focused.id}`"
+                    class="inline-flex items-center gap-1.5 text-[13px] font-serif text-[var(--dynasty-accent)] hover:opacity-80 transition-opacity"
+                  >
+                    <span>进入词条全文</span>
+                    <ArrowRight class="w-3.5 h-3.5" />
+                  </RouterLink>
+
+                  <template v-if="focusRelations.length">
+                    <div class="rule"></div>
+                    <div>
+                      <div class="eyebrow mb-2.5">关联谱系 · 星光所至</div>
+                      <ul class="space-y-2">
+                        <li
+                          v-for="(r, i) in focusRelations"
+                          :key="i"
+                          class="flex items-center gap-2 text-[13px] font-serif leading-snug"
+                        >
+                          <span
+                            class="w-4 shrink-0 border-t"
+                            :style="{
+                              borderColor: focusedTheme?.accent,
+                              borderTopStyle: familyLine(r.family) === 'dashed' ? 'dashed' : familyLine(r.family) === 'dotted' ? 'dotted' : 'solid',
+                              opacity: 0.8
+                            }"
+                          ></span>
+                          <RouterLink :to="`/entry/${r.otherId}`" class="text-foreground/90 hover:text-[var(--dynasty-accent)] transition-colors shrink-0">
+                            {{ r.other }}
+                          </RouterLink>
+                          <span class="text-muted-foreground/80 truncate">{{ r.raw }}<template v-if="r.dir === '入'"> ←</template></span>
+                        </li>
+                      </ul>
+                    </div>
+                  </template>
+                </div>
+              </aside>
+            </Transition>
+          </template>
+
+          <!-- 降级静态版（窄屏 / WebGL 不可用） -->
+          <div v-else class="h-full flex items-center justify-center">
+            <div class="text-center space-y-4 px-8">
+              <SealStamp text="星图" class="mx-auto" />
+              <p class="font-serif text-[15px] text-muted-foreground leading-relaxed max-w-md">
+                当前设备不适合渲染三维星图。<br />
+                请在桌面浏览器中打开，或前往编年长卷纵览历代时序。
+              </p>
+              <RouterLink
+                to="/timeline"
+                class="inline-flex items-center gap-1.5 text-[13px] font-serif text-[var(--dynasty-accent)] hover:opacity-80"
+              >
+                <span>前往编年长卷</span>
+                <ArrowRight class="w-3.5 h-3.5" />
+              </RouterLink>
+            </div>
+          </div>
+        </div>
+
+        <!-- 图例与说明 -->
+        <div v-reveal class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-10">
+          <div>
+            <div class="eyebrow mb-3.5">光谱图例 · 关系十族</div>
+            <ul class="grid grid-cols-2 gap-x-6 gap-y-2.5">
+              <li v-for="f in RELATION_FAMILIES" :key="f.id" class="flex items-center gap-2.5 text-[13px] font-serif">
+                <span
+                  class="w-6 shrink-0 border-t-2"
+                  :style="{ borderColor: 'var(--ink-soft)', borderTopStyle: f.line === 'dashed' ? 'dashed' : f.line === 'dotted' ? 'dotted' : 'solid' }"
+                ></span>
+                <span class="text-foreground/90">{{ f.label }}</span>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <div class="eyebrow mb-3.5">星体图例 · 五种形态</div>
+            <ul class="space-y-2.5 text-[13px] font-serif">
+              <li class="flex items-center gap-3"><span class="w-2.5 h-2.5 rounded-full bg-[var(--ink-soft)]"></span>人物 · 圆</li>
+              <li class="flex items-center gap-3"><span class="w-2.5 h-2.5 bg-[var(--ink-soft)]"></span>帝王 · 方</li>
+              <li class="flex items-center gap-3"><span class="w-2.5 h-2.5 bg-[var(--ink-soft)] rotate-45"></span>事件 · 菱形</li>
+              <li class="flex items-center gap-3"><span class="w-2.5 h-2.5 bg-[var(--ink-soft)]" style="clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0% 50%)"></span>典籍 / 制度 · 六边形</li>
+            </ul>
+          </div>
+          <div>
+            <div class="eyebrow mb-3.5">观星须知</div>
+            <p class="text-[13px] font-serif text-muted-foreground leading-relaxed">
+              星体大小取自词条在史事中的关联广度；星体分布以编年骨架为底，兼有星群自然团簇。五朝锚点已按年代排开，跨朝代连线即为古今之回响——明清鼎革、汉唐并峙，皆可循迹。
+            </p>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <Masthead left="寻迹 · 万卷星图" note="星野分野 · 关系总览" folio="072" />
+  </div>
+</template>

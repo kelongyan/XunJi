@@ -434,6 +434,11 @@ export const tangEntries: HistoryEntry[] = [
       { year: 753, event: "第六次东渡成功，抵日本九州" },
       { year: 759, event: "创建唐招提寺" }
     ],
+    relations: [
+      { targetId: "xuanzang", name: "玄奘", type: "同类高僧", note: "一西行求法，一东渡传戒，并称唐代佛教交流双峰" },
+      { targetId: "xuanzang-xixing-qufa", name: "玄奘西行求法", type: "类比", note: "同为舍身求法的传奇经历，方向相反" },
+      { targetId: "tang-fan-huimeng", name: "唐蕃会盟", type: "时代背景", note: "玄宗朝对外交流频繁的时代氛围" }
+    ],
     sources: ["《唐大和上东征传》", "《宋高僧传》"],
     tags: ["东渡", "律宗", "中日交流"]
   },

@@ -14,6 +14,7 @@ const navItems = [
   { to: '/', label: '目录总览', exact: true },
   { to: '/search', label: '史料考索', exact: false },
   { to: '/timeline', label: '纪年长卷', exact: false },
+  { to: '/graph', label: '万卷星图', exact: false },
   { to: '/compare', label: '双卷合参', exact: false }
 ]
 </script>

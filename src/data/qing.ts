@@ -5840,7 +5840,12 @@ export const qingEntries: HistoryEntry[] = [
         event: "嘉庆二十五年七月二十四日，崩于避暑山庄，终年六十一岁；绵宁继位，改元道光"
       }
     ],
-    relations: [],
+    relations: [
+      { targetId: "hongli", name: "弘历", type: "父子", note: "乾隆第十五子，承盛世余绪即位" },
+      { targetId: "bailianjiao-qiyi", name: "白莲教起义", type: "军事", note: "在位最大战事，耗银二亿两" },
+      { targetId: "junji-chu", name: "军机处", type: "制度依托", note: "承雍正所设军机处，皇权集中格局延续" },
+      { targetId: "wen-zi-yu", name: "文字狱", type: "时代背景", note: "乾隆朝文字狱余绪未消，士林噤声依旧" }
+    ],
     quotes: [
       {
         text: "仁宗初逢训政，恭谨无违。迨躬莅万几，锄奸登善，削平逋寇，捕治海盗，力握要枢，崇俭勤事，辟地移民，治绩颇盛。然承贪污盈廷之弊，又值教匪、海盗、天理教之乱，吏治民风，日趋浇漓，而清之治亦渐替矣。",
