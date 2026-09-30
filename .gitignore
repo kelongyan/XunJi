@@ -27,6 +27,10 @@ dist-ssr/
 # AI 工作区数据（本地）
 .workbuddy/
 
+# 内容锻造炉：凭据与生成中间产物不入库
+tools/content-forge/.env
+tools/content-forge/out/
+
 # 系统文件
 Thumbs.db
 .DS_Store
