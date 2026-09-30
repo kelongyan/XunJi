@@ -50,10 +50,10 @@ function close() {
           <div class="absolute -top-4 -right-3">
             <SealStamp text="启程" class="seal-stamp-sm" />
           </div>
-          <div class="text-[11px] font-mono text-muted-foreground tracking-[0.3em] mb-3">{{ step + 1 }} / {{ steps.length }}</div>
+          <div class="text-[13px] font-mono text-muted-foreground tracking-[0.3em] mb-3">{{ step + 1 }} / {{ steps.length }}</div>
           <component :is="steps[step].icon" class="w-7 h-7 mx-auto text-primary mb-3" />
           <h3 class="text-xl font-serif font-black text-foreground tracking-wide">{{ steps[step].title }}</h3>
-          <p class="text-xs md:text-[13px] font-serif text-muted-foreground leading-relaxed mt-3 font-textbook-body">
+          <p class="text-[15px] font-serif text-muted-foreground leading-relaxed mt-3 font-textbook-body">
             {{ steps[step].desc }}
           </p>
           <div class="flex items-center justify-center gap-1.5 my-5">
@@ -67,14 +67,14 @@ function close() {
           <div class="flex items-center justify-center gap-3">
             <button
               type="button"
-              class="text-xs font-serif text-muted-foreground hover:text-foreground transition-colors cursor-pointer px-3 py-1.5"
+              class="text-[13px] font-serif text-muted-foreground hover:text-foreground transition-colors cursor-pointer px-3 py-1.5"
               @click="close"
             >
               跳过
             </button>
             <button
               type="button"
-              class="px-7 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-serif tracking-widest text-sm font-bold transition-transform active:scale-95 cursor-pointer"
+              class="px-7 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-serif tracking-widest text-[15px] font-bold transition-transform active:scale-95 cursor-pointer"
               @click="next"
             >
               {{ isLast ? '开卷寻迹' : '下一步' }}

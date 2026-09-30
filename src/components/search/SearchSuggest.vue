@@ -129,7 +129,7 @@ defineExpose({
       :value="modelValue"
       :placeholder="placeholder"
       :autofocus="autoFocus"
-      class="w-full pl-12 pr-4 py-3.5 bg-background/90 border-2 border-border focus:border-primary focus:outline-none text-foreground text-sm font-serif placeholder:font-serif placeholder:text-muted-foreground/70 transition-colors shadow-inner"
+      class="w-full pl-12 pr-4 py-3.5 bg-background/90 border-2 border-border focus:border-primary focus:outline-none text-foreground text-[15px] font-serif placeholder:font-serif placeholder:text-muted-foreground/70 transition-colors shadow-inner"
       :class="inputClass"
       @input="onInput"
       @keydown="onKeydown"
@@ -152,18 +152,18 @@ defineExpose({
           @mousedown.prevent="doSelect(entry)"
           @mousemove="activeIndex = i"
         >
-          <span class="text-sm font-serif text-foreground truncate">
+          <span class="text-[15px] font-serif text-foreground truncate">
             <template v-for="(seg, si) in splitHighlight(entry.name, modelValue)" :key="si">
               <span v-if="seg.hit" class="suggest-hit">{{ seg.text }}</span>
               <template v-else>{{ seg.text }}</template>
             </template>
           </span>
-          <span class="text-[11px] font-serif text-muted-foreground shrink-0">
+          <span class="text-[13px] font-serif text-muted-foreground shrink-0">
             <span class="dynasty-accent-text">{{ entry.dynasty }}</span>
             <span class="mx-1 text-border">/</span>{{ typeLabel(entry) }}<template v-if="entry.era"> · {{ entry.era }}</template>
           </span>
         </li>
-        <li class="px-4 py-1.5 text-[10px] font-serif text-muted-foreground/70 border-t border-border/60 bg-background/60">
+        <li class="px-4 py-1.5 text-[12px] font-serif text-muted-foreground/70 border-t border-border/60 bg-background/60">
           ↑↓ 选择 · Enter 直达词条 · Esc 收起
         </li>
       </ul>

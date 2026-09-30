@@ -226,7 +226,7 @@ body {
 .textbook-margin-note {
   border-left: 2px dashed var(--paper-deep);
   padding-left: 0.75rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--ink-soft);
   line-height: 1.6;
 }
@@ -379,7 +379,7 @@ body {
   text-orientation: mixed;
   font-family: var(--font-kai);
   color: var(--dynasty-accent);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   letter-spacing: 0.18em;
   line-height: 1.9;
   border-left: 1px solid color-mix(in srgb, var(--dynasty-accent) 35%, transparent);
@@ -408,8 +408,8 @@ html.dark .paper-texture {
   gap: 5px;
   border: 1px solid var(--border);
   background: var(--background);
-  padding: 3px 9px;
-  font-size: 0.6875rem;
+  padding: 4px 10px;
+  font-size: var(--type-note);
   letter-spacing: 0.14em;
   color: var(--muted-foreground);
   cursor: pointer;
@@ -566,11 +566,11 @@ html.dark .hover-lift:hover {
 
 kbd.kbd {
   display: inline-block;
-  min-width: 1.4em;
+  min-width: 1.5em;
   text-align: center;
-  padding: 0 4px;
+  padding: 1px 5px;
   font-family: var(--font-serif);
-  font-size: 10px;
+  font-size: var(--type-label);
   line-height: 1.5;
   color: var(--foreground);
   background: var(--background);
@@ -593,7 +593,7 @@ mark.suggest-hit {
   border: 1px solid var(--border);
   background: var(--background);
   font-family: var(--font-serif);
-  font-size: 12px;
+  font-size: var(--type-note);
   letter-spacing: 0.1em;
   color: var(--muted-foreground);
   cursor: pointer;
@@ -641,12 +641,16 @@ mark.suggest-hit {
 /* ── 排印纪律层 v4：编辑设计尺度 + 编目工具类 ─────────────────────── */
 
 :root {
-  /* 排印三级尺度：巨 / 中 / 微，中间不设过渡字号 */
+  /* 排印尺度体系 v5 · 中文优先：四档收敛（微标签 12 / 辅助 13 / 正文 15 / 长文 16） */
   --type-hero: clamp(2.5rem, 5.4vw, 4rem);
   --type-display: clamp(1.75rem, 3.2vw, 2.375rem);
-  --type-label: 0.6875rem;
+  --type-title: 1.25rem; /* 区块标题 20px */
+  --type-longform: 1rem; /* 长文正文 16px */
+  --type-reading: 0.9375rem; /* 正文 15px */
+  --type-note: 0.8125rem; /* 辅助说明 13px */
+  --type-label: 0.75rem; /* 微标签 12px */
   --track-hero: -0.01em;
-  --track-label: 0.22em;
+  --track-label: 0.2em;
   --leading-hero: 1.14;
 }
 

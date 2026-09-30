@@ -24,7 +24,7 @@ withDefaults(
     >
       {{ text }}
     </span>
-    <span v-if="subtext" class="text-[10px] text-muted-foreground font-serif mt-1.5 tracking-wider">
+    <span v-if="subtext" class="text-[12px] text-muted-foreground font-serif mt-1.5 tracking-wider">
       {{ subtext }}
     </span>
   </div>

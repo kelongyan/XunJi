@@ -42,7 +42,7 @@ const navItems = [
             v-for="item in navItems"
             :key="item.to"
             :to="item.to"
-            class="text-[11px] tracking-[0.2em] text-muted-foreground hover:text-[var(--dynasty-accent)] transition-colors whitespace-nowrap"
+            class="text-[13px] tracking-[0.2em] text-muted-foreground hover:text-[var(--dynasty-accent)] transition-colors whitespace-nowrap"
             :class="
               item.exact
                 ? '[&.router-link-exact-active]:text-[var(--dynasty-accent)]'

@@ -174,7 +174,7 @@ onBeforeUnmount(() => {
         <button
           v-if="ui.immersive"
           type="button"
-          class="absolute top-5 right-6 z-30 mode-toggle !text-xs"
+          class="absolute top-5 right-6 z-30 mode-toggle !text-[13px]"
           @click="ui.exitImmersive()"
         >
           <Minimize2 class="w-3.5 h-3.5" />
@@ -202,7 +202,7 @@ onBeforeUnmount(() => {
                   纵观华夏，<br />
                   <span class="display-em">一部长河里的通史</span>。
                 </h1>
-                <p class="text-base md:text-lg font-serif text-muted-foreground leading-relaxed max-w-2xl">
+                <p class="text-base md:text-xl font-serif text-muted-foreground leading-relaxed max-w-2xl">
                   以中国传统典籍装帧的视觉语言为基调，宋体正文、朱笔圈点、竖排史料——像翻一部会呼吸的纸墨史册。
                 </p>
               </div>
@@ -220,7 +220,7 @@ onBeforeUnmount(() => {
                   />
                   <button
                     type="submit"
-                    class="px-9 py-3.5 bg-[var(--dynasty-accent)] hover:opacity-90 text-primary-foreground font-serif tracking-[0.2em] text-sm flex items-center justify-center gap-2.5 transition-opacity active:scale-95 cursor-pointer"
+                    class="px-9 py-3.5 bg-[var(--dynasty-accent)] hover:opacity-90 text-primary-foreground font-serif tracking-[0.2em] text-[15px] flex items-center justify-center gap-2.5 transition-opacity active:scale-95 cursor-pointer"
                   >
                     <span>开卷寻迹</span>
                     <ArrowRight class="w-4 h-4" />
@@ -229,14 +229,14 @@ onBeforeUnmount(() => {
 
                 <div class="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2">
                   <span class="eyebrow is-plain">核心词条索引</span>
-                  <RouterLink to="/entry/zhang-juzheng" class="text-xs font-serif text-muted-foreground hover:text-[var(--dynasty-accent)] transition-colors">张居正</RouterLink>
-                  <RouterLink to="/search?q=靖难之役" class="text-xs font-serif text-muted-foreground hover:text-[var(--dynasty-accent)] transition-colors">靖难之役</RouterLink>
-                  <RouterLink to="/search?q=永乐大典" class="text-xs font-serif text-muted-foreground hover:text-[var(--dynasty-accent)] transition-colors">永乐大典</RouterLink>
-                  <RouterLink to="/search?q=一条鞭法" class="text-xs font-serif text-muted-foreground hover:text-[var(--dynasty-accent)] transition-colors">一条鞭法</RouterLink>
-                  <RouterLink to="/search?q=王阳明" class="text-xs font-serif text-muted-foreground hover:text-[var(--dynasty-accent)] transition-colors">王阳明</RouterLink>
+                  <RouterLink to="/entry/zhang-juzheng" class="text-[13px] font-serif text-muted-foreground hover:text-[var(--dynasty-accent)] transition-colors">张居正</RouterLink>
+                  <RouterLink to="/search?q=靖难之役" class="text-[13px] font-serif text-muted-foreground hover:text-[var(--dynasty-accent)] transition-colors">靖难之役</RouterLink>
+                  <RouterLink to="/search?q=永乐大典" class="text-[13px] font-serif text-muted-foreground hover:text-[var(--dynasty-accent)] transition-colors">永乐大典</RouterLink>
+                  <RouterLink to="/search?q=一条鞭法" class="text-[13px] font-serif text-muted-foreground hover:text-[var(--dynasty-accent)] transition-colors">一条鞭法</RouterLink>
+                  <RouterLink to="/search?q=王阳明" class="text-[13px] font-serif text-muted-foreground hover:text-[var(--dynasty-accent)] transition-colors">王阳明</RouterLink>
                 </div>
 
-                <div class="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-muted-foreground">
+                <div class="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-muted-foreground">
                   <span>拖动环视</span>
                   <span>滚轮推近</span>
                   <span>点击卷轴启程</span>
@@ -260,7 +260,7 @@ onBeforeUnmount(() => {
                   纵观华夏，<br />
                   <span class="display-em">一部长河里的通史</span>。
                 </h1>
-                <p class="text-base md:text-lg font-serif text-muted-foreground leading-relaxed max-w-2xl">
+                <p class="text-base md:text-xl font-serif text-muted-foreground leading-relaxed max-w-2xl">
                   以中国传统典籍装帧的视觉语言为基调，宋体正文、朱笔圈点、竖排史料——像翻一部会呼吸的纸墨史册。
                 </p>
               </div>
@@ -284,7 +284,7 @@ onBeforeUnmount(() => {
                 />
                 <button
                   type="submit"
-                  class="px-9 py-3.5 bg-[var(--dynasty-accent)] hover:opacity-90 text-primary-foreground font-serif tracking-[0.2em] text-sm flex items-center justify-center gap-2.5 transition-opacity active:scale-95 cursor-pointer"
+                  class="px-9 py-3.5 bg-[var(--dynasty-accent)] hover:opacity-90 text-primary-foreground font-serif tracking-[0.2em] text-[15px] flex items-center justify-center gap-2.5 transition-opacity active:scale-95 cursor-pointer"
                 >
                   <span>开卷寻迹</span>
                   <ArrowRight class="w-4 h-4" />
@@ -293,11 +293,11 @@ onBeforeUnmount(() => {
 
               <div class="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2">
                 <span class="eyebrow is-plain">核心词条索引</span>
-                <RouterLink to="/entry/zhang-juzheng" class="text-xs font-serif text-muted-foreground hover:text-[var(--dynasty-accent)] transition-colors">张居正</RouterLink>
-                <RouterLink to="/search?q=靖难之役" class="text-xs font-serif text-muted-foreground hover:text-[var(--dynasty-accent)] transition-colors">靖难之役</RouterLink>
-                <RouterLink to="/search?q=永乐大典" class="text-xs font-serif text-muted-foreground hover:text-[var(--dynasty-accent)] transition-colors">永乐大典</RouterLink>
-                <RouterLink to="/search?q=一条鞭法" class="text-xs font-serif text-muted-foreground hover:text-[var(--dynasty-accent)] transition-colors">一条鞭法</RouterLink>
-                <RouterLink to="/search?q=王阳明" class="text-xs font-serif text-muted-foreground hover:text-[var(--dynasty-accent)] transition-colors">王阳明</RouterLink>
+                <RouterLink to="/entry/zhang-juzheng" class="text-[13px] font-serif text-muted-foreground hover:text-[var(--dynasty-accent)] transition-colors">张居正</RouterLink>
+                <RouterLink to="/search?q=靖难之役" class="text-[13px] font-serif text-muted-foreground hover:text-[var(--dynasty-accent)] transition-colors">靖难之役</RouterLink>
+                <RouterLink to="/search?q=永乐大典" class="text-[13px] font-serif text-muted-foreground hover:text-[var(--dynasty-accent)] transition-colors">永乐大典</RouterLink>
+                <RouterLink to="/search?q=一条鞭法" class="text-[13px] font-serif text-muted-foreground hover:text-[var(--dynasty-accent)] transition-colors">一条鞭法</RouterLink>
+                <RouterLink to="/search?q=王阳明" class="text-[13px] font-serif text-muted-foreground hover:text-[var(--dynasty-accent)] transition-colors">王阳明</RouterLink>
               </div>
             </div>
           </div>
@@ -329,7 +329,7 @@ onBeforeUnmount(() => {
                     <span class="index-meta">{{ todayEntry.pinyin }}</span>
                     <span class="index-meta">{{ todayEntry.lifespan?.birth }}—{{ todayEntry.lifespan?.death }}</span>
                   </div>
-                  <p class="text-[13px] font-serif text-muted-foreground mt-3">
+                  <p class="text-[15px] font-serif text-muted-foreground mt-3">
                     字叔大，号太岳，湖广江陵人。万历朝内阁首辅、明代杰出改革家。
                   </p>
 
@@ -354,7 +354,7 @@ onBeforeUnmount(() => {
               <div class="mt-7 flex justify-end">
                 <RouterLink
                   :to="`/entry/${todayEntry.id}`"
-                  class="text-xs font-serif text-[var(--dynasty-accent)] hover:opacity-80 inline-flex items-center gap-1.5 tracking-wide transition-opacity"
+                  class="text-[13px] font-serif text-[var(--dynasty-accent)] hover:opacity-80 inline-flex items-center gap-1.5 tracking-wide transition-opacity"
                 >
                   <span>进入词条全文阅读</span>
                   <ArrowRight class="w-3.5 h-3.5" />
@@ -372,7 +372,7 @@ onBeforeUnmount(() => {
                 </p>
                 <RouterLink
                   :to="`/entry/${fragment.entryId}`"
-                  class="text-xs font-serif text-[var(--dynasty-accent)] hover:opacity-80 shrink-0 transition-opacity"
+                  class="text-[13px] font-serif text-[var(--dynasty-accent)] hover:opacity-80 shrink-0 transition-opacity"
                 >
                   出自 {{ fragment.entryName }} →
                 </RouterLink>
@@ -405,7 +405,7 @@ onBeforeUnmount(() => {
                 明朝废除丞相设立内阁，对<span class="brush-em text-foreground">君主专制中央集权</span>制度产生了怎样的深远影响？张居正<span class="brush-em text-foreground">一条鞭法</span>改革又是如何解决财政危机的？
               </p>
               <div class="mt-4">
-                <RouterLink to="/search?q=内阁制" class="text-xs font-serif text-[var(--dynasty-accent)] hover:opacity-80 transition-opacity">
+                <RouterLink to="/search?q=内阁制" class="text-[13px] font-serif text-[var(--dynasty-accent)] hover:opacity-80 transition-opacity">
                   查看制度专题解读 →
                 </RouterLink>
               </div>
@@ -424,7 +424,7 @@ onBeforeUnmount(() => {
 
               <div class="pt-5">
                 <span class="index-meta block mb-2.5">足迹 · 最近到访</span>
-                <div v-if="recentFootprints.length" class="text-sm font-serif">
+                <div v-if="recentFootprints.length" class="text-[15px] font-serif">
                   <RouterLink
                     v-for="f in recentFootprints"
                     :key="f.id"
@@ -482,14 +482,14 @@ onBeforeUnmount(() => {
         >
           <div class="flex items-center justify-between">
             <span class="eyebrow">墨痕拾遗</span>
-            <button type="button" class="text-muted-foreground hover:text-foreground text-xs cursor-pointer" @click="closeProbe">✕</button>
+            <button type="button" class="text-muted-foreground hover:text-foreground text-[13px] cursor-pointer" @click="closeProbe">✕</button>
           </div>
-          <p class="text-xs font-serif text-foreground/90 leading-relaxed">
+          <p class="text-[13px] font-serif text-foreground/90 leading-relaxed">
             <strong class="font-normal">{{ probe.item.year }}</strong> · {{ probe.item.event }}
           </p>
           <RouterLink
             :to="`/entry/${probe.item.entryId}`"
-            class="inline-block text-[11px] font-serif text-[var(--dynasty-accent)] hover:opacity-80 transition-opacity"
+            class="inline-block text-[13px] font-serif text-[var(--dynasty-accent)] hover:opacity-80 transition-opacity"
             @click="closeProbe"
           >
             出自 {{ probe.item.entryName }} →

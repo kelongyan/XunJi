@@ -58,7 +58,7 @@ function selectDynasty(id: string) {
             type="button"
             :disabled="!['tang', 'song', 'ming'].includes(d.id)"
             @click="selectDynasty(d.id)"
-            class="px-4 py-1.5 text-[11px] tracking-[0.22em] border-b border-transparent transition-colors"
+            class="px-4 py-1.5 text-[13px] tracking-[0.22em] border-b border-transparent transition-colors"
             :class="[
               currentId === d.id
                 ? 'text-[var(--dynasty-accent)] border-[var(--dynasty-accent)]'
@@ -67,7 +67,7 @@ function selectDynasty(id: string) {
                   : 'text-muted-foreground/40 cursor-not-allowed'
             ]"
           >
-            {{ d.hanzi }}<span v-if="!['tang', 'song', 'ming'].includes(d.id)" class="text-[10px] ml-1 opacity-70">修典中</span>
+            {{ d.hanzi }}<span v-if="!['tang', 'song', 'ming'].includes(d.id)" class="text-[12px] ml-1 opacity-70">修典中</span>
           </button>
         </div>
 
@@ -76,7 +76,7 @@ function selectDynasty(id: string) {
           <div class="space-y-4">
             <div class="eyebrow">时空通览 · 经折长卷</div>
             <h1 class="display-title">{{ theme.hanzi }}朝编年通览</h1>
-            <p class="text-sm md:text-base font-serif text-muted-foreground max-w-2xl leading-relaxed">
+            <p class="text-[15px] md:text-base font-serif text-muted-foreground max-w-2xl leading-relaxed">
               {{ theme.tagline }}——公元纪年与帝王年号双轨互见（{{ theme.span }}），理顺本朝兴衰的关键脉络。
             </p>
           </div>
@@ -113,7 +113,7 @@ function selectDynasty(id: string) {
                 </RouterLink>
                 <span v-else>{{ ev.title }}</span>
               </h3>
-              <p class="text-xs md:text-sm font-serif text-muted-foreground leading-relaxed mt-2.5">
+              <p class="text-[13px] md:text-[15px] font-serif text-muted-foreground leading-relaxed mt-2.5">
                 {{ ev.desc }}
               </p>
             </div>
@@ -121,7 +121,7 @@ function selectDynasty(id: string) {
               v-else
               class="md:w-5/12 pl-16 md:pl-12 order-2 md:order-1 mt-4 md:mt-0"
             >
-              <div class="pl-4 border-l-2 text-xs font-serif text-muted-foreground" style="border-color: color-mix(in srgb, var(--dynasty-accent) 40%, transparent)">
+              <div class="pl-4 border-l-2 text-[15px] font-serif text-muted-foreground" style="border-color: color-mix(in srgb, var(--dynasty-accent) 40%, transparent)">
                 <div class="eyebrow mb-2">史事要义</div>
                 <p class="leading-relaxed">{{ ev.gist }}</p>
               </div>
@@ -135,7 +135,7 @@ function selectDynasty(id: string) {
               v-if="idx % 2 === 0"
               class="md:w-5/12 pl-16 md:pl-12 mt-4 md:mt-0"
             >
-              <div class="pl-4 border-l-2 text-xs font-serif text-muted-foreground" style="border-color: color-mix(in srgb, var(--dynasty-accent) 40%, transparent)">
+              <div class="pl-4 border-l-2 text-[15px] font-serif text-muted-foreground" style="border-color: color-mix(in srgb, var(--dynasty-accent) 40%, transparent)">
                 <div class="eyebrow mb-2">史事要义</div>
                 <p class="leading-relaxed">{{ ev.gist }}</p>
               </div>
@@ -154,7 +154,7 @@ function selectDynasty(id: string) {
                 </RouterLink>
                 <span v-else>{{ ev.title }}</span>
               </h3>
-              <p class="text-xs md:text-sm font-serif text-muted-foreground leading-relaxed mt-2.5">
+              <p class="text-[13px] md:text-[15px] font-serif text-muted-foreground leading-relaxed mt-2.5">
                 {{ ev.desc }}
               </p>
             </div>
@@ -165,7 +165,7 @@ function selectDynasty(id: string) {
         <!-- 编年综述板块 -->
         <div v-reveal class="mt-20">
           <div class="eyebrow mb-4">编年史事综述</div>
-          <p class="text-[13px] md:text-sm font-serif text-muted-foreground leading-loose">
+          <p class="text-[13px] md:text-[15px] font-serif text-muted-foreground leading-loose">
             {{ summaries[currentId] }}
           </p>
         </div>

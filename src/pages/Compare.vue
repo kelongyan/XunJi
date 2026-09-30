@@ -55,7 +55,7 @@ function select(id: string) {
           <div class="space-y-4">
             <div class="eyebrow">朝代对读 · 双卷合参</div>
             <h1 class="display-title">朝代对读</h1>
-            <p class="text-sm font-serif text-muted-foreground max-w-xl leading-relaxed">
+            <p class="text-[15px] font-serif text-muted-foreground max-w-xl leading-relaxed">
               把两个朝代的词条并置合参，在对照中看清历史的因果与回声。
             </p>
           </div>
@@ -68,7 +68,7 @@ function select(id: string) {
             v-for="c in comparisons"
             :key="c.id"
             type="button"
-            class="px-4 py-1.5 text-[11px] tracking-[0.18em] border-b border-transparent transition-colors"
+            class="px-4 py-1.5 text-[13px] tracking-[0.18em] border-b border-transparent transition-colors"
             :class="currentId === c.id
               ? 'text-[var(--dynasty-accent)] border-[var(--dynasty-accent)]'
               : 'text-muted-foreground hover:text-foreground cursor-pointer'"
@@ -82,7 +82,7 @@ function select(id: string) {
         <div class="mb-10">
           <div class="eyebrow mb-3.5">当前对读卷宗</div>
           <h2 class="display-heading">{{ current.title }}</h2>
-          <p class="text-sm font-serif text-muted-foreground mt-3">{{ current.theme }}<span class="mx-2.5 text-border">·</span><span class="dynasty-accent-text">{{ current.dimension }}</span></p>
+          <p class="text-[15px] font-serif text-muted-foreground mt-3">{{ current.theme }}<span class="mx-2.5 text-border">·</span><span class="dynasty-accent-text">{{ current.dimension }}</span></p>
         </div>
 
         <!-- 双栏对照 -->
@@ -103,20 +103,20 @@ function select(id: string) {
                 {{ entry.name }}
               </RouterLink>
               <p class="index-meta">{{ entry.pinyin }}<template v-if="entry.era"> · {{ entry.era }}</template></p>
-              <p class="text-sm font-serif text-foreground/85 leading-relaxed font-textbook-body">
+              <p class="text-[15px] font-serif text-foreground/85 leading-relaxed font-textbook-body">
                 {{ entry.summary }}
               </p>
               <div class="pt-4 border-t border-border/60">
                 <div class="eyebrow mb-2.5">史学纵横 · 摘句</div>
-                <p class="text-xs font-serif text-muted-foreground leading-relaxed font-textbook-quote">
+                <p class="text-[15px] font-serif text-muted-foreground leading-relaxed font-textbook-quote">
                   {{ entry.interpretation }}
                 </p>
               </div>
               <div v-if="entry.quotes?.length" class="pl-4 border-l-2" :style="{ borderColor: 'color-mix(in srgb, var(--dynasty-accent) 45%, transparent)' }">
-                <p class="font-textbook-quote text-xs text-foreground/90 leading-relaxed">「{{ entry.quotes[0].text }}」</p>
-                <p class="text-[10px] font-serif text-muted-foreground mt-1.5 text-right">——{{ entry.quotes[0].source }}</p>
+                <p class="font-textbook-quote text-[13px] text-foreground/90 leading-relaxed">「{{ entry.quotes[0].text }}」</p>
+                <p class="text-[12px] font-serif text-muted-foreground mt-1.5 text-right">——{{ entry.quotes[0].source }}</p>
               </div>
-              <RouterLink :to="`/entry/${entry.id}`" class="inline-flex text-xs font-serif text-[var(--dynasty-accent)] hover:opacity-80 transition-opacity">
+              <RouterLink :to="`/entry/${entry.id}`" class="inline-flex text-[13px] font-serif text-[var(--dynasty-accent)] hover:opacity-80 transition-opacity">
                 进入 {{ entry.name }} 全文 →
               </RouterLink>
             </div>
@@ -129,7 +129,7 @@ function select(id: string) {
             <SealStamp text="史臣曰" class="seal-stamp-sm seal-drop" />
           </div>
           <div class="eyebrow mb-4">史官合论</div>
-          <p class="text-sm md:text-[15px] font-serif text-foreground/90 leading-loose pr-24">
+          <p class="text-[15px] md:text-[15px] font-serif text-foreground/90 leading-loose pr-24">
             {{ current.verdict }}
           </p>
         </div>

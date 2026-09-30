@@ -106,7 +106,7 @@ onMounted(() => {
                 type="button"
                 @click="replayStreaming"
                 title="重新触发流式播放"
-                class="absolute right-3.5 top-3 text-xs text-muted-foreground hover:text-primary flex items-center space-x-1.5 transition-colors cursor-pointer"
+                class="absolute right-3.5 top-3 text-[13px] text-muted-foreground hover:text-primary flex items-center space-x-1.5 transition-colors cursor-pointer"
               >
                 <RefreshCw class="w-4 h-4" />
                 <span class="hidden sm:inline font-serif">重放考索</span>
@@ -114,55 +114,55 @@ onMounted(() => {
             </div>
             <button 
               type="submit" 
-              class="px-9 py-3.5 bg-primary text-primary-foreground font-serif text-sm font-bold flex items-center justify-center space-x-2 shadow-sm transition-transform active:scale-95 cursor-pointer"
+              class="px-9 py-3.5 bg-primary text-primary-foreground font-serif text-[15px] font-bold flex items-center justify-center space-x-2 shadow-sm transition-transform active:scale-95 cursor-pointer"
             >
               <span>考索文脉</span>
             </button>
           </form>
 
           <!-- 分类筛选器 -->
-          <div class="pt-6 border-t border-border/60 flex flex-wrap items-center justify-between gap-4 text-xs">
+          <div class="pt-6 border-t border-border/60 flex flex-wrap items-center justify-between gap-4 text-[13px]">
             <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
               <span class="eyebrow is-plain">分类筛选</span>
               <button 
                 @click="selectType('all')" 
                 :class="currentType === 'all' ? 'text-[var(--dynasty-accent)]' : 'text-muted-foreground hover:text-foreground'"
-                class="px-3 py-1 text-[11px] tracking-[0.16em] transition-colors cursor-pointer"
+                class="px-3 py-1 text-[13px] tracking-[0.16em] transition-colors cursor-pointer"
               >
                 全部检索
               </button>
               <button 
                 @click="selectType('emperor')" 
                 :class="currentType === 'emperor' ? 'text-[var(--dynasty-accent)]' : 'text-muted-foreground hover:text-foreground'"
-                class="px-3 py-1 text-[11px] tracking-[0.16em] transition-colors cursor-pointer"
+                class="px-3 py-1 text-[13px] tracking-[0.16em] transition-colors cursor-pointer"
               >
                 帝王
               </button>
               <button 
                 @click="selectType('figure')" 
                 :class="currentType === 'figure' ? 'text-[var(--dynasty-accent)]' : 'text-muted-foreground hover:text-foreground'"
-                class="px-3 py-1 text-[11px] tracking-[0.16em] transition-colors cursor-pointer"
+                class="px-3 py-1 text-[13px] tracking-[0.16em] transition-colors cursor-pointer"
               >
                 人物
               </button>
               <button 
                 @click="selectType('event')" 
                 :class="currentType === 'event' ? 'text-[var(--dynasty-accent)]' : 'text-muted-foreground hover:text-foreground'"
-                class="px-3 py-1 text-[11px] tracking-[0.16em] transition-colors cursor-pointer"
+                class="px-3 py-1 text-[13px] tracking-[0.16em] transition-colors cursor-pointer"
               >
                 事件
               </button>
               <button 
                 @click="selectType('classic')" 
                 :class="currentType === 'classic' ? 'text-[var(--dynasty-accent)]' : 'text-muted-foreground hover:text-foreground'"
-                class="px-3 py-1 text-[11px] tracking-[0.16em] transition-colors cursor-pointer"
+                class="px-3 py-1 text-[13px] tracking-[0.16em] transition-colors cursor-pointer"
               >
                 典籍
               </button>
               <button 
                 @click="selectType('system')" 
                 :class="currentType === 'system' ? 'text-[var(--dynasty-accent)]' : 'text-muted-foreground hover:text-foreground'"
-                class="px-3 py-1 text-[11px] tracking-[0.16em] transition-colors cursor-pointer"
+                class="px-3 py-1 text-[13px] tracking-[0.16em] transition-colors cursor-pointer"
               >
                 制度
               </button>
@@ -178,7 +178,7 @@ onMounted(() => {
           <div v-reveal class="flex items-center justify-between gap-4 pb-3.5 border-b border-border/60">
             <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1.5">
               <span class="eyebrow">检索核心词</span>
-              <strong class="text-foreground text-sm">「{{ query || '历代通览' }}」</strong>
+              <strong class="text-foreground text-[15px]">「{{ query || '历代通览' }}」</strong>
               <span class="index-meta">寻得相关文献 {{ searchResults.length }} 卷</span>
             </div>
             <div class="flex items-center space-x-4">
@@ -189,7 +189,7 @@ onMounted(() => {
               <button 
                 v-if="isTyping" 
                 @click="handleSkip" 
-                class="text-xs underline text-muted-foreground hover:text-foreground cursor-pointer"
+                class="text-[13px] underline text-muted-foreground hover:text-foreground cursor-pointer"
               >
                 跳过动画
               </button>
@@ -198,8 +198,8 @@ onMounted(() => {
 
           <div v-if="searchResults.length === 0" class="py-16 text-center">
             <p class="font-serif text-base text-foreground/80">未寻见相关史料词条</p>
-            <p class="text-xs font-serif text-muted-foreground mt-2.5">试试拼音首字母（如 zjz）或从高频词条索引入手：</p>
-            <div class="mt-6 flex flex-wrap justify-center gap-x-4 gap-y-2.5 text-xs font-serif">
+            <p class="text-[13px] font-serif text-muted-foreground mt-2.5">试试拼音首字母（如 zjz）或从高频词条索引入手：</p>
+            <div class="mt-6 flex flex-wrap justify-center gap-x-4 gap-y-2.5 text-[13px] font-serif">
               <button
                 v-for="tag in hotTags"
                 :key="tag"
@@ -222,7 +222,7 @@ onMounted(() => {
               <div class="flex items-start justify-between gap-6">
                 <div class="space-y-2.5 flex-1 min-w-0">
                   <div class="flex flex-wrap items-baseline gap-x-4 gap-y-2">
-                    <span class="text-[11px] tracking-[0.2em] text-[var(--dynasty-accent)]">
+                    <span class="text-[13px] tracking-[0.2em] text-[var(--dynasty-accent)]">
                       {{ entry.type === 'emperor' ? '帝王' : entry.type === 'figure' ? '人物' : entry.type === 'event' ? '事件' : entry.type === 'classic' ? '典籍' : '制度' }}
                     </span>
                     <h2 class="text-2xl md:text-3xl text-foreground" style="font-family: var(--font-serif)">
@@ -235,7 +235,7 @@ onMounted(() => {
                       {{ entry.pinyin }} · {{ entry.era || entry.dynasty }}
                     </span>
                   </div>
-                  <p class="text-xs md:text-[13px] font-serif text-muted-foreground">
+                  <p class="text-[15px] font-serif text-muted-foreground">
                     <template v-for="(seg, si) in splitHighlight(entry.summary, query)" :key="si">
                       <mark v-if="seg.hit" class="suggest-hit">{{ seg.text }}</mark>
                       <template v-else>{{ seg.text }}</template>
@@ -248,7 +248,7 @@ onMounted(() => {
               <!-- 若有历史配图，在检索卡片中展示缩略图版 -->
               <div v-if="entry.image" class="mt-4 py-3.5 border-y border-border/60 flex items-center gap-4">
                 <img :src="entry.image.src" :alt="entry.image.caption" class="w-32 h-20 object-contain border border-border/60 bg-card/40 shrink-0" />
-                <div class="text-xs font-serif text-muted-foreground">
+                <div class="text-[13px] font-serif text-muted-foreground">
                   <span class="text-foreground font-bold block mb-0.5">【历史插图资料】</span>
                   <span>{{ entry.image.caption }}</span>
                 </div>
@@ -263,7 +263,7 @@ onMounted(() => {
               </div>
 
               <!-- 标签与关联网脉 -->
-              <div class="pt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-serif">
+              <div class="pt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-[13px] font-serif">
                 <span class="eyebrow is-plain">关联网脉</span>
                 <RouterLink 
                   v-for="tag in entry.tags" 

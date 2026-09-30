@@ -22,21 +22,21 @@ const hasChildren = !!props.node.children?.length
       <!-- 推演支线小标 -->
       <span
         v-if="depth"
-        class="absolute -top-2.5 left-4 text-[10px] font-serif font-bold px-1.5 py-0.5 bg-primary text-primary-foreground tracking-widest"
+        class="absolute -top-2.5 left-4 text-[12px] font-serif font-bold px-1.5 py-0.5 bg-primary text-primary-foreground tracking-widest"
       >
         推演
       </span>
-      <h5 class="text-sm md:text-base font-serif font-black text-foreground flex items-center justify-between gap-3">
+      <h5 class="text-[15px] md:text-base font-serif font-black text-foreground flex items-center justify-between gap-3">
         <span>{{ node.title }}</span>
-        <span class="text-[10px] text-muted-foreground/70 font-normal shrink-0">非史实</span>
+        <span class="text-[12px] text-muted-foreground/70 font-normal shrink-0">非史实</span>
       </h5>
-      <p class="text-xs md:text-[13px] font-serif text-muted-foreground leading-relaxed mt-2 font-textbook-body">
+      <p class="text-[15px] font-serif text-muted-foreground leading-relaxed mt-2 font-textbook-body">
         {{ node.narrative }}
       </p>
       <button
         v-if="hasChildren && !expanded"
         type="button"
-        class="mt-3 inline-flex items-center space-x-1.5 text-xs font-serif font-bold text-primary hover:text-primary/80 transition-colors cursor-pointer"
+        class="mt-3 inline-flex items-center space-x-1.5 text-[13px] font-serif font-bold text-primary hover:text-primary/80 transition-colors cursor-pointer"
         @click="expanded = true"
       >
         <Plus class="w-3.5 h-3.5" />
