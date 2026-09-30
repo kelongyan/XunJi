@@ -33,7 +33,7 @@ export const dynastyThemes: DynastyTheme[] = [
     accentSoft: '#4A4A55',
     accentNight: '#8E8EA0',
     tagline: '凿空西域 · 独尊儒术',
-    live: false
+    live: true
   },
   {
     id: 'tang',
@@ -81,7 +81,7 @@ export const dynastyThemes: DynastyTheme[] = [
     accentSoft: '#4A6E8E',
     accentNight: '#7FA3C4',
     tagline: '康乾鼎盛 · 三千年变局',
-    live: false
+    live: true
   }
 ]
 

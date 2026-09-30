@@ -164,7 +164,7 @@ onBeforeUnmount(() => {
 <template>
   <div class="min-h-screen font-sans text-foreground paper-texture flex flex-col justify-between" :class="ui.immersive ? 'overflow-hidden h-screen' : ''">
     <div>
-      <TextbookHeader v-if="!ui.immersive" folio="001" subChapter="中国历史知识库 · 首期明 · 唐宋已开卷" />
+      <TextbookHeader v-if="!ui.immersive" folio="001" subChapter="中国历史知识库 · 汉唐宋明清五朝通览" />
 
       <!-- 封面题签式 Hero：3D 时空长河全宽沉浸（桌面） / 静态封面（降级） -->
       <section
@@ -197,7 +197,7 @@ onBeforeUnmount(() => {
           >
             <div v-show="!ui.immersive" class="max-w-6xl mx-auto w-full px-6 md:px-10">
               <div class="max-w-3xl space-y-5">
-                <div class="eyebrow">首期明朝 · 唐宋已开卷</div>
+                <div class="eyebrow">汉 · 唐 · 宋 · 明 · 清 五朝已开卷</div>
                 <h1 class="display-title drop-shadow-[0_1px_0_rgba(247,243,232,0.7)]">
                   纵观华夏，<br />
                   <span class="display-em">一部长河里的通史</span>。
@@ -255,7 +255,7 @@ onBeforeUnmount(() => {
           <div class="max-w-7xl mx-auto px-6">
             <div class="flex justify-between items-start gap-8 mb-10">
               <div class="space-y-4 max-w-3xl">
-                <div class="eyebrow">首期明朝 · 唐宋已开卷</div>
+                <div class="eyebrow">汉 · 唐 · 宋 · 明 · 清 五朝已开卷</div>
                 <h1 class="display-title">
                   纵观华夏，<br />
                   <span class="display-em">一部长河里的通史</span>。
@@ -503,7 +503,7 @@ onBeforeUnmount(() => {
 
     <!-- 底部版记 -->
     <div v-show="!ui.immersive">
-      <Masthead left="寻迹 · 中国历史知识库" note="首期明朝 · 持续扩充历代" folio="002" />
+      <Masthead left="寻迹 · 中国历史知识库" note="汉 · 唐 · 宋 · 明 · 清 五朝通览" folio="002" />
     </div>
   </div>
 </template>

@@ -53,7 +53,7 @@ const limit = opts.limit ? Number(opts.limit) : Infinity
 fs.mkdirSync(outDir, { recursive: true })
 
 /** 词条数据文件：relations.targetId 只允许指向这些文件里的真实词条 id */
-const ENTRY_FILES = ['emperors.ts', 'figures.ts', 'events.ts', 'classics-systems.ts', 'tang.ts', 'song.ts']
+const ENTRY_FILES = ['emperors.ts', 'figures.ts', 'events.ts', 'classics-systems.ts', 'tang.ts', 'song.ts', 'han.ts', 'qing.ts']
 
 /** 已收录词条 id：既用于去重，也作为 relations.targetId 的白名单 */
 function collectExistingIds() {

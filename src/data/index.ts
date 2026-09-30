@@ -5,6 +5,8 @@ import { events } from './events'
 import { classicsAndSystems } from './classics-systems'
 import { tangEntries } from './tang'
 import { songEntries } from './song'
+import { hanEntries } from './han'
+import { qingEntries } from './qing'
 
 export const allHistoryEntries: HistoryEntry[] = [
   ...emperors,
@@ -12,7 +14,9 @@ export const allHistoryEntries: HistoryEntry[] = [
   ...events,
   ...classicsAndSystems,
   ...tangEntries,
-  ...songEntries
+  ...songEntries,
+  ...hanEntries,
+  ...qingEntries
 ]
 
 export function getEntryById(id: string): HistoryEntry | undefined {

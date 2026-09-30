@@ -8,7 +8,7 @@ import path from 'node:path'
 
 const ROOT = path.resolve(import.meta.dirname, '..')
 const DATA = path.join(ROOT, 'src/data')
-const ENTRY_FILES = ['emperors.ts', 'figures.ts', 'events.ts', 'classics-systems.ts', 'tang.ts', 'song.ts']
+const ENTRY_FILES = ['emperors.ts', 'figures.ts', 'events.ts', 'classics-systems.ts', 'tang.ts', 'song.ts', 'han.ts', 'qing.ts']
 
 const ids = new Set()
 for (const f of ENTRY_FILES) {

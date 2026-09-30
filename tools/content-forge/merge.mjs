@@ -39,7 +39,17 @@ const TARGETS = {
   '宋:figure': 'song.ts',
   '宋:emperor': 'song.ts',
   '宋:classic': 'song.ts',
-  '宋:system': 'song.ts'
+  '宋:system': 'song.ts',
+  '汉:event': 'han.ts',
+  '汉:figure': 'han.ts',
+  '汉:emperor': 'han.ts',
+  '汉:classic': 'han.ts',
+  '汉:system': 'han.ts',
+  '清:event': 'qing.ts',
+  '清:figure': 'qing.ts',
+  '清:emperor': 'qing.ts',
+  '清:classic': 'qing.ts',
+  '清:system': 'qing.ts'
 }
 
 /** 读取数据文件并统一行尾（git 在工作区会转成 CRLF，正则需按 LF 处理） */
@@ -55,7 +65,7 @@ function existingIdsOf(file) {
 /** 全部词条 id（6 个词条文件），用于校验与修正 relations */
 const ALL_ENTRY_IDS = (() => {
   const ids = new Set()
-  for (const f of ['emperors.ts', 'figures.ts', 'events.ts', 'classics-systems.ts', 'tang.ts', 'song.ts']) {
+  for (const f of ['emperors.ts', 'figures.ts', 'events.ts', 'classics-systems.ts', 'tang.ts', 'song.ts', 'han.ts', 'qing.ts']) {
     if (!fs.existsSync(path.join(ROOT, 'src/data', f))) continue
     for (const m of readData(f).matchAll(/id:\s*["']([^"']+)["']/g)) ids.add(m[1])
   }
@@ -96,7 +106,8 @@ function appendToArray(file, entries) {
   const head = text.slice(0, closeIdx)
   const tail = text.slice(closeIdx)
   let h = head.replace(/\s+$/, '')
-  if (!h.endsWith(',')) h += ','
+  // 空数组（以 [ 结尾）不能补逗号，否则会产生数组空洞（undefined 元素）
+  if (!h.endsWith(',') && !h.endsWith('[')) h += ','
 
   const block = '\n' + entries.map(toTs).join(',\n')
   const out = h + block + tail

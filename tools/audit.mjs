@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 
-const files = ['emperors', 'figures', 'events', 'classics-systems', 'tang', 'song']
+const files = ['emperors', 'figures', 'events', 'classics-systems', 'tang', 'song', 'han', 'qing']
 let total = 0
 
 for (const f of files) {
