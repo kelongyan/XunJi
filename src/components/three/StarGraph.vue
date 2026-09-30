@@ -12,6 +12,7 @@ import * as THREE from 'three'
 import { useThreeScene } from '../../composables/useThreeScene'
 import { useUiStore } from '../../stores/ui'
 import { graphData, dynastyAnchorPosition, type GraphNode, type GraphView, type PathStep } from '../../data/graph'
+import { getGraphLayout } from '../../data/graphLayout'
 import { dynastyThemes } from '../../data/dynastyThemes'
 
 const emit = defineEmits<{
@@ -103,23 +104,6 @@ const NIGHT = {
   bg: new THREE.Color('#1A1611')
 }
 
-/** 类型基色（日读低饱和 / 夜读提亮）——形状为主编码、色彩为辅 */
-const TYPE_COLORS: Record<string, [number, number]> = {
-  emperor: [0x9c4a3c, 0xe8846b],
-  figure: [0x4a6478, 0x8fb4d4],
-  event: [0x8a7550, 0xdcc08a],
-  classic: [0x5a7263, 0x9dc2ac],
-  system: [0x6b6459, 0xbdb4a4]
-}
-/** 节点形状：0=圆 1=方 2=菱形 3=六边形 */
-const TYPE_SHAPE: Record<string, number> = {
-  figure: 0,
-  emperor: 1,
-  event: 2,
-  classic: 3,
-  system: 3
-}
-
 interface PackedNode {
   node: GraphNode
   pos: THREE.Vector3
@@ -127,6 +111,8 @@ interface PackedNode {
   shape: number
   colorDay: THREE.Color
   colorNight: THREE.Color
+  /** 星辉闪烁相位（0-1，确定性 hash） */
+  phase: number
   highlight: number
   /** 邻接（高亮用） */
   neighbors: Set<number>
@@ -174,6 +160,8 @@ let dragMoved = 0
 let dragStart = { x: 0, y: 0 }
 let hoverIdx = -1
 let focusIdx = -1
+/** 最近一次用户交互时间（梦境巡游用） */
+let lastInteraction = performance.now()
 
 /* ── 确定性布局 ── */
 function hash01(seed: string, salt = 0): number {
@@ -185,157 +173,21 @@ function hash01(seed: string, salt = 0): number {
   return ((h >>> 0) % 100000) / 100000
 }
 
+/* ── 消费共享布局（graphLayout.ts：2D/3D 同一空间结构）── */
 function computeLayout() {
-  const nodes = graphData.nodes
-  packed = nodes.map(n => {
-    // 类型色
-    const [day, night] = TYPE_COLORS[n.type] ?? TYPE_COLORS.system
-    const anchor = n.kind === 'dynasty' ? dynastyAnchorPosition(n.dynastyId) : null
-    return {
-      node: n,
-      pos: anchor ? new THREE.Vector3(...anchor) : new THREE.Vector3(0, 0, 0),
-      size: 0,
-      shape: n.kind === 'dynasty' ? 0 : (TYPE_SHAPE[n.type] ?? 0),
-      colorDay: new THREE.Color(day),
-      colorNight: new THREE.Color(night),
-      highlight: 1,
-      neighbors: new Set<number>()
-    }
-  })
-  indexOfId = new Map(packed.map((p, i) => [p.node.id, i]))
-
-  // 边表（数值索引）
-  const edgeIdx: Array<[number, number, string]> = []
-  const adj = packed.map(p => p.neighbors)
-  for (const e of graphData.edges) {
-    const a = indexOfId.get(e.source)
-    const b = indexOfId.get(e.target)
-    if (a === undefined || b === undefined) continue
-    edgeIdx.push([a, b, e.kind])
-    adj[a].add(b)
-    adj[b].add(a)
-  }
-
-  // 尺寸：世界单位半径（相机距离 ~52 时约 1 单位 ≈ 10px @1100px 高）
-  // 词条半径 0.6 ~ 2.0；朝代锚点 3.2
-  const maxDeg = Math.max(1, graphData.degreeStats.max)
-  for (const p of packed) {
-    if (p.node.kind === 'dynasty') {
-      p.size = 3.2
-    } else {
-      const t = Math.sqrt(p.node.degree / maxDeg)
-      p.size = 0.6 + t * 1.4
-    }
-  }
-
-  // 初始化：词条以本朝锚点为心做螺旋星群（确定性、无随机）
-  const byDyn = new Map<string, number[]>()
-  packed.forEach((p, i) => {
-    if (p.node.kind !== 'entry') return
-    const arr = byDyn.get(p.node.dynastyId) ?? []
-    arr.push(i)
-    byDyn.set(p.node.dynastyId, arr)
-  })
-  const golden = Math.PI * (3 - Math.sqrt(5))
-  for (const [dyn, idxs] of byDyn) {
-    const anchor = dynastyAnchorPosition(dyn)
-    // 度数大的靠内
-    idxs.sort((a, b) => packed[b].node.degree - packed[a].node.degree)
-    idxs.forEach((i, k) => {
-      const r = 1.6 + Math.sqrt(k) * 0.82
-      const a = k * golden + hash01(packed[i].node.id) * 0.6
-      const p = packed[i]
-      p.pos.set(
-        anchor[0] + Math.cos(a) * r,
-        anchor[1] + (hash01(p.node.id, 7) - 0.5) * 4.6 + Math.sin(k * 0.7) * 0.6,
-        anchor[2] + Math.sin(a) * r
-      )
-    })
-  }
-
-  // 力导向松弛（确定性）
-  const ITER = reducedMotion ? 60 : 150
-  const pos = packed.map(p => p.pos)
-  const vel = packed.map(() => new THREE.Vector3())
-  const REPULSION = 24
-  const SPRING = 0.05
-  const SPRING_LEN = 5.2
-  const ANCHOR_PULL = 0.014
-  const CENTER_PULL = 0.0008
-  const DAMP = 0.82
-
-  for (let tick = 0; tick < ITER; tick++) {
-    // 斥力（O(n²)，一次性预算）
-    for (let i = 0; i < packed.length; i++) {
-      const pi = pos[i]
-      for (let j = i + 1; j < packed.length; j++) {
-        const pj = pos[j]
-        let dx = pi.x - pj.x
-        let dy = pi.y - pj.y
-        let dz = pi.z - pj.z
-        let d2 = dx * dx + dy * dy + dz * dz
-        if (d2 < 0.04) {
-          // 距离过近：给一个确定性的微扰方向，避免力发散
-          const jitter = hash01(packed[i].node.id + '|' + packed[j].node.id)
-          dx = (jitter - 0.5) * 0.2
-          dy = (hash01(packed[j].node.id, 3) - 0.5) * 0.2
-          dz = (hash01(packed[i].node.id, 9) - 0.5) * 0.2
-          d2 = 0.04
-        }
-        const d = Math.sqrt(d2)
-        // 力上限钳制：防止近距离处力发散（d^3 分母）
-        const f = Math.min(REPULSION / (d2 * d), 24)
-        const fx = dx * f
-        const fy = dy * f
-        const fz = dz * f
-        vel[i].x += fx; vel[i].y += fy; vel[i].z += fz
-        vel[j].x -= fx; vel[j].y -= fy; vel[j].z -= fz
-      }
-    }
-    // 弹簧（关系边）
-    for (const [a, b] of edgeIdx) {
-      const pa = pos[a]
-      const pb = pos[b]
-      const dx = pb.x - pa.x, dy = pb.y - pa.y, dz = pb.z - pa.z
-      const d = Math.sqrt(dx * dx + dy * dy + dz * dz) || 0.01
-      const f = (d - SPRING_LEN) * SPRING
-      const fx = (dx / d) * f, fy = (dy / d) * f, fz = (dz / d) * f
-      vel[a].x += fx; vel[a].y += fy; vel[a].z += fz
-      vel[b].x -= fx; vel[b].y -= fy; vel[b].z -= fz
-    }
-    // 锚点吸附 + 中心向心 + 阻尼 + 积分
-    for (let i = 0; i < packed.length; i++) {
-      const p = packed[i]
-      const v = vel[i]
-      if (p.node.kind === 'entry') {
-        const anchor = dynastyAnchorPosition(p.node.dynastyId)
-        v.x += (anchor[0] - pos[i].x) * ANCHOR_PULL
-        v.y += (anchor[1] - pos[i].y) * ANCHOR_PULL
-        v.z += (anchor[2] - pos[i].z) * ANCHOR_PULL
-      }
-      v.x += -pos[i].x * CENTER_PULL
-      v.y += (2 - pos[i].y) * CENTER_PULL * 0.5
-      v.z += -pos[i].z * CENTER_PULL
-      v.multiplyScalar(DAMP)
-      // 速度上限：防数值溢出（配合斥力钳制，双保险）
-      const speed = v.length()
-      if (!Number.isFinite(speed)) {
-        v.set(0, 0, 0)
-      } else if (speed > 6) {
-        v.multiplyScalar(6 / speed)
-      }
-      pos[i].add(v)
-    }
-  }
-  packed.forEach((p, i) => {
-    const v = pos[i]
-    // 兜底：任何非有限值回落锚点（防 NaN 传染到几何）
-    if (!Number.isFinite(v.x) || !Number.isFinite(v.y) || !Number.isFinite(v.z)) {
-      const anchor = dynastyAnchorPosition(p.node.dynastyId)
-      v.set(anchor[0], anchor[1], anchor[2])
-    }
-    p.pos.copy(v)
-  })
+  const layout = getGraphLayout()
+  packed = layout.nodes.map(ln => ({
+    node: ln.node,
+    pos: new THREE.Vector3(ln.x, ln.y, ln.z),
+    size: ln.size,
+    shape: ln.shape,
+    colorDay: new THREE.Color(ln.colorDay),
+    colorNight: new THREE.Color(ln.colorNight),
+    phase: hash01(ln.node.id, 21),
+    highlight: 1,
+    neighbors: ln.neighbors
+  }))
+  indexOfId = layout.indexOfId
 }
 
 /* ── 自适应取景：按布局包围盒计算注视点与相机距离（保证全图入画且不浪费画幅）── */
@@ -369,6 +221,7 @@ const NODE_VERT = /* glsl */ `
 attribute float aSize;
 attribute float aShape;
 attribute float aHighlight;
+attribute float aPhase;
 attribute vec3 aColorDay;
 attribute vec3 aColorNight;
 uniform float uNight;
@@ -376,10 +229,12 @@ uniform float uPixelRatio;
 uniform float uHeight;
 varying float vShape;
 varying float vHighlight;
+varying float vPhase;
 varying vec3 vColor;
 void main() {
   vShape = aShape;
   vHighlight = aHighlight;
+  vPhase = aPhase;
   vColor = mix(aColorDay, aColorNight, uNight);
   vec4 mv = modelViewMatrix * vec4(position, 1.0);
   gl_Position = projectionMatrix * mv;
@@ -391,11 +246,13 @@ const NODE_FRAG = /* glsl */ `
 precision highp float;
 varying float vShape;
 varying float vHighlight;
+varying float vPhase;
 varying vec3 vColor;
 uniform vec3 uInkDay;
 uniform vec3 uInkNight;
 uniform float uNight;
 uniform float uHover;
+uniform float uTime;
 void main() {
   vec2 uv = gl_PointCoord * 2.0 - 1.0;
   float r = length(uv);
@@ -414,7 +271,9 @@ void main() {
   // 轻盈星体：小实核 + 大幅弥散光晕
   float core = 1.0 - smoothstep(0.22, 0.42, d);
   float halo = 1.0 - smoothstep(0.1, 1.0, d);
-  float alpha = core * 0.98 + halo * halo * 0.34;
+  // 星辉闪烁：每颗星独立相位（夜读更明显），像呼吸的灯火
+  float twinkle = 0.86 + 0.14 * sin(uTime * 0.9 + vPhase * 6.2832) * (0.35 + 0.65 * uNight);
+  float alpha = (core * 0.98 + halo * halo * 0.34) * twinkle;
   if (alpha < 0.012) discard;
   vec3 ink = mix(uInkDay, uInkNight, uNight);
   float hl = clamp(vHighlight + uHover, 0.0, 1.4);
@@ -444,6 +303,7 @@ function buildScene() {
   const sizeArr = new Float32Array(n)
   const shapeArr = new Float32Array(n)
   const hlArr = new Float32Array(n)
+  const phaseArr = new Float32Array(n)
   const dayArr = new Float32Array(n * 3)
   const nightArr = new Float32Array(n * 3)
   packed.forEach((p, i) => {
@@ -453,6 +313,7 @@ function buildScene() {
     sizeArr[i] = p.size
     shapeArr[i] = p.shape
     hlArr[i] = 1
+    phaseArr[i] = p.phase
     dayArr[i * 3] = p.colorDay.r
     dayArr[i * 3 + 1] = p.colorDay.g
     dayArr[i * 3 + 2] = p.colorDay.b
@@ -466,6 +327,7 @@ function buildScene() {
   pointsGeo.setAttribute('aSize', new THREE.BufferAttribute(sizeArr, 1))
   pointsGeo.setAttribute('aShape', new THREE.BufferAttribute(shapeArr, 1))
   pointsGeo.setAttribute('aHighlight', new THREE.BufferAttribute(hlArr, 1))
+  pointsGeo.setAttribute('aPhase', new THREE.BufferAttribute(phaseArr, 1))
   pointsGeo.setAttribute('aColorDay', new THREE.BufferAttribute(dayArr, 3))
   pointsGeo.setAttribute('aColorNight', new THREE.BufferAttribute(nightArr, 3))
 
@@ -478,7 +340,8 @@ function buildScene() {
       uHeight: { value: container.value?.clientHeight ?? 600 },
       uInkDay: { value: DAY.ink.clone() },
       uInkNight: { value: NIGHT.ink.clone() },
-      uHover: { value: 0 }
+      uHover: { value: 0 },
+      uTime: { value: 0 }
     },
     transparent: true,
     depthWrite: false,
@@ -494,21 +357,43 @@ function buildScene() {
   camera.position.set(camTarget.x, camTarget.y + 12, camTarget.z + camState.radius)
   camera.lookAt(camTarget)
 
-  onFrame((dt, t) => update(dt, t, camera))
+  onFrame((dt, elapsed) => update(dt, elapsed, camera))
   emit('ready')
 }
 
 /* ── 对外 API（Graph.vue 通过 ref 调用）── */
+/** 深链聚焦：按词条 id 聚焦节点 */
+function focusNodeById(id: string): boolean {
+  const idx = indexOfId.get(id)
+  if (idx === undefined || !pointsGeo) return false
+  focusIdx = idx
+  hoverIdx = -1
+  lastInteraction = performance.now()
+  refreshHighlight()
+  emit('focus', packed[idx].node)
+  return true
+}
+
+/** 导览用：聚焦并让相机飞抵该星辰 */
+function flyToNode(id: string): boolean {
+  const ok = focusNodeById(id)
+  if (ok) {
+    const idx = indexOfId.get(id)
+    if (idx !== undefined) {
+      camTargetT.copy(packed[idx].pos)
+      camState.radiusT = 30
+    }
+  }
+  return ok
+}
 defineExpose({
   /** 深链聚焦：按词条 id 聚焦节点 */
-  focusNodeById(id: string): boolean {
-    const idx = indexOfId.get(id)
-    if (idx === undefined || !pointsGeo) return false
-    focusIdx = idx
-    hoverIdx = -1
-    refreshHighlight()
-    emit('focus', packed[idx].node)
-    return true
+  focusNodeById,
+  /** 导览用：聚焦并让相机飞抵该星辰 */
+  flyToNode,
+  /** 恢复全景取景 */
+  restoreView() {
+    restoreHome()
   },
   /** 设置寻脉路径（graph.findPath 的结果）；null 清除 */
   setPath(steps: PathStep[] | null) {
@@ -705,7 +590,7 @@ function buildStarDust(scene: THREE.Scene) {
 }
 
 /* ── 主循环 ── */
-function update(dt: number, _t: number, camera: THREE.PerspectiveCamera) {
+function update(dt: number, t: number, camera: THREE.PerspectiveCamera) {
   // 相机轨道（拖拽环绕 + 滚轮缩放）
   camState.theta += (camState.thetaT - camState.theta) * Math.min(1, dt * 5)
   camState.phi += (camState.phiT - camState.phi) * Math.min(1, dt * 5)
@@ -726,11 +611,21 @@ function update(dt: number, _t: number, camera: THREE.PerspectiveCamera) {
   if (material) {
     const u = material.uniforms
     u.uNight.value += (nightTarget - u.uNight.value) * Math.min(1, dt * 2)
+    u.uTime.value = t
     // 容器高度变化时同步点大小标定
     const h = container.value?.clientHeight ?? 0
     if (h > 0 && Math.abs((u.uHeight.value as number) - h) > 1) {
       u.uHeight.value = h
     }
+  }
+  // 梦境巡游：空闲 8 秒后（无聚焦/无寻脉/未拖拽）相机极缓自转，如观星入梦
+  const idleFor = (performance.now() - lastInteraction) / 1000
+  const dreaming =
+    !reducedMotion && idleFor > 8 && focusIdx < 0 && hoverIdx < 0 && !pathNodeSet && !dragging
+  if (dreaming) {
+    camState.thetaT += dt * 0.022
+    camState.phiT += Math.sin(t * 0.11) * dt * 0.006
+    camState.phiT = Math.min(1.32, Math.max(0.86, camState.phiT))
   }
   if (starDust) {
     const m = starDust.material as THREE.PointsMaterial
@@ -932,6 +827,7 @@ function currentCamera(): THREE.PerspectiveCamera | null {
 }
 
 function onPointerMove(e: PointerEvent) {
+  lastInteraction = performance.now()
   const cam = currentCamera()
   if (!cam) return
   if (dragging) {
@@ -954,6 +850,7 @@ function onPointerMove(e: PointerEvent) {
 }
 
 function onPointerDown(e: PointerEvent) {
+  lastInteraction = performance.now()
   dragging = true
   dragMoved = 0
   dragStart = { x: e.clientX, y: e.clientY }
@@ -981,6 +878,7 @@ function onPointerUp(e: PointerEvent) {
 
 function onWheel(e: WheelEvent) {
   e.preventDefault()
+  lastInteraction = performance.now()
   camState.radiusT = Math.min(110, Math.max(16, camState.radiusT + e.deltaY * 0.04))
 }
 

@@ -253,3 +253,62 @@ export const PATH_DEMOS: Array<{ from: string; to: string; label: string }> = [
   { from: 'libai', to: 'tang-yin', label: '李白 → 唐寅' },
   { from: 'lin-zexu', to: 'zhengchenggong-shoufu-taiwan', label: '林则徐 → 郑成功' }
 ]
+
+/* ── 导览故事线（P2）：预置分镜，自动巡游 ── */
+
+export interface GraphStoryStep {
+  id: string
+  /** 这一步的旁白注记 */
+  note: string
+}
+
+export interface GraphStory {
+  id: string
+  title: string
+  steps: GraphStoryStep[]
+}
+
+/** 四部预置导览卷（全部 id 已校验存在） */
+export const GRAPH_STORIES: GraphStory[] = [
+  {
+    id: 'five-dynasties',
+    title: '五朝开卷',
+    steps: [
+      { id: 'liubang', note: '汉高祖定鼎，四百年基业自此肇始' },
+      { id: 'tang-taizong-lishimin', note: '唐太宗即位，天可汗秩序展开' },
+      { id: 'song-taizu-zhaokuangyin', note: '宋太祖杯酒释兵权，重文轻武定型' },
+      { id: 'zhu-yuanzhang', note: '明太祖废丞相，皇权臻于极致' },
+      { id: 'nuerhaci', note: '清太祖创八旗，边陲之力初成' }
+    ]
+  },
+  {
+    id: 'zhenguan',
+    title: '贞观星象',
+    steps: [
+      { id: 'xuanwumen-zhibian', note: '玄武门之变，骨肉相残夺位' },
+      { id: 'tang-taizong-lishimin', note: '李世民即位，改元贞观' },
+      { id: 'weizheng', note: '魏征直言纳谏，君臣相得' },
+      { id: 'zhenguan-zhizhi', note: '贞观之治，路不拾遗' }
+    ]
+  },
+  {
+    id: 'wanli',
+    title: '万历星图',
+    steps: [
+      { id: 'zhu-yijun', note: '万历帝朱翊钧，亲政后久不视朝' },
+      { id: 'zhang-juzheng', note: '张居正秉政，考成法整饬吏治' },
+      { id: 'yitiaobian-fa', note: '一条鞭法，赋役折银' },
+      { id: 'qi-jiguang', note: '戚继光北御蓟镇，练兵筑台' }
+    ]
+  },
+  {
+    id: 'ming-fall',
+    title: '明亡挽歌',
+    steps: [
+      { id: 'donglin-dangzheng', note: '东林党争，朝纲撕裂' },
+      { id: 'lizicheng-qiyi', note: '李自成起义，均田免赋' },
+      { id: 'jiashan-zhi-bian', note: '甲申之变，崇祯殉国' },
+      { id: 'qingjun-ruguan', note: '清军入关，明清易代' }
+    ]
+  }
+]
