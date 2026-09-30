@@ -124,11 +124,6 @@ export const figures: HistoryEntry[] = [
     ],
     sources: ["《明史·郑和传》", "马欢《瀛涯胜览》"],
     tags: ["大航海", "宝船", "丝绸之路", "远洋外交"],
-    image: {
-      src: "/images/event-zhenghe-ship.svg",
-      caption: "图版 3-1　大明永乐年间郑和下西洋四十四丈福船宝船形制图（依据古船谱白描摹绘）",
-      source: "《瀛涯胜览》插图考绘"
-    }
   },
   {
     id: "yu-qian",
@@ -300,11 +295,6 @@ export const figures: HistoryEntry[] = [
     ],
     sources: ["《明史·张居正传》", "《张文忠公全集》"],
     tags: ["万历新政", "一条鞭法", "考成法", "首辅"],
-    image: {
-      src: "/images/portrait-zhang-juzheng.svg",
-      caption: "图版 2-1　明内阁首辅张居正一品仙鹤补服画像（江陵文忠公文集刻本插图）",
-      source: "《张文忠公全集》万历初刻插图"
-    }
   },
   {
     id: "qi-jiguang",

@@ -44,11 +44,6 @@ export const emperors: HistoryEntry[] = [
     ],
     sources: ["《明史·太祖本纪》", "《明实录·太祖实录》"],
     tags: ["开国", "洪武", "废丞相", "锦衣卫"],
-    image: {
-      src: "/images/portrait-zhu-yuanzhang.svg",
-      caption: "图版 1-1　明太祖朱元璋冠服坐像（故宫博物院藏正容摹本白描）",
-      source: "故宫博物院藏明人画册"
-    }
   },
   {
     id: "zhu-yunwen",

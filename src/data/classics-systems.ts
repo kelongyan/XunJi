@@ -27,11 +27,6 @@ export const classicsAndSystems: HistoryEntry[] = [
     },
     sources: ["《明史·艺文志》"],
     tags: ["典籍", "类书", "永乐", "解缙"],
-    image: {
-      src: "/images/classic-yongle-dadian.svg",
-      caption: "图版 4-1　《永乐大典》嘉靖副本开本封皮与书函（按国家图书馆善本部藏本考绘）",
-      source: "国家图书馆善本特藏"
-    }
   },
   {
     id: "bencao-gangmu",

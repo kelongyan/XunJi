@@ -6,7 +6,13 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "audit": "node tools/audit.mjs",
+    "audit:relations": "node tools/audit-relations.mjs",
+    "forge": "node tools/content-forge/forge.mjs",
+    "forge:fix": "node tools/content-forge/fix-ids.mjs",
+    "forge:merge": "node tools/content-forge/merge.mjs",
+    "forge:pipeline": "node tools/content-forge/pipeline.mjs"
   },
   "dependencies": {
     "lucide-vue-next": "^1.0.0",
