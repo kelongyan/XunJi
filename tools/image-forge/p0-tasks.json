@@ -1,0 +1,502 @@
+[
+  {
+    "id": "zhu-yuanzhang",
+    "name": "朱元璋",
+    "dynasty": "明",
+    "dynastyFolder": "ming",
+    "type": "emperor",
+    "size": "1024x1536",
+    "outPath": "public/images/entries/ming/emperor-zhu-yuanzhang.png",
+    "prompt": "Authentic ancient Chinese woodblock print portrait of Emperor 朱元璋 of Ming Dynasty, seated majestically on a classical dragon throne wearing imperial royal robes (衮服冕旒). Ten Bamboo Studio letter paper style (十竹斋笺谱), delicate traditional ink line art with subtle water-based woodblock printing colors (饾版套色), antique book illustration aesthetic. Warm tea-toned aged paper texture, mineral cinnabar red and muted gold accents. Dignified solemn expression, museum artifact quality. Avoid modern anime style, no 3D digital CG look, no western oil painting, no watermark, no modern text."
+  },
+  {
+    "id": "zhu-di",
+    "name": "朱棣",
+    "dynasty": "明",
+    "dynastyFolder": "ming",
+    "type": "emperor",
+    "size": "1024x1536",
+    "outPath": "public/images/entries/ming/emperor-zhu-di.png",
+    "prompt": "Authentic ancient Chinese woodblock print portrait of Emperor 朱棣 of Ming Dynasty, seated majestically on a classical dragon throne wearing imperial royal robes (衮服冕旒). Ten Bamboo Studio letter paper style (十竹斋笺谱), delicate traditional ink line art with subtle water-based woodblock printing colors (饾版套色), antique book illustration aesthetic. Warm tea-toned aged paper texture, mineral cinnabar red and muted gold accents. Dignified solemn expression, museum artifact quality. Avoid modern anime style, no 3D digital CG look, no western oil painting, no watermark, no modern text."
+  },
+  {
+    "id": "zhu-zhanji",
+    "name": "朱瞻基",
+    "dynasty": "明",
+    "dynastyFolder": "ming",
+    "type": "emperor",
+    "size": "1024x1536",
+    "outPath": "public/images/entries/ming/emperor-zhu-zhanji.png",
+    "prompt": "Authentic ancient Chinese woodblock print portrait of Emperor 朱瞻基 of Ming Dynasty, seated majestically on a classical dragon throne wearing imperial royal robes (衮服冕旒). Ten Bamboo Studio letter paper style (十竹斋笺谱), delicate traditional ink line art with subtle water-based woodblock printing colors (饾版套色), antique book illustration aesthetic. Warm tea-toned aged paper texture, mineral cinnabar red and muted gold accents. Dignified solemn expression, museum artifact quality. Avoid modern anime style, no 3D digital CG look, no western oil painting, no watermark, no modern text."
+  },
+  {
+    "id": "zhu-houcong",
+    "name": "朱厚熜",
+    "dynasty": "明",
+    "dynastyFolder": "ming",
+    "type": "emperor",
+    "size": "1024x1536",
+    "outPath": "public/images/entries/ming/emperor-zhu-houcong.png",
+    "prompt": "Authentic ancient Chinese woodblock print portrait of Emperor 朱厚熜 of Ming Dynasty, seated majestically on a classical dragon throne wearing imperial royal robes (衮服冕旒). Ten Bamboo Studio letter paper style (十竹斋笺谱), delicate traditional ink line art with subtle water-based woodblock printing colors (饾版套色), antique book illustration aesthetic. Warm tea-toned aged paper texture, mineral cinnabar red and muted gold accents. Dignified solemn expression, museum artifact quality. Avoid modern anime style, no 3D digital CG look, no western oil painting, no watermark, no modern text."
+  },
+  {
+    "id": "zhu-youjian",
+    "name": "朱由检",
+    "dynasty": "明",
+    "dynastyFolder": "ming",
+    "type": "emperor",
+    "size": "1024x1536",
+    "outPath": "public/images/entries/ming/emperor-zhu-youjian.png",
+    "prompt": "Authentic ancient Chinese woodblock print portrait of Emperor 朱由检 of Ming Dynasty, seated majestically on a classical dragon throne wearing imperial royal robes (衮服冕旒). Ten Bamboo Studio letter paper style (十竹斋笺谱), delicate traditional ink line art with subtle water-based woodblock printing colors (饾版套色), antique book illustration aesthetic. Warm tea-toned aged paper texture, mineral cinnabar red and muted gold accents. Dignified solemn expression, museum artifact quality. Avoid modern anime style, no 3D digital CG look, no western oil painting, no watermark, no modern text."
+  },
+  {
+    "id": "zhang-juzheng",
+    "name": "张居正",
+    "dynasty": "明",
+    "dynastyFolder": "ming",
+    "type": "figure",
+    "size": "1024x1536",
+    "outPath": "public/images/entries/ming/figure-zhang-juzheng.png",
+    "prompt": "Authentic traditional Chinese woodblock portrait of historical figure 张居正 of Ming Dynasty (嘉靖—万历). Elegant scholar-official attire or warrior armor, historical Wanxiao Tang book illustration style (晚笑堂画传). Delicate ink brushwork and fine carved woodblock contours, subtle mineral pigment wash. Three-quarter view waist-up portrait surrounded by poetic negative space on antique fibrous rice paper. Dignified, scholarly and atmospheric. Avoid modern anime style, no 3D digital CG look, no western oil painting, no watermark, no modern text."
+  },
+  {
+    "id": "wang-yangming",
+    "name": "王阳明",
+    "dynasty": "明",
+    "dynastyFolder": "ming",
+    "type": "figure",
+    "size": "1024x1536",
+    "outPath": "public/images/entries/ming/figure-wang-yangming.png",
+    "prompt": "Authentic traditional Chinese woodblock portrait of historical figure 王阳明 of Ming Dynasty (成化—嘉靖). Elegant scholar-official attire or warrior armor, historical Wanxiao Tang book illustration style (晚笑堂画传). Delicate ink brushwork and fine carved woodblock contours, subtle mineral pigment wash. Three-quarter view waist-up portrait surrounded by poetic negative space on antique fibrous rice paper. Dignified, scholarly and atmospheric. Avoid modern anime style, no 3D digital CG look, no western oil painting, no watermark, no modern text."
+  },
+  {
+    "id": "jingnan-zhiyi",
+    "name": "靖难之役",
+    "dynasty": "明",
+    "dynastyFolder": "ming",
+    "type": "event",
+    "size": "1536x1024",
+    "outPath": "public/images/entries/ming/event-jingnan-zhiyi.png",
+    "prompt": "Authentic ancient Chinese woodblock panorama illustration depicting the historical event 靖难之役 during Ming Dynasty (建文元年—建文四年). Grand historical narrative composition, bird's-eye perspective (界画散点透视), traditional military campaign or court assembly scene with figures, architecture, mountains and swirling cloud elements. Traditional block-printed book illustration style, delicate ink lines with light watercolor wash (浅绛/青绿山水色). Antique fibrous paper texture. Historic drama and classical elegance. Avoid modern anime style, no 3D digital CG look, no western oil painting, no photorealistic blur, no watermark, no modern text."
+  },
+  {
+    "id": "zhenghe-xiaxiyang",
+    "name": "郑和下西洋",
+    "dynasty": "明",
+    "dynastyFolder": "ming",
+    "type": "event",
+    "size": "1536x1024",
+    "outPath": "public/images/entries/ming/event-zhenghe-xiaxiyang.png",
+    "prompt": "Authentic ancient Chinese woodblock panorama illustration depicting the historical event 郑和下西洋 during Ming Dynasty (永乐三年—宣德八年). Grand historical narrative composition, bird's-eye perspective (界画散点透视), traditional military campaign or court assembly scene with figures, architecture, mountains and swirling cloud elements. Traditional block-printed book illustration style, delicate ink lines with light watercolor wash (浅绛/青绿山水色). Antique fibrous paper texture. Historic drama and classical elegance. Avoid modern anime style, no 3D digital CG look, no western oil painting, no photorealistic blur, no watermark, no modern text."
+  },
+  {
+    "id": "tumu-zhi-bian",
+    "name": "土木堡之变",
+    "dynasty": "明",
+    "dynastyFolder": "ming",
+    "type": "event",
+    "size": "1536x1024",
+    "outPath": "public/images/entries/ming/event-tumu-zhi-bian.png",
+    "prompt": "Authentic ancient Chinese woodblock panorama illustration depicting the historical event 土木堡之变 during Ming Dynasty (正统十四年). Grand historical narrative composition, bird's-eye perspective (界画散点透视), traditional military campaign or court assembly scene with figures, architecture, mountains and swirling cloud elements. Traditional block-printed book illustration style, delicate ink lines with light watercolor wash (浅绛/青绿山水色). Antique fibrous paper texture. Historic drama and classical elegance. Avoid modern anime style, no 3D digital CG look, no western oil painting, no photorealistic blur, no watermark, no modern text."
+  },
+  {
+    "id": "beijing-baoweizhan",
+    "name": "北京保卫战",
+    "dynasty": "明",
+    "dynastyFolder": "ming",
+    "type": "event",
+    "size": "1536x1024",
+    "outPath": "public/images/entries/ming/event-beijing-baoweizhan.png",
+    "prompt": "Authentic ancient Chinese woodblock panorama illustration depicting the historical event 北京保卫战 during Ming Dynasty (正统十四年冬). Grand historical narrative composition, bird's-eye perspective (界画散点透视), traditional military campaign or court assembly scene with figures, architecture, mountains and swirling cloud elements. Traditional block-printed book illustration style, delicate ink lines with light watercolor wash (浅绛/青绿山水色). Antique fibrous paper texture. Historic drama and classical elegance. Avoid modern anime style, no 3D digital CG look, no western oil painting, no photorealistic blur, no watermark, no modern text."
+  },
+  {
+    "id": "jiashan-zhi-bian",
+    "name": "甲申之变",
+    "dynasty": "明",
+    "dynastyFolder": "ming",
+    "type": "event",
+    "size": "1536x1024",
+    "outPath": "public/images/entries/ming/event-jiashan-zhi-bian.png",
+    "prompt": "Authentic ancient Chinese woodblock panorama illustration depicting the historical event 甲申之变 during Ming Dynasty (崇祯十七年). Grand historical narrative composition, bird's-eye perspective (界画散点透视), traditional military campaign or court assembly scene with figures, architecture, mountains and swirling cloud elements. Traditional block-printed book illustration style, delicate ink lines with light watercolor wash (浅绛/青绿山水色). Antique fibrous paper texture. Historic drama and classical elegance. Avoid modern anime style, no 3D digital CG look, no western oil painting, no photorealistic blur, no watermark, no modern text."
+  },
+  {
+    "id": "tang-gaozu-liyuan",
+    "name": "李渊",
+    "dynasty": "唐",
+    "dynastyFolder": "tang",
+    "type": "emperor",
+    "size": "1024x1536",
+    "outPath": "public/images/entries/tang/emperor-tang-gaozu-liyuan.png",
+    "prompt": "Authentic ancient Chinese woodblock print portrait of Emperor 李渊 of Tang Dynasty, seated majestically on a classical dragon throne wearing imperial royal robes (衮服冕旒). Ten Bamboo Studio letter paper style (十竹斋笺谱), delicate traditional ink line art with subtle water-based woodblock printing colors (饾版套色), antique book illustration aesthetic. Warm tea-toned aged paper texture, mineral cinnabar red and muted gold accents. Dignified solemn expression, museum artifact quality. Avoid modern anime style, no 3D digital CG look, no western oil painting, no watermark, no modern text."
+  },
+  {
+    "id": "tang-taizong-lishimin",
+    "name": "李世民",
+    "dynasty": "唐",
+    "dynastyFolder": "tang",
+    "type": "emperor",
+    "size": "1024x1536",
+    "outPath": "public/images/entries/tang/emperor-tang-taizong-lishimin.png",
+    "prompt": "Authentic ancient Chinese woodblock print portrait of Emperor 李世民 of Tang Dynasty, seated majestically on a classical dragon throne wearing imperial royal robes (衮服冕旒). Ten Bamboo Studio letter paper style (十竹斋笺谱), delicate traditional ink line art with subtle water-based woodblock printing colors (饾版套色), antique book illustration aesthetic. Warm tea-toned aged paper texture, mineral cinnabar red and muted gold accents. Dignified solemn expression, museum artifact quality. Avoid modern anime style, no 3D digital CG look, no western oil painting, no watermark, no modern text."
+  },
+  {
+    "id": "wuzetian",
+    "name": "武则天",
+    "dynasty": "唐",
+    "dynastyFolder": "tang",
+    "type": "emperor",
+    "size": "1024x1536",
+    "outPath": "public/images/entries/tang/emperor-wuzetian.png",
+    "prompt": "Authentic ancient Chinese woodblock print portrait of Emperor 武则天 of Tang Dynasty, seated majestically on a classical dragon throne wearing imperial royal robes (衮服冕旒). Ten Bamboo Studio letter paper style (十竹斋笺谱), delicate traditional ink line art with subtle water-based woodblock printing colors (饾版套色), antique book illustration aesthetic. Warm tea-toned aged paper texture, mineral cinnabar red and muted gold accents. Dignified solemn expression, museum artifact quality. Avoid modern anime style, no 3D digital CG look, no western oil painting, no watermark, no modern text."
+  },
+  {
+    "id": "tang-xuanzong-lilongji",
+    "name": "李隆基",
+    "dynasty": "唐",
+    "dynastyFolder": "tang",
+    "type": "emperor",
+    "size": "1024x1536",
+    "outPath": "public/images/entries/tang/emperor-tang-xuanzong-lilongji.png",
+    "prompt": "Authentic ancient Chinese woodblock print portrait of Emperor 李隆基 of Tang Dynasty, seated majestically on a classical dragon throne wearing imperial royal robes (衮服冕旒). Ten Bamboo Studio letter paper style (十竹斋笺谱), delicate traditional ink line art with subtle water-based woodblock printing colors (饾版套色), antique book illustration aesthetic. Warm tea-toned aged paper texture, mineral cinnabar red and muted gold accents. Dignified solemn expression, museum artifact quality. Avoid modern anime style, no 3D digital CG look, no western oil painting, no watermark, no modern text."
+  },
+  {
+    "id": "libai",
+    "name": "李白",
+    "dynasty": "唐",
+    "dynastyFolder": "tang",
+    "type": "figure",
+    "size": "1024x1536",
+    "outPath": "public/images/entries/tang/figure-libai.png",
+    "prompt": "Authentic traditional Chinese woodblock portrait of historical figure 李白 of Tang Dynasty (盛唐). Elegant scholar-official attire or warrior armor, historical Wanxiao Tang book illustration style (晚笑堂画传). Delicate ink brushwork and fine carved woodblock contours, subtle mineral pigment wash. Three-quarter view waist-up portrait surrounded by poetic negative space on antique fibrous rice paper. Dignified, scholarly and atmospheric. Avoid modern anime style, no 3D digital CG look, no western oil painting, no watermark, no modern text."
+  },
+  {
+    "id": "dufu",
+    "name": "杜甫",
+    "dynasty": "唐",
+    "dynastyFolder": "tang",
+    "type": "figure",
+    "size": "1024x1536",
+    "outPath": "public/images/entries/tang/figure-dufu.png",
+    "prompt": "Authentic traditional Chinese woodblock portrait of historical figure 杜甫 of Tang Dynasty (盛唐—中唐). Elegant scholar-official attire or warrior armor, historical Wanxiao Tang book illustration style (晚笑堂画传). Delicate ink brushwork and fine carved woodblock contours, subtle mineral pigment wash. Three-quarter view waist-up portrait surrounded by poetic negative space on antique fibrous rice paper. Dignified, scholarly and atmospheric. Avoid modern anime style, no 3D digital CG look, no western oil painting, no watermark, no modern text."
+  },
+  {
+    "id": "xuanwumen-zhibian",
+    "name": "玄武门之变",
+    "dynasty": "唐",
+    "dynastyFolder": "tang",
+    "type": "event",
+    "size": "1536x1024",
+    "outPath": "public/images/entries/tang/event-xuanwumen-zhibian.png",
+    "prompt": "Authentic ancient Chinese woodblock panorama illustration depicting the historical event 玄武门之变 during Tang Dynasty (武德九年). Grand historical narrative composition, bird's-eye perspective (界画散点透视), traditional military campaign or court assembly scene with figures, architecture, mountains and swirling cloud elements. Traditional block-printed book illustration style, delicate ink lines with light watercolor wash (浅绛/青绿山水色). Antique fibrous paper texture. Historic drama and classical elegance. Avoid modern anime style, no 3D digital CG look, no western oil painting, no photorealistic blur, no watermark, no modern text."
+  },
+  {
+    "id": "zhenguan-zhizhi",
+    "name": "贞观之治",
+    "dynasty": "唐",
+    "dynastyFolder": "tang",
+    "type": "event",
+    "size": "1536x1024",
+    "outPath": "public/images/entries/tang/event-zhenguan-zhizhi.png",
+    "prompt": "Authentic ancient Chinese woodblock panorama illustration depicting the historical event 贞观之治 during Tang Dynasty (贞观元年—二十三年). Grand historical narrative composition, bird's-eye perspective (界画散点透视), traditional military campaign or court assembly scene with figures, architecture, mountains and swirling cloud elements. Traditional block-printed book illustration style, delicate ink lines with light watercolor wash (浅绛/青绿山水色). Antique fibrous paper texture. Historic drama and classical elegance. Avoid modern anime style, no 3D digital CG look, no western oil painting, no photorealistic blur, no watermark, no modern text."
+  },
+  {
+    "id": "kaiyuan-shengshi",
+    "name": "开元盛世",
+    "dynasty": "唐",
+    "dynastyFolder": "tang",
+    "type": "event",
+    "size": "1536x1024",
+    "outPath": "public/images/entries/tang/event-kaiyuan-shengshi.png",
+    "prompt": "Authentic ancient Chinese woodblock panorama illustration depicting the historical event 开元盛世 during Tang Dynasty (开元元年—二十九年). Grand historical narrative composition, bird's-eye perspective (界画散点透视), traditional military campaign or court assembly scene with figures, architecture, mountains and swirling cloud elements. Traditional block-printed book illustration style, delicate ink lines with light watercolor wash (浅绛/青绿山水色). Antique fibrous paper texture. Historic drama and classical elegance. Avoid modern anime style, no 3D digital CG look, no western oil painting, no photorealistic blur, no watermark, no modern text."
+  },
+  {
+    "id": "anshi-zhiluan",
+    "name": "安史之乱",
+    "dynasty": "唐",
+    "dynastyFolder": "tang",
+    "type": "event",
+    "size": "1536x1024",
+    "outPath": "public/images/entries/tang/event-anshi-zhiluan.png",
+    "prompt": "Authentic ancient Chinese woodblock panorama illustration depicting the historical event 安史之乱 during Tang Dynasty (天宝十四载—广德元年). Grand historical narrative composition, bird's-eye perspective (界画散点透视), traditional military campaign or court assembly scene with figures, architecture, mountains and swirling cloud elements. Traditional block-printed book illustration style, delicate ink lines with light watercolor wash (浅绛/青绿山水色). Antique fibrous paper texture. Historic drama and classical elegance. Avoid modern anime style, no 3D digital CG look, no western oil painting, no photorealistic blur, no watermark, no modern text."
+  },
+  {
+    "id": "wencheng-gongzhu-rucang",
+    "name": "文成公主入藏",
+    "dynasty": "唐",
+    "dynastyFolder": "tang",
+    "type": "event",
+    "size": "1536x1024",
+    "outPath": "public/images/entries/tang/event-wencheng-gongzhu-rucang.png",
+    "prompt": "Authentic ancient Chinese woodblock panorama illustration depicting the historical event 文成公主入藏 during Tang Dynasty (贞观十五年). Grand historical narrative composition, bird's-eye perspective (界画散点透视), traditional military campaign or court assembly scene with figures, architecture, mountains and swirling cloud elements. Traditional block-printed book illustration style, delicate ink lines with light watercolor wash (浅绛/青绿山水色). Antique fibrous paper texture. Historic drama and classical elegance. Avoid modern anime style, no 3D digital CG look, no western oil painting, no photorealistic blur, no watermark, no modern text."
+  },
+  {
+    "id": "song-taizu-zhaokuangyin",
+    "name": "赵匡胤",
+    "dynasty": "宋",
+    "dynastyFolder": "song",
+    "type": "emperor",
+    "size": "1024x1536",
+    "outPath": "public/images/entries/song/emperor-song-taizu-zhaokuangyin.png",
+    "prompt": "Authentic ancient Chinese woodblock print portrait of Emperor 赵匡胤 of Song Dynasty, seated majestically on a classical dragon throne wearing imperial royal robes (衮服冕旒). Ten Bamboo Studio letter paper style (十竹斋笺谱), delicate traditional ink line art with subtle water-based woodblock printing colors (饾版套色), antique book illustration aesthetic. Warm tea-toned aged paper texture, mineral cinnabar red and muted gold accents. Dignified solemn expression, museum artifact quality. Avoid modern anime style, no 3D digital CG look, no western oil painting, no watermark, no modern text."
+  },
+  {
+    "id": "song-renzong-zhaozhen",
+    "name": "赵祯",
+    "dynasty": "宋",
+    "dynastyFolder": "song",
+    "type": "emperor",
+    "size": "1024x1536",
+    "outPath": "public/images/entries/song/emperor-song-renzong-zhaozhen.png",
+    "prompt": "Authentic ancient Chinese woodblock print portrait of Emperor 赵祯 of Song Dynasty, seated majestically on a classical dragon throne wearing imperial royal robes (衮服冕旒). Ten Bamboo Studio letter paper style (十竹斋笺谱), delicate traditional ink line art with subtle water-based woodblock printing colors (饾版套色), antique book illustration aesthetic. Warm tea-toned aged paper texture, mineral cinnabar red and muted gold accents. Dignified solemn expression, museum artifact quality. Avoid modern anime style, no 3D digital CG look, no western oil painting, no watermark, no modern text."
+  },
+  {
+    "id": "song-huizong-zhaoji",
+    "name": "赵佶",
+    "dynasty": "宋",
+    "dynastyFolder": "song",
+    "type": "emperor",
+    "size": "1024x1536",
+    "outPath": "public/images/entries/song/emperor-song-huizong-zhaoji.png",
+    "prompt": "Authentic ancient Chinese woodblock print portrait of Emperor 赵佶 of Song Dynasty, seated majestically on a classical dragon throne wearing imperial royal robes (衮服冕旒). Ten Bamboo Studio letter paper style (十竹斋笺谱), delicate traditional ink line art with subtle water-based woodblock printing colors (饾版套色), antique book illustration aesthetic. Warm tea-toned aged paper texture, mineral cinnabar red and muted gold accents. Dignified solemn expression, museum artifact quality. Avoid modern anime style, no 3D digital CG look, no western oil painting, no watermark, no modern text."
+  },
+  {
+    "id": "sushi",
+    "name": "苏轼",
+    "dynasty": "宋",
+    "dynastyFolder": "song",
+    "type": "figure",
+    "size": "1024x1536",
+    "outPath": "public/images/entries/song/figure-sushi.png",
+    "prompt": "Authentic traditional Chinese woodblock portrait of historical figure 苏轼 of Song Dynasty (北宋中后期). Elegant scholar-official attire or warrior armor, historical Wanxiao Tang book illustration style (晚笑堂画传). Delicate ink brushwork and fine carved woodblock contours, subtle mineral pigment wash. Three-quarter view waist-up portrait surrounded by poetic negative space on antique fibrous rice paper. Dignified, scholarly and atmospheric. Avoid modern anime style, no 3D digital CG look, no western oil painting, no watermark, no modern text."
+  },
+  {
+    "id": "yuefei",
+    "name": "岳飞",
+    "dynasty": "宋",
+    "dynastyFolder": "song",
+    "type": "figure",
+    "size": "1024x1536",
+    "outPath": "public/images/entries/song/figure-yuefei.png",
+    "prompt": "Authentic traditional Chinese woodblock portrait of historical figure 岳飞 of Song Dynasty (南宋初年). Elegant scholar-official attire or warrior armor, historical Wanxiao Tang book illustration style (晚笑堂画传). Delicate ink brushwork and fine carved woodblock contours, subtle mineral pigment wash. Three-quarter view waist-up portrait surrounded by poetic negative space on antique fibrous rice paper. Dignified, scholarly and atmospheric. Avoid modern anime style, no 3D digital CG look, no western oil painting, no watermark, no modern text."
+  },
+  {
+    "id": "chenqiao-bingbian",
+    "name": "陈桥兵变",
+    "dynasty": "宋",
+    "dynastyFolder": "song",
+    "type": "event",
+    "size": "1536x1024",
+    "outPath": "public/images/entries/song/event-chenqiao-bingbian.png",
+    "prompt": "Authentic ancient Chinese woodblock panorama illustration depicting the historical event 陈桥兵变 during Song Dynasty (显德七年正月). Grand historical narrative composition, bird's-eye perspective (界画散点透视), traditional military campaign or court assembly scene with figures, architecture, mountains and swirling cloud elements. Traditional block-printed book illustration style, delicate ink lines with light watercolor wash (浅绛/青绿山水色). Antique fibrous paper texture. Historic drama and classical elegance. Avoid modern anime style, no 3D digital CG look, no western oil painting, no photorealistic blur, no watermark, no modern text."
+  },
+  {
+    "id": "beijiu-shibingquan",
+    "name": "杯酒释兵权",
+    "dynasty": "宋",
+    "dynastyFolder": "song",
+    "type": "event",
+    "size": "1536x1024",
+    "outPath": "public/images/entries/song/event-beijiu-shibingquan.png",
+    "prompt": "Authentic ancient Chinese woodblock panorama illustration depicting the historical event 杯酒释兵权 during Song Dynasty (建隆二年). Grand historical narrative composition, bird's-eye perspective (界画散点透视), traditional military campaign or court assembly scene with figures, architecture, mountains and swirling cloud elements. Traditional block-printed book illustration style, delicate ink lines with light watercolor wash (浅绛/青绿山水色). Antique fibrous paper texture. Historic drama and classical elegance. Avoid modern anime style, no 3D digital CG look, no western oil painting, no photorealistic blur, no watermark, no modern text."
+  },
+  {
+    "id": "chanyuan-zhimeng",
+    "name": "澶渊之盟",
+    "dynasty": "宋",
+    "dynastyFolder": "song",
+    "type": "event",
+    "size": "1536x1024",
+    "outPath": "public/images/entries/song/event-chanyuan-zhimeng.png",
+    "prompt": "Authentic ancient Chinese woodblock panorama illustration depicting the historical event 澶渊之盟 during Song Dynasty (景德元年). Grand historical narrative composition, bird's-eye perspective (界画散点透视), traditional military campaign or court assembly scene with figures, architecture, mountains and swirling cloud elements. Traditional block-printed book illustration style, delicate ink lines with light watercolor wash (浅绛/青绿山水色). Antique fibrous paper texture. Historic drama and classical elegance. Avoid modern anime style, no 3D digital CG look, no western oil painting, no photorealistic blur, no watermark, no modern text."
+  },
+  {
+    "id": "jingkang-zhibian",
+    "name": "靖康之变",
+    "dynasty": "宋",
+    "dynastyFolder": "song",
+    "type": "event",
+    "size": "1536x1024",
+    "outPath": "public/images/entries/song/event-jingkang-zhibian.png",
+    "prompt": "Authentic ancient Chinese woodblock panorama illustration depicting the historical event 靖康之变 during Song Dynasty (靖康元年—二年). Grand historical narrative composition, bird's-eye perspective (界画散点透视), traditional military campaign or court assembly scene with figures, architecture, mountains and swirling cloud elements. Traditional block-printed book illustration style, delicate ink lines with light watercolor wash (浅绛/青绿山水色). Antique fibrous paper texture. Historic drama and classical elegance. Avoid modern anime style, no 3D digital CG look, no western oil painting, no photorealistic blur, no watermark, no modern text."
+  },
+  {
+    "id": "liubang",
+    "name": "刘邦",
+    "dynasty": "汉",
+    "dynastyFolder": "han",
+    "type": "emperor",
+    "size": "1024x1536",
+    "outPath": "public/images/entries/han/emperor-liubang.png",
+    "prompt": "Authentic ancient Chinese woodblock print portrait of Emperor 刘邦 of Han Dynasty, seated majestically on a classical dragon throne wearing imperial royal robes (衮服冕旒). Ten Bamboo Studio letter paper style (十竹斋笺谱), delicate traditional ink line art with subtle water-based woodblock printing colors (饾版套色), antique book illustration aesthetic. Warm tea-toned aged paper texture, mineral cinnabar red and muted gold accents. Dignified solemn expression, museum artifact quality. Avoid modern anime style, no 3D digital CG look, no western oil painting, no watermark, no modern text."
+  },
+  {
+    "id": "liu-heng",
+    "name": "刘恒",
+    "dynasty": "汉",
+    "dynastyFolder": "han",
+    "type": "emperor",
+    "size": "1024x1536",
+    "outPath": "public/images/entries/han/emperor-liu-heng.png",
+    "prompt": "Authentic ancient Chinese woodblock print portrait of Emperor 刘恒 of Han Dynasty, seated majestically on a classical dragon throne wearing imperial royal robes (衮服冕旒). Ten Bamboo Studio letter paper style (十竹斋笺谱), delicate traditional ink line art with subtle water-based woodblock printing colors (饾版套色), antique book illustration aesthetic. Warm tea-toned aged paper texture, mineral cinnabar red and muted gold accents. Dignified solemn expression, museum artifact quality. Avoid modern anime style, no 3D digital CG look, no western oil painting, no watermark, no modern text."
+  },
+  {
+    "id": "liuqi",
+    "name": "刘启",
+    "dynasty": "汉",
+    "dynastyFolder": "han",
+    "type": "emperor",
+    "size": "1024x1536",
+    "outPath": "public/images/entries/han/emperor-liuqi.png",
+    "prompt": "Authentic ancient Chinese woodblock print portrait of Emperor 刘启 of Han Dynasty, seated majestically on a classical dragon throne wearing imperial royal robes (衮服冕旒). Ten Bamboo Studio letter paper style (十竹斋笺谱), delicate traditional ink line art with subtle water-based woodblock printing colors (饾版套色), antique book illustration aesthetic. Warm tea-toned aged paper texture, mineral cinnabar red and muted gold accents. Dignified solemn expression, museum artifact quality. Avoid modern anime style, no 3D digital CG look, no western oil painting, no watermark, no modern text."
+  },
+  {
+    "id": "liu-che",
+    "name": "刘彻",
+    "dynasty": "汉",
+    "dynastyFolder": "han",
+    "type": "emperor",
+    "size": "1024x1536",
+    "outPath": "public/images/entries/han/emperor-liu-che.png",
+    "prompt": "Authentic ancient Chinese woodblock print portrait of Emperor 刘彻 of Han Dynasty, seated majestically on a classical dragon throne wearing imperial royal robes (衮服冕旒). Ten Bamboo Studio letter paper style (十竹斋笺谱), delicate traditional ink line art with subtle water-based woodblock printing colors (饾版套色), antique book illustration aesthetic. Warm tea-toned aged paper texture, mineral cinnabar red and muted gold accents. Dignified solemn expression, museum artifact quality. Avoid modern anime style, no 3D digital CG look, no western oil painting, no watermark, no modern text."
+  },
+  {
+    "id": "liu-xiu",
+    "name": "刘秀",
+    "dynasty": "汉",
+    "dynastyFolder": "han",
+    "type": "emperor",
+    "size": "1024x1536",
+    "outPath": "public/images/entries/han/emperor-liu-xiu.png",
+    "prompt": "Authentic ancient Chinese woodblock print portrait of Emperor 刘秀 of Han Dynasty, seated majestically on a classical dragon throne wearing imperial royal robes (衮服冕旒). Ten Bamboo Studio letter paper style (十竹斋笺谱), delicate traditional ink line art with subtle water-based woodblock printing colors (饾版套色), antique book illustration aesthetic. Warm tea-toned aged paper texture, mineral cinnabar red and muted gold accents. Dignified solemn expression, museum artifact quality. Avoid modern anime style, no 3D digital CG look, no western oil painting, no watermark, no modern text."
+  },
+  {
+    "id": "sima",
+    "name": "司马迁",
+    "dynasty": "汉",
+    "dynastyFolder": "han",
+    "type": "figure",
+    "size": "1024x1536",
+    "outPath": "public/images/entries/han/figure-sima.png",
+    "prompt": "Authentic traditional Chinese woodblock portrait of historical figure 司马迁 of Han Dynasty (汉武帝元鼎至征和年间). Elegant scholar-official attire or warrior armor, historical Wanxiao Tang book illustration style (晚笑堂画传). Delicate ink brushwork and fine carved woodblock contours, subtle mineral pigment wash. Three-quarter view waist-up portrait surrounded by poetic negative space on antique fibrous rice paper. Dignified, scholarly and atmospheric. Avoid modern anime style, no 3D digital CG look, no western oil painting, no watermark, no modern text."
+  },
+  {
+    "id": "huo-qubing",
+    "name": "霍去病",
+    "dynasty": "汉",
+    "dynastyFolder": "han",
+    "type": "figure",
+    "size": "1024x1536",
+    "outPath": "public/images/entries/han/figure-huo-qubing.png",
+    "prompt": "Authentic traditional Chinese woodblock portrait of historical figure 霍去病 of Han Dynasty (汉武帝元狩六年). Elegant scholar-official attire or warrior armor, historical Wanxiao Tang book illustration style (晚笑堂画传). Delicate ink brushwork and fine carved woodblock contours, subtle mineral pigment wash. Three-quarter view waist-up portrait surrounded by poetic negative space on antique fibrous rice paper. Dignified, scholarly and atmospheric. Avoid modern anime style, no 3D digital CG look, no western oil painting, no watermark, no modern text."
+  },
+  {
+    "id": "chu-han-zhizheng",
+    "name": "楚汉之争",
+    "dynasty": "汉",
+    "dynastyFolder": "han",
+    "type": "event",
+    "size": "1536x1024",
+    "outPath": "public/images/entries/han/event-chu-han-zhizheng.png",
+    "prompt": "Authentic ancient Chinese woodblock panorama illustration depicting the historical event 楚汉之争 during Han Dynasty (汉元年—汉五年). Grand historical narrative composition, bird's-eye perspective (界画散点透视), traditional military campaign or court assembly scene with figures, architecture, mountains and swirling cloud elements. Traditional block-printed book illustration style, delicate ink lines with light watercolor wash (浅绛/青绿山水色). Antique fibrous paper texture. Historic drama and classical elegance. Avoid modern anime style, no 3D digital CG look, no western oil painting, no photorealistic blur, no watermark, no modern text."
+  },
+  {
+    "id": "zhangqian-tongxiyu",
+    "name": "张骞通西域",
+    "dynasty": "汉",
+    "dynastyFolder": "han",
+    "type": "event",
+    "size": "1536x1024",
+    "outPath": "public/images/entries/han/event-zhangqian-tongxiyu.png",
+    "prompt": "Authentic ancient Chinese woodblock panorama illustration depicting the historical event 张骞通西域 during Han Dynasty (建元二年—元朔三年). Grand historical narrative composition, bird's-eye perspective (界画散点透视), traditional military campaign or court assembly scene with figures, architecture, mountains and swirling cloud elements. Traditional block-printed book illustration style, delicate ink lines with light watercolor wash (浅绛/青绿山水色). Antique fibrous paper texture. Historic drama and classical elegance. Avoid modern anime style, no 3D digital CG look, no western oil painting, no photorealistic blur, no watermark, no modern text."
+  },
+  {
+    "id": "kunyang-zhizhan",
+    "name": "昆阳之战",
+    "dynasty": "汉",
+    "dynastyFolder": "han",
+    "type": "event",
+    "size": "1536x1024",
+    "outPath": "public/images/entries/han/event-kunyang-zhizhan.png",
+    "prompt": "Authentic ancient Chinese woodblock panorama illustration depicting the historical event 昆阳之战 during Han Dynasty (更始元年). Grand historical narrative composition, bird's-eye perspective (界画散点透视), traditional military campaign or court assembly scene with figures, architecture, mountains and swirling cloud elements. Traditional block-printed book illustration style, delicate ink lines with light watercolor wash (浅绛/青绿山水色). Antique fibrous paper texture. Historic drama and classical elegance. Avoid modern anime style, no 3D digital CG look, no western oil painting, no photorealistic blur, no watermark, no modern text."
+  },
+  {
+    "id": "nuerhaci",
+    "name": "努尔哈赤",
+    "dynasty": "清",
+    "dynastyFolder": "qing",
+    "type": "emperor",
+    "size": "1024x1536",
+    "outPath": "public/images/entries/qing/emperor-nuerhaci.png",
+    "prompt": "Authentic ancient Chinese woodblock print portrait of Emperor 努尔哈赤 of Qing Dynasty, seated majestically on a classical dragon throne wearing imperial royal robes (衮服冕旒). Ten Bamboo Studio letter paper style (十竹斋笺谱), delicate traditional ink line art with subtle water-based woodblock printing colors (饾版套色), antique book illustration aesthetic. Warm tea-toned aged paper texture, mineral cinnabar red and muted gold accents. Dignified solemn expression, museum artifact quality. Avoid modern anime style, no 3D digital CG look, no western oil painting, no watermark, no modern text."
+  },
+  {
+    "id": "xuanye",
+    "name": "玄烨",
+    "dynasty": "清",
+    "dynastyFolder": "qing",
+    "type": "emperor",
+    "size": "1024x1536",
+    "outPath": "public/images/entries/qing/emperor-xuanye.png",
+    "prompt": "Authentic ancient Chinese woodblock print portrait of Emperor 玄烨 of Qing Dynasty, seated majestically on a classical dragon throne wearing imperial royal robes (衮服冕旒). Ten Bamboo Studio letter paper style (十竹斋笺谱), delicate traditional ink line art with subtle water-based woodblock printing colors (饾版套色), antique book illustration aesthetic. Warm tea-toned aged paper texture, mineral cinnabar red and muted gold accents. Dignified solemn expression, museum artifact quality. Avoid modern anime style, no 3D digital CG look, no western oil painting, no watermark, no modern text."
+  },
+  {
+    "id": "hongli",
+    "name": "弘历",
+    "dynasty": "清",
+    "dynastyFolder": "qing",
+    "type": "emperor",
+    "size": "1024x1536",
+    "outPath": "public/images/entries/qing/emperor-hongli.png",
+    "prompt": "Authentic ancient Chinese woodblock print portrait of Emperor 弘历 of Qing Dynasty, seated majestically on a classical dragon throne wearing imperial royal robes (衮服冕旒). Ten Bamboo Studio letter paper style (十竹斋笺谱), delicate traditional ink line art with subtle water-based woodblock printing colors (饾版套色), antique book illustration aesthetic. Warm tea-toned aged paper texture, mineral cinnabar red and muted gold accents. Dignified solemn expression, museum artifact quality. Avoid modern anime style, no 3D digital CG look, no western oil painting, no watermark, no modern text."
+  },
+  {
+    "id": "lin-zexu",
+    "name": "林则徐",
+    "dynasty": "清",
+    "dynastyFolder": "qing",
+    "type": "figure",
+    "size": "1024x1536",
+    "outPath": "public/images/entries/qing/figure-lin-zexu.png",
+    "prompt": "Authentic traditional Chinese woodblock portrait of historical figure 林则徐 of Qing Dynasty (道光三十年). Elegant scholar-official attire or warrior armor, historical Wanxiao Tang book illustration style (晚笑堂画传). Delicate ink brushwork and fine carved woodblock contours, subtle mineral pigment wash. Three-quarter view waist-up portrait surrounded by poetic negative space on antique fibrous rice paper. Dignified, scholarly and atmospheric. Avoid modern anime style, no 3D digital CG look, no western oil painting, no watermark, no modern text."
+  },
+  {
+    "id": "zeng-guofan",
+    "name": "曾国藩",
+    "dynasty": "清",
+    "dynastyFolder": "qing",
+    "type": "figure",
+    "size": "1024x1536",
+    "outPath": "public/images/entries/qing/figure-zeng-guofan.png",
+    "prompt": "Authentic traditional Chinese woodblock portrait of historical figure 曾国藩 of Qing Dynasty (同治十一年). Elegant scholar-official attire or warrior armor, historical Wanxiao Tang book illustration style (晚笑堂画传). Delicate ink brushwork and fine carved woodblock contours, subtle mineral pigment wash. Three-quarter view waist-up portrait surrounded by poetic negative space on antique fibrous rice paper. Dignified, scholarly and atmospheric. Avoid modern anime style, no 3D digital CG look, no western oil painting, no watermark, no modern text."
+  },
+  {
+    "id": "qingjun-ruguan",
+    "name": "清军入关",
+    "dynasty": "清",
+    "dynastyFolder": "qing",
+    "type": "event",
+    "size": "1536x1024",
+    "outPath": "public/images/entries/qing/event-qingjun-ruguan.png",
+    "prompt": "Authentic ancient Chinese woodblock panorama illustration depicting the historical event 清军入关 during Qing Dynasty (顺治元年). Grand historical narrative composition, bird's-eye perspective (界画散点透视), traditional military campaign or court assembly scene with figures, architecture, mountains and swirling cloud elements. Traditional block-printed book illustration style, delicate ink lines with light watercolor wash (浅绛/青绿山水色). Antique fibrous paper texture. Historic drama and classical elegance. Avoid modern anime style, no 3D digital CG look, no western oil painting, no photorealistic blur, no watermark, no modern text."
+  },
+  {
+    "id": "pingding-zhungaer",
+    "name": "平定准噶尔",
+    "dynasty": "清",
+    "dynastyFolder": "qing",
+    "type": "event",
+    "size": "1536x1024",
+    "outPath": "public/images/entries/qing/event-pingding-zhungaer.png",
+    "prompt": "Authentic ancient Chinese woodblock panorama illustration depicting the historical event 平定准噶尔 during Qing Dynasty (康熙二十九年). Grand historical narrative composition, bird's-eye perspective (界画散点透视), traditional military campaign or court assembly scene with figures, architecture, mountains and swirling cloud elements. Traditional block-printed book illustration style, delicate ink lines with light watercolor wash (浅绛/青绿山水色). Antique fibrous paper texture. Historic drama and classical elegance. Avoid modern anime style, no 3D digital CG look, no western oil painting, no photorealistic blur, no watermark, no modern text."
+  },
+  {
+    "id": "xinhai-geming",
+    "name": "辛亥革命",
+    "dynasty": "清",
+    "dynastyFolder": "qing",
+    "type": "event",
+    "size": "1536x1024",
+    "outPath": "public/images/entries/qing/event-xinhai-geming.png",
+    "prompt": "Authentic ancient Chinese woodblock panorama illustration depicting the historical event 辛亥革命 during Qing Dynasty (宣统三年). Grand historical narrative composition, bird's-eye perspective (界画散点透视), traditional military campaign or court assembly scene with figures, architecture, mountains and swirling cloud elements. Traditional block-printed book illustration style, delicate ink lines with light watercolor wash (浅绛/青绿山水色). Antique fibrous paper texture. Historic drama and classical elegance. Avoid modern anime style, no 3D digital CG look, no western oil painting, no photorealistic blur, no watermark, no modern text."
+  }
+]
