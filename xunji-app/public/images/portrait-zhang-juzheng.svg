@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" width="100%" height="100%">
+  <defs>
+    <linearGradient id="paperBg2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F7F3E8"/>
+      <stop offset="100%" stop-color="#EFE7D3"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="600" height="400" fill="url(#paperBg2)"/>
+  <rect x="20" y="20" width="560" height="360" fill="none" stroke="#8C8378" stroke-width="1" stroke-dasharray="4 2"/>
+  <rect x="28" y="28" width="544" height="344" fill="none" stroke="#1F1B16" stroke-width="2"/>
+
+  <!-- 张居正明代一品鹤补官服白描画像 -->
+  <g transform="translate(195, 50)" stroke="#1F1B16" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- 梁冠/乌纱展角乌纱帽 -->
+    <path d="M 60 55 C 60 25, 150 25, 150 55 Z" fill="#2F5D7C"/>
+    <!-- 乌纱展翅 -->
+    <path d="M 60 48 L 5 46 Q -5 45 0 52 L 55 54 Z" fill="#1F1B16"/>
+    <path d="M 150 48 L 205 46 Q 215 45 210 52 L 155 54 Z" fill="#1F1B16"/>
+
+    <!-- 清癯威严面庞 -->
+    <path d="M 75 55 Q 105 58 135 55 L 132 95 Q 105 118 78 95 Z" fill="#F7F3E8"/>
+    <!-- 剑眉微须 -->
+    <path d="M 86 68 Q 96 66 102 70" stroke-width="1.8"/>
+    <path d="M 108 70 Q 114 66 124 68" stroke-width="1.8"/>
+    <path d="M 105 72 L 103 82 L 107 83" stroke-width="1.5"/>
+    <path d="M 94 88 Q 105 92 116 88" stroke-width="1.5"/>
+    <!-- 三绺美须髯 -->
+    <path d="M 92 90 Q 88 130 102 145 Q 105 148 108 145 Q 122 130 118 90" fill="#1F1B16"/>
+
+    <!-- 一品绯罗大袍宽袖 -->
+    <path d="M 75 100 L 25 140 L -5 245 L 60 255 L 75 175 L 105 185 L 135 175 L 150 255 L 215 245 L 185 140 L 135 100 Z" fill="#F4EFE0" stroke="#1F1B16" stroke-width="2.5"/>
+    
+    <!-- 胸前一品仙鹤方补 -->
+    <rect x="75" y="118" width="60" height="50" fill="#F7F3E8" stroke="#A8352A" stroke-width="2"/>
+    <!-- 仙鹤云纹抽象 -->
+    <path d="M 92 152 Q 105 125 118 152" stroke="#2F5D7C" stroke-width="2"/>
+    <circle cx="105" cy="132" r="3" fill="#A8352A"/>
+    <!-- 玉带横束 -->
+    <rect x="65" y="180" width="80" height="12" fill="#B08D57" stroke="#1F1B16" stroke-width="1.5"/>
+  </g>
+
+  <!-- 题签 -->
+  <g transform="translate(480, 50)">
+    <rect x="0" y="0" width="36" height="160" fill="#F7F3E8" stroke="#A8352A" stroke-width="1.5"/>
+    <text x="18" y="24" font-family="serif" font-weight="bold" font-size="13" fill="#A8352A" text-anchor="middle">太</text>
+    <text x="18" y="44" font-family="serif" font-weight="bold" font-size="13" fill="#A8352A" text-anchor="middle">师</text>
+    <text x="18" y="66" font-family="serif" font-weight="bold" font-size="14" fill="#1F1B16" text-anchor="middle">张</text>
+    <text x="18" y="88" font-family="serif" font-weight="bold" font-size="14" fill="#1F1B16" text-anchor="middle">文</text>
+    <text x="18" y="110" font-family="serif" font-weight="bold" font-size="14" fill="#1F1B16" text-anchor="middle">忠</text>
+    <text x="18" y="132" font-family="serif" font-weight="bold" font-size="14" fill="#1F1B16" text-anchor="middle">公</text>
+    <text x="18" y="150" font-family="serif" font-size="9" fill="#8C8378" text-anchor="middle">遗像</text>
+  </g>
+
+  <!-- 左下角文忠公方印 -->
+  <g transform="translate(50, 290)">
+    <rect x="0" y="0" width="46" height="46" fill="#A8352A" rx="2"/>
+    <rect x="3" y="3" width="40" height="40" fill="none" stroke="#FFFFFF" stroke-width="1"/>
+    <text x="23" y="22" font-family="serif" font-weight="bold" font-size="12" fill="#FFFFFF" text-anchor="middle">太岳</text>
+    <text x="23" y="37" font-family="serif" font-weight="bold" font-size="12" fill="#FFFFFF" text-anchor="middle">相印</text>
+  </g>
+
+  <text x="300" y="380" font-family="serif" font-size="11" fill="#8C8378" text-anchor="middle">
+    图版 2-1　明内阁首辅张居正一品仙鹤补服画像（江陵文忠公文集刻本插图）
+  </text>
+</svg>

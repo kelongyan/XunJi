@@ -1,0 +1,627 @@
+@import "tailwindcss";
+
+:root, html.light {
+  /* 纸感底色（暖黄宣纸系） */
+  --paper-base: #F7F3E8;
+  --paper-soft: #EFE7D3;
+  --paper-deep: #E3D9C0;
+
+  /* 墨色（文字层级） */
+  --ink-strong: #1F1B16;
+  --ink-normal: #3D372F;
+  --ink-soft: #5A5147;
+  --ink-faint: #8C8378;
+
+  /* 朱色（强调 / 批点 / 印章） */
+  --cinnabar: #A8352A;
+  --cinnabar-soft: #C75B4A;
+
+  /* 传统国画辅色（可视化与点缀） */
+  --azurite: #2F5D7C;
+  --malachite: #4A7A5E;
+  --ochre: #B08D57;
+
+  /* 语义映射 */
+  --background: var(--paper-base);
+  --foreground: var(--ink-strong);
+  --card: var(--paper-soft);
+  --card-foreground: var(--ink-strong);
+  --primary: var(--cinnabar);
+  --primary-foreground: #FFFFFF;
+  --muted: var(--paper-deep);
+  --muted-foreground: var(--ink-soft);
+  --border: var(--paper-deep);
+  --ring: var(--cinnabar-soft);
+
+  /* 字体族 */
+  --font-serif: "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
+  --font-sans: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-kai: "LXGW WenKai", "Kaiti SC", "KaiTi", "STKaiti", serif;
+}
+
+html.dark {
+  --paper-base: #16130F;
+  --paper-soft: #211C16;
+  --paper-deep: #322B22;
+
+  --ink-strong: #E8E3D8;
+  --ink-normal: #CFC8BA;
+  --ink-soft: #9E9585;
+  --ink-faint: #6E6659;
+
+  --cinnabar: #C9564A;
+  --cinnabar-soft: #D97568;
+
+  --background: var(--paper-base);
+  --foreground: var(--ink-strong);
+  --card: var(--paper-soft);
+  --card-foreground: var(--ink-strong);
+  --primary: var(--cinnabar);
+  --primary-foreground: #FFFFFF;
+  --muted: var(--paper-deep);
+  --muted-foreground: var(--ink-soft);
+  --border: var(--paper-deep);
+  --ring: var(--cinnabar-soft);
+}
+
+/* ── 一朝一色 · 朝代主题色（与日/夜正交，随 html[data-dynasty] 切换）── */
+:root {
+  --dynasty-accent: var(--cinnabar);
+  --dynasty-accent-soft: var(--cinnabar-soft);
+}
+
+html[data-dynasty='han'] {
+  --dynasty-accent: #2B2B31;
+  --dynasty-accent-soft: #4A4A55;
+}
+html[data-dynasty='tang'] {
+  --dynasty-accent: #9A7226;
+  --dynasty-accent-soft: #B98F45;
+}
+html[data-dynasty='song'] {
+  --dynasty-accent: #4E7D93;
+  --dynasty-accent-soft: #6E9CB0;
+}
+html[data-dynasty='qing'] {
+  --dynasty-accent: #2F4E6E;
+  --dynasty-accent-soft: #4A6E8E;
+}
+
+/* 夜读下朝代色整体提亮，避免暗底失真 */
+html.dark[data-dynasty='han'] { --dynasty-accent: #8E8EA0; --dynasty-accent-soft: #A5A5B5; }
+html.dark[data-dynasty='tang'] { --dynasty-accent: #D4AC5B; --dynasty-accent-soft: #E0C078; }
+html.dark[data-dynasty='song'] { --dynasty-accent: #8FB8CA; --dynasty-accent-soft: #A8CBDA; }
+html.dark[data-dynasty='ming'] { --dynasty-accent: #C9564A; --dynasty-accent-soft: #D97568; }
+html.dark[data-dynasty='qing'] { --dynasty-accent: #7FA3C4; --dynasty-accent-soft: #9ABBD6; }
+
+body {
+  background-color: var(--paper-base);
+  color: var(--ink-strong);
+  font-family: var(--font-serif);
+  line-height: 1.85;
+  letter-spacing: 0.025em;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 古籍版式排版核心类 */
+.font-textbook-hero {
+  font-family: var(--font-sans);
+  font-weight: 900;
+  font-size: clamp(2rem, 4vw, 3rem);
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+}
+
+.font-textbook-chapter {
+  font-family: var(--font-sans);
+  font-weight: 800;
+  font-size: 1.25rem;
+  letter-spacing: 0.03em;
+  line-height: 1.35;
+}
+
+.font-textbook-title {
+  font-family: var(--font-sans);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.font-textbook-body {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  line-height: 1.9;
+  letter-spacing: 0.025em;
+  color: var(--ink-normal);
+}
+
+.font-textbook-quote {
+  font-family: var(--font-kai);
+  font-size: 0.9375rem;
+  line-height: 1.8;
+  letter-spacing: 0.02em;
+  color: var(--ink-strong);
+}
+
+.text-indent-chinese {
+  text-indent: 2em;
+}
+
+.textbook-reading-column {
+  max-width: 41rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.textbook-reading-column p + p {
+  margin-top: 1.15rem;
+}
+
+.border-wenwu {
+  border: 3px double var(--paper-deep);
+}
+
+.border-wenwu-primary {
+  border: 3px double var(--cinnabar);
+}
+
+.textbook-running-header {
+  border-bottom: 2px solid var(--paper-deep);
+  position: relative;
+}
+
+.textbook-running-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: var(--paper-deep);
+  opacity: 0.6;
+}
+
+.textbook-running-header::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: var(--paper-deep);
+}
+
+.textbook-folio {
+  font-family: var(--font-serif);
+  font-size: 0.8125rem;
+  letter-spacing: 0.15em;
+  color: var(--ink-faint);
+}
+
+.textbook-dropcap::first-letter {
+  font-size: 2.75em;
+  float: left;
+  line-height: 0.9;
+  margin-right: 0.25em;
+  padding: 2px 4px;
+  color: var(--cinnabar);
+  font-family: var(--font-serif);
+  font-weight: bold;
+}
+
+.textbook-margin-note {
+  border-left: 2px dashed var(--paper-deep);
+  padding-left: 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+
+.paper-texture {
+  background-color: var(--paper-base);
+  background-image: radial-gradient(var(--paper-deep) 0.65px, transparent 0.65px);
+  background-size: 24px 24px;
+}
+
+/* 朱红印章样式 (金石篆刻韵味) —— 默认竖排 */
+.seal-stamp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.18), transparent 35%),
+    radial-gradient(circle at 80% 70%, rgba(0, 0, 0, 0.1), transparent 40%),
+    var(--cinnabar);
+  color: #FFFFFF;
+  /* 不规则微圆角，模拟手工钤印 */
+  border-radius: 3px 5px 4px 6px;
+  font-family: var(--font-serif);
+  font-weight: 800;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.45),
+    inset 0 0 4px rgba(0, 0, 0, 0.12),
+    0 2px 5px rgba(168, 53, 42, 0.22);
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  letter-spacing: 0.22em;
+  padding: 7px 5px;
+  line-height: 1;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.seal-stamp:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5),
+    inset 0 0 5px rgba(0, 0, 0, 0.14),
+    0 4px 8px rgba(168, 53, 42, 0.24);
+}
+
+/* 印章尺寸变体 */
+.seal-stamp-sm {
+  font-size: 0.625rem;
+  padding: 5px 3.5px;
+  letter-spacing: 0.18em;
+  border-radius: 2px 4px 3px 5px;
+}
+
+.seal-stamp-md {
+  font-size: 0.75rem;
+  padding: 7px 5px;
+}
+
+.seal-stamp-lg {
+  font-size: 0.875rem;
+  padding: 10px 7px;
+  letter-spacing: 0.24em;
+}
+
+/* 横排印章（用于页眉徽标等横向空间） */
+.seal-stamp-horizontal {
+  writing-mode: horizontal-tb;
+  text-orientation: mixed;
+  letter-spacing: 0.12em;
+  padding: 3px 8px;
+}
+
+@keyframes inkPulse {
+  0%, 100% { opacity: 0.3; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+.ink-cursor {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background-color: var(--cinnabar);
+  margin-left: 4px;
+  vertical-align: middle;
+  animation: inkPulse 1s infinite ease-in-out;
+}
+
+/* ── 古籍版式 v3 ────────────────────────────────── */
+
+/* 一朝一色 · 朝代主题强调工具类（随 html[data-dynasty] 变色） */
+.dynasty-accent-text {
+  color: var(--dynasty-accent);
+}
+.dynasty-chip {
+  color: var(--dynasty-accent);
+  background-color: color-mix(in srgb, var(--dynasty-accent) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--dynasty-accent) 26%, transparent);
+}
+
+
+/* 版心鱼尾（对向燕尾形，装饰版心中缝） */
+.fish-tail {
+  display: inline-block;
+  width: 15px;
+  height: 10px;
+  background-color: var(--ink-normal);
+  clip-path: polygon(0 0, 100% 0, 52% 50%, 100% 100%, 0 100%, 48% 50%);
+  opacity: 0.75;
+}
+
+/* 朱笔圈点：手绘感椭圆圈住重点字句 */
+.brush-em {
+  position: relative;
+  display: inline-block;
+}
+.brush-em::after {
+  content: "";
+  position: absolute;
+  inset: -4px -8px;
+  border: 1.5px solid var(--dynasty-accent);
+  border-radius: 46% 54% 50% 50% / 58% 42% 60% 40%;
+  transform: rotate(-2.5deg);
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+/* 竖排引文：楷体从右向左，限高防溢出 */
+.vertical-quote {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  letter-spacing: 0.14em;
+  line-height: 2.1;
+  max-height: 11em;
+}
+
+/* 笺谱装裱：套色双框 + 内衬留白（致敬十竹斋笺谱套色笺） */
+.framed-plate {
+  border: 1px solid color-mix(in srgb, var(--dynasty-accent) 55%, transparent);
+  padding: 7px;
+  background-color: var(--card);
+  box-shadow:
+    inset 0 0 0 1px var(--border),
+    0 1px 4px rgba(31, 27, 22, 0.08);
+}
+
+/* 页边朱批：竖排楷体批注位（静态史家评点 / 后续 AI 批语共用此样式） */
+.zhu-pi {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-family: var(--font-kai);
+  color: var(--dynasty-accent);
+  font-size: 0.8125rem;
+  letter-spacing: 0.18em;
+  line-height: 1.9;
+  border-left: 1px solid color-mix(in srgb, var(--dynasty-accent) 35%, transparent);
+  padding-left: 0.6rem;
+  max-height: 15em;
+}
+
+/* 纸纹升级：点阵底纹上叠加 SVG 纤维噪声（极低透明度宣纸肌理） */
+.paper-texture {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E"),
+    radial-gradient(var(--paper-deep) 0.65px, transparent 0.65px);
+  background-size: 140px 140px, 24px 24px;
+}
+
+html.dark .paper-texture {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E"),
+    radial-gradient(var(--paper-deep) 0.65px, transparent 0.65px);
+}
+
+/* 日/夜卷轴开关签 */
+.mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid var(--border);
+  background: var(--background);
+  padding: 3px 9px;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.mode-toggle:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+/* 水墨晕开转场遮罩 */
+.ink-flash-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ink-flash-overlay::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background: radial-gradient(circle at 50% 46%, var(--ink-strong) 0%, var(--ink-strong) 42%, transparent 68%);
+  animation: inkFlashExpand 0.9s cubic-bezier(0.55, 0.06, 0.35, 1) forwards;
+}
+.ink-flash-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--paper-base);
+  animation: inkFlashFade 0.9s ease forwards;
+}
+.ink-flash-overlay .ink-flash-stamp {
+  position: relative;
+  z-index: 1;
+  animation: inkStampPress 0.9s cubic-bezier(0.3, 0.9, 0.4, 1) forwards;
+}
+
+@keyframes inkFlashExpand {
+  0% { transform: scale(0); opacity: 0; }
+  38% { transform: scale(1); opacity: 0.94; }
+  62% { transform: scale(1); opacity: 0.94; }
+  100% { transform: scale(1.15); opacity: 0; }
+}
+@keyframes inkFlashFade {
+  0%, 42% { opacity: 0; }
+  55% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes inkStampPress {
+  0%, 40% { transform: scale(2.4) rotate(-8deg); opacity: 0; }
+  52% { transform: scale(1) rotate(-3deg); opacity: 1; }
+  72% { transform: scale(1) rotate(-3deg); opacity: 1; }
+  100% { transform: scale(0.92) rotate(-3deg); opacity: 0; }
+}
+
+/* ── 动效层 v3：滚动渐显 / 盖印 / 页面过渡 / 微交互 ───────────────── */
+
+/* v-reveal 滚动渐显（配合 src/directives/reveal.ts） */
+.reveal-init {
+  opacity: 0;
+  transform: translateY(20px);
+}
+.reveal-in {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 0.75s cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 0.75s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* 盖印动效：父容器 reveal-in 时印章"啪"地盖落 */
+.seal-drop {
+  opacity: 0;
+}
+.reveal-in .seal-drop,
+.seal-drop.reveal-in {
+  animation: sealDrop 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.18) forwards;
+}
+@keyframes sealDrop {
+  0% { opacity: 0; transform: scale(1.9) rotate(-9deg); }
+  62% { opacity: 1; transform: scale(0.94) rotate(-3deg); }
+  80% { transform: scale(1.04) rotate(-3deg); }
+  100% { opacity: 1; transform: scale(1) rotate(-3deg); }
+}
+
+/* 路由页面过渡（App.vue Transition name="page"） */
+.page-enter-active {
+  transition: opacity 0.45s ease, transform 0.45s ease;
+}
+.page-leave-active {
+  transition: opacity 0.22s ease;
+}
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(14px);
+}
+.page-leave-to {
+  opacity: 0;
+}
+
+/* 内容块切换淡入（长卷朝代切换 / 对读组切换） */
+.fade-swap-enter-active {
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.fade-swap-leave-active {
+  transition: opacity 0.25s ease;
+}
+.fade-swap-enter-from {
+  opacity: 0;
+  transform: translateY(12px);
+}
+.fade-swap-leave-to {
+  opacity: 0;
+}
+
+/* 编年圆点点亮（父容器 reveal-in 时播放） */
+.reveal-in .dot-pop {
+  animation: dotPop 0.5s cubic-bezier(0.34, 1.4, 0.5, 1) backwards;
+}
+@keyframes dotPop {
+  0% { transform: scale(0); }
+  70% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+
+/* 卡片悬停抬升（配合 transition，加在可交互卡片上） */
+.hover-lift {
+  transition: transform 0.28s ease, box-shadow 0.28s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(31, 27, 22, 0.1);
+}
+html.dark .hover-lift:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+}
+
+/* ── 检索联想 / 键帽 / 命中高亮 / 钤印按钮 / 点墨拾遗 ───────────── */
+
+.suggest-list {
+  border-radius: 0;
+}
+.suggest-item + .suggest-item {
+  border-top: 1px solid var(--border);
+}
+.suggest-hit {
+  color: var(--dynasty-accent);
+  font-weight: 700;
+  background: none;
+}
+
+kbd.kbd {
+  display: inline-block;
+  min-width: 1.4em;
+  text-align: center;
+  padding: 0 4px;
+  font-family: var(--font-serif);
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--foreground);
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+}
+
+mark.suggest-hit {
+  background: color-mix(in srgb, var(--dynasty-accent) 14%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--dynasty-accent) 55%, transparent);
+  color: inherit;
+}
+
+/* 钤印收藏按钮 */
+.collect-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px 6px 6px;
+  border: 1px solid var(--border);
+  background: var(--background);
+  font-family: var(--font-serif);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+.collect-btn:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+.collect-btn.is-collected {
+  color: var(--primary);
+  border-color: color-mix(in srgb, var(--primary) 45%, transparent);
+  background: color-mix(in srgb, var(--primary) 7%, var(--background));
+}
+.collect-btn .seal-stamp {
+  opacity: 0.85;
+  transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+.collect-btn:hover .seal-stamp {
+  transform: rotate(-4deg) scale(1.08);
+}
+
+/* 点墨捞史残句小笺 */
+.probe-pop {
+  animation: probePop 0.45s cubic-bezier(0.22, 1.2, 0.36, 1);
+}
+@keyframes probePop {
+  0% { opacity: 0; transform: translateY(10px) scale(0.92); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* 首访引导 */
+.guide-fade-enter-active { transition: opacity 0.4s ease; }
+.guide-fade-leave-active { transition: opacity 0.3s ease; }
+.guide-fade-enter-from,
+.guide-fade-leave-to { opacity: 0; }
+.guide-pop {
+  animation: guidePop 0.5s cubic-bezier(0.22, 1.1, 0.36, 1);
+}
+@keyframes guidePop {
+  0% { opacity: 0; transform: translateY(16px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
