@@ -148,3 +148,108 @@ function dynastyIdOf(hanzi: string | undefined): string {
 }
 
 export const graphData: GraphData = build()
+
+/** 视图预设（Kumu「视图=规则集合」范式：预设只决定哪些关系族活跃） */
+export type GraphView = 'all' | 'political' | 'cultural' | 'military'
+
+export const GRAPH_VIEWS: Array<{ id: GraphView; label: string; note: string }> = [
+  { id: 'all', label: '万象', note: '全量关系' },
+  { id: 'political', label: '朝局', note: '君臣 · 对立 · 亲缘' },
+  { id: 'cultural', label: '文脉', note: '典籍 · 师友 · 类比' },
+  { id: 'military', label: '兵戈', note: '军事 · 对立' }
+]
+
+/* ── 寻脉：任意两词条间的最短关系链（无向 BFS）── */
+
+export interface PathStep {
+  fromId: string
+  toId: string
+  fromName: string
+  toName: string
+  family: RelationFamily
+  rawType: string
+}
+
+/** 无向邻接表（词条关系边，模块级懒构建一次） */
+let adjacency: Map<string, Array<{ to: string; family: RelationFamily; rawType: string }> | null> | null = null
+
+function ensureAdjacency() {
+  if (adjacency) return
+  adjacency = new Map(graphData.nodes.map(n => [n.id, n.kind === 'entry' ? [] : null]))
+  for (const e of graphData.edges) {
+    if (e.kind !== 'relation') continue
+    adjacency.get(e.source)?.push({ to: e.target, family: e.family, rawType: e.rawType })
+    adjacency.get(e.target)?.push({ to: e.source, family: e.family, rawType: e.rawType })
+  }
+}
+
+/**
+ * BFS 最短关系链。起点或终点不存在 / 不连通 / 相同时返回 null。
+ * 路径长度上限 6 步（「六度分隔」语义）。
+ */
+export function findPath(fromId: string, toId: string): PathStep[] | null {
+  if (!fromId || !toId || fromId === toId) return null
+  ensureAdjacency()
+  const adj = adjacency!
+  if (!adj.get(fromId) || !adj.get(toId)) return null
+
+  const prev = new Map<string, { node: string; family: RelationFamily; rawType: string }>()
+  prev.set(fromId, { node: '', family: 'connect', rawType: '' })
+  const queue: string[] = [fromId]
+  const MAX_DEPTH = 6
+
+  let found = false
+  while (queue.length && !found) {
+    const cur = queue.shift()!
+    const depth = pathDepth(prev, cur)
+    if (depth >= MAX_DEPTH) continue
+    for (const nb of adj.get(cur) ?? []) {
+      if (prev.has(nb.to)) continue
+      prev.set(nb.to, { node: cur, family: nb.family, rawType: nb.rawType })
+      if (nb.to === toId) {
+        found = true
+        break
+      }
+      queue.push(nb.to)
+    }
+  }
+  if (!found) return null
+
+  // 回溯
+  const steps: PathStep[] = []
+  let cur = toId
+  while (cur !== fromId) {
+    const p = prev.get(cur)!
+    steps.unshift({
+      fromId: p.node,
+      toId: cur,
+      fromName: graphData.nodes.find(n => n.id === p.node)?.name ?? p.node,
+      toName: graphData.nodes.find(n => n.id === cur)?.name ?? cur,
+      family: p.family,
+      rawType: p.rawType
+    })
+    cur = p.node
+  }
+  return steps
+}
+
+function pathDepth(prev: Map<string, unknown>, id: string): number {
+  // 沿 prev 链上溯计深度（BFS 树深度 ≤ 6，代价可忽略）
+  let d = 0
+  let cur: string | undefined = id
+  while (cur) {
+    const p = (prev.get(cur) as { node: string } | undefined)
+    if (!p || !p.node) break
+    d++
+    cur = p.node
+  }
+  return d
+}
+
+/** 预置寻脉演示对（演示视频 / 快捷按钮素材，均已实测连通） */
+export const PATH_DEMOS: Array<{ from: string; to: string; label: string }> = [
+  { from: 'qi-jiguang', to: 'yuefei', label: '戚继光 → 岳飞' },
+  { from: 'zhang-juzheng', to: 'wanganshi', label: '张居正 → 王安石' },
+  { from: 'libai', to: 'tang-yin', label: '李白 → 唐寅' },
+  { from: 'lin-zexu', to: 'zhengchenggong-shoufu-taiwan', label: '林则徐 → 郑成功' }
+]

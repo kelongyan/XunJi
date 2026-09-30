@@ -11,21 +11,85 @@ import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
 import { useThreeScene } from '../../composables/useThreeScene'
 import { useUiStore } from '../../stores/ui'
-import { graphData, dynastyAnchorPosition, type GraphNode } from '../../data/graph'
+import { graphData, dynastyAnchorPosition, type GraphNode, type GraphView, type PathStep } from '../../data/graph'
 import { dynastyThemes } from '../../data/dynastyThemes'
 
 const emit = defineEmits<{
   focus: [node: GraphNode | null]
   hover: [node: GraphNode | null]
   fallback: []
+  ready: []
 }>()
 
 const container = ref<HTMLElement | undefined>()
+const labelLayer = ref<HTMLDivElement | undefined>()
 const ui = useUiStore()
 const { supported, getHandle } = useThreeScene(container, { fov: 42, near: 0.5, far: 400 })
 
 const reducedMotion =
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+/* ── 中文标签层（P1）：焦点邻域 DOM 投影，池化 ≤48 个 ── */
+let labelPool: HTMLDivElement[] = []
+let activeLabelIdxs: number[] = []
+const LABEL_POOL_SIZE = 48
+
+function buildLabelPool() {
+  const layer = labelLayer.value
+  if (!layer) return
+  layer.innerHTML = ''
+  labelPool = []
+  for (let i = 0; i < LABEL_POOL_SIZE; i++) {
+    const el = document.createElement('div')
+    el.className = 'sg-label'
+    el.style.display = 'none'
+    layer.appendChild(el)
+    labelPool.push(el)
+  }
+}
+
+/** focus/hover/path 变化时更新标签文本与显隐 */
+function updateLabelContent() {
+  if (!labelPool.length) return
+  const idxs: number[] = []
+  if (pathNodeSet) {
+    idxs.push(...pathNodeSet)
+  } else if (focusIdx >= 0) {
+    idxs.push(focusIdx, ...packed[focusIdx].neighbors)
+  } else if (hoverIdx >= 0) {
+    idxs.push(hoverIdx)
+  }
+  activeLabelIdxs = idxs.slice(0, LABEL_POOL_SIZE)
+  labelPool.forEach((el, i) => {
+    const idx = activeLabelIdxs[i]
+    if (idx === undefined) {
+      el.style.display = 'none'
+      return
+    }
+    el.textContent = packed[idx].node.name
+    el.className = 'sg-label' + (idx === focusIdx ? ' sg-label-focus' : '')
+    el.style.display = 'block'
+  })
+}
+
+const _lTmp = new THREE.Vector3()
+function updateLabelPositions() {
+  if (!labelPool.length || !cameraRef || !container.value) return
+  const w = container.value.clientWidth
+  const h = container.value.clientHeight
+  for (let i = 0; i < activeLabelIdxs.length; i++) {
+    const el = labelPool[i]
+    if (el.style.display === 'none') continue
+    _lTmp.copy(packed[activeLabelIdxs[i]].pos).project(cameraRef)
+    if (_lTmp.z > 1) {
+      el.style.display = 'none'
+      continue
+    }
+    const x = (_lTmp.x * 0.5 + 0.5) * w
+    const y = (-_lTmp.y * 0.5 + 0.5) * h
+    el.style.transform = `translate(-50%, -150%) translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`
+  }
+}
 
 /* ── 色板（与 style.css token / dynastyThemes 对应）── */
 const DAY = {
@@ -77,11 +141,34 @@ let edgeGeo: THREE.BufferGeometry | null = null
 let anchorLabels: THREE.Sprite[] = []
 let starDust: THREE.Points | null = null
 let material: THREE.ShaderMaterial | null = null
+let sceneRef: THREE.Scene | null = null
+let cameraRef: THREE.PerspectiveCamera | null = null
+
+/* 寻脉路径状态（P1） */
+let pathEdgeSet: Set<number> | null = null
+let pathNodeSet: Set<number> | null = null
+let pathParticles: THREE.Points | null = null
+let pathParticleGeo: THREE.BufferGeometry | null = null
+let particleState: Array<{ edgeIdx: number; t: number; speed: number }> = []
+
+/* 视图预设（P1） */
+let viewMode: GraphView = 'all'
+const VIEW_FAMILIES: Record<GraphView, Set<string> | null> = {
+  all: null,
+  political: new Set(['liege', 'rival', 'kindred']),
+  cultural: new Set(['cultural', 'ally', 'analogy']),
+  military: new Set(['martial', 'rival'])
+}
 
 /* 交互状态 */
 let camState = { theta: 0.55, phi: 1.1, radius: 46, thetaT: 0.55, phiT: 1.1, radiusT: 44 }
 /** 相机注视目标（自适应取景时更新为布局包围盒中心） */
 const camTarget = new THREE.Vector3(0, 2, 0)
+/** 注视目标的目的地（寻脉/复位时平滑飞行） */
+const camTargetT = new THREE.Vector3(0, 2, 0)
+/** 全景取景默认值（退出寻脉时恢复） */
+const homeTarget = new THREE.Vector3(0, 2, 0)
+let homeRadius = 50
 let dragging = false
 let dragMoved = 0
 let dragStart = { x: 0, y: 0 }
@@ -272,6 +359,9 @@ function frameLayout() {
   const dist = Math.max(dV, dH) * 1.12
   camState.radius = dist * 1.02
   camState.radiusT = dist * 0.94
+  homeTarget.copy(camTarget)
+  camTargetT.copy(camTarget)
+  homeRadius = camState.radiusT
 }
 
 /* ── 节点 shader（形状 SDF + 假光晕）── */
@@ -342,9 +432,12 @@ function buildScene() {
   const handle = getHandle()
   if (!handle) return
   const { scene, camera, onFrame } = handle
+  sceneRef = scene
+  cameraRef = camera
 
   computeLayout()
   frameLayout()
+  buildLabelPool()
 
   const n = packed.length
   const posArr = new Float32Array(n * 3)
@@ -402,10 +495,50 @@ function buildScene() {
   camera.lookAt(camTarget)
 
   onFrame((dt, t) => update(dt, t, camera))
+  emit('ready')
 }
 
+/* ── 对外 API（Graph.vue 通过 ref 调用）── */
+defineExpose({
+  /** 深链聚焦：按词条 id 聚焦节点 */
+  focusNodeById(id: string): boolean {
+    const idx = indexOfId.get(id)
+    if (idx === undefined || !pointsGeo) return false
+    focusIdx = idx
+    hoverIdx = -1
+    refreshHighlight()
+    emit('focus', packed[idx].node)
+    return true
+  },
+  /** 设置寻脉路径（graph.findPath 的结果）；null 清除 */
+  setPath(steps: PathStep[] | null) {
+    setPath(steps)
+  },
+  /** 切换视图预设 */
+  setView(v: GraphView) {
+    viewMode = v
+    updateEdgeColors()
+  },
+  /** 取消聚焦 */
+  clearFocus() {
+    focusIdx = -1
+    refreshHighlight()
+    emit('focus', null)
+  }
+})
+
 /* 边：每条约 6 段弧线（中点朝原点外侧拱起），顶点色表达族别与高亮 */
-let edgeMeta: Array<{ a: number; b: number; kind: string; family: string }> = []
+interface EdgeMetaItem {
+  a: number
+  b: number
+  kind: string
+  family: string
+  /** 贝塞尔控制点（粒子沿边飞行用） */
+  pa: THREE.Vector3
+  ctrl: THREE.Vector3
+  pb: THREE.Vector3
+}
+let edgeMeta: EdgeMetaItem[] = []
 const SEG = 6
 
 function buildEdges(scene: THREE.Scene) {
@@ -420,13 +553,13 @@ function buildEdges(scene: THREE.Scene) {
     const a = indexOfId.get(e.source)
     const b = indexOfId.get(e.target)
     if (a === undefined || b === undefined) return
-    edgeMeta.push({ a, b, kind: e.kind, family: e.family })
     const pa = packed[a].pos
     const pb = packed[b].pos
     // 拱起中点：轻微外拱（避免共线重叠，但保持"星图连线"的克制）
     const mid = pa.clone().add(pb).multiplyScalar(0.5)
     const out = mid.clone().normalize().multiplyScalar(mid.length() * 0.035 + 0.5)
     const ctrl = mid.add(out)
+    edgeMeta.push({ a, b, kind: e.kind, family: e.family, pa: pa.clone(), ctrl, pb: pb.clone() })
     const base = written * SEG
     written++
     for (let s = 0; s < SEG; s++) {
@@ -486,19 +619,32 @@ function updateEdgeColors() {
   if (!colAttr) return
   const arr = colAttr.array as Float32Array
   const night = ui.mode === 'night' ? 1 : 0
-  const white = 0xffffff
   const c = new THREE.Color()
+  const viewFam = VIEW_FAMILIES[viewMode]
   edgeMeta.forEach((meta, ei) => {
-    const highlighted = focusIdx >= 0 && (meta.a === focusIdx || meta.b === focusIdx)
-    const dimmed = focusIdx >= 0 && !highlighted
-    c.set(FAMILY_HUE[meta.family] ?? 0x8c8378)
-    if (night) c.lerp(new THREE.Color(white), 0.35)
-    // 泛关系（关涉）与因果边降权，突出主题性关系
-    const familyWeight = meta.family === 'connect' ? 0.55 : 1
-    const mul = (highlighted ? 1.0 : dimmed ? 0.28 : 0.62) * familyWeight
-    const r = c.r * mul
-    const g = c.g * mul
-    const b = c.b * mul
+    let r: number, g: number, b: number
+    if (pathEdgeSet) {
+      // 寻脉模式：路径边朱砂高亮，其余近乎隐没
+      if (pathEdgeSet.has(ei)) {
+        r = PATH_COLOR.r; g = PATH_COLOR.g; b = PATH_COLOR.b
+      } else {
+        r = c.set(FAMILY_HUE[meta.family] ?? 0x8c8378).r * 0.1
+        g = c.g * 0.1
+        b = c.b * 0.1
+      }
+    } else {
+      const highlighted = focusIdx >= 0 && (meta.a === focusIdx || meta.b === focusIdx)
+      const dimmed = focusIdx >= 0 && !highlighted
+      c.set(FAMILY_HUE[meta.family] ?? 0x8c8378)
+      if (night) c.lerp(new THREE.Color(0xffffff), 0.35)
+      // 视图预设：非本族关系大幅降权；泛关系（关涉）常态即降权
+      const inView = !viewFam || viewFam.has(meta.family)
+      const familyWeight = (meta.family === 'connect' ? 0.55 : 1) * (inView ? 1 : 0.1)
+      const mul = (highlighted ? 1.0 : dimmed ? 0.28 : 0.62) * familyWeight
+      r = c.r * mul
+      g = c.g * mul
+      b = c.b * mul
+    }
     // 每条边 SEG 段 × 2 个端点，同色
     const start = ei * SEG * 2
     for (let s = 0; s < SEG * 2; s++) {
@@ -566,6 +712,8 @@ function update(dt: number, _t: number, camera: THREE.PerspectiveCamera) {
   camState.radius += (camState.radiusT - camState.radius) * Math.min(1, dt * 4)
   const r = camState.radius
   const sp = Math.sin(camState.phi)
+  // 注视目标平滑飞行（寻脉/复位时）
+  camTarget.lerp(camTargetT, Math.min(1, dt * 2.2))
   camera.position.set(
     camTarget.x + Math.sin(camState.theta) * sp * r,
     camTarget.y + Math.cos(camState.phi) * r + 6,
@@ -594,6 +742,10 @@ function update(dt: number, _t: number, camera: THREE.PerspectiveCamera) {
     const m = lbl.material as THREE.SpriteMaterial
     m.color.lerp(nightTarget ? ANCHOR_INK_NIGHT : ANCHOR_INK_DAY, Math.min(1, dt * 2))
   }
+
+  // P1：寻脉粒子流动 + 中文标签跟随投影
+  updateParticles(dt)
+  updateLabelPositions()
 }
 
 /* ── 拾取（屏幕空间最近节点）── */
@@ -623,24 +775,154 @@ function pickNode(clientX: number, clientY: number, camera: THREE.PerspectiveCam
   return best
 }
 
+/* ── 寻脉路径（P1）：高亮 + 朱砂流动粒子 ── */
+const PATH_COLOR = new THREE.Color(0xc14a35)
+
+/** 设置寻脉路径（来自 graph.findPath）；null 清除 */
+function setPath(steps: PathStep[] | null) {
+  if (!steps || !steps.length || !sceneRef) {
+    const had = !!pathEdgeSet
+    pathEdgeSet = null
+    pathNodeSet = null
+    removePathParticles()
+    refreshHighlight()
+    if (had) restoreHome()
+    return
+  }
+  const edges = new Set<number>()
+  const nodes = new Set<number>()
+  for (const step of steps) {
+    const a = indexOfId.get(step.fromId)
+    const b = indexOfId.get(step.toId)
+    if (a === undefined || b === undefined) continue
+    nodes.add(a)
+    nodes.add(b)
+    for (let i = 0; i < edgeMeta.length; i++) {
+      const m = edgeMeta[i]
+      if ((m.a === a && m.b === b) || (m.a === b && m.b === a)) {
+        edges.add(i)
+        break
+      }
+    }
+  }
+  pathEdgeSet = edges
+  pathNodeSet = nodes
+  buildPathParticles([...edges])
+  refreshHighlight()
+
+  // 相机飞向路径邻域（取路径节点包围盒，留出呼吸空间）
+  const box = new THREE.Box3()
+  for (const i of nodes) {
+    box.expandByPoint(packed[i].pos.clone().addScalar(4))
+    box.expandByPoint(packed[i].pos.clone().addScalar(-4))
+  }
+  box.getCenter(camTargetT)
+  const size = box.getSize(new THREE.Vector3())
+  const fov = (42 * Math.PI) / 180
+  const aspect = Math.max(0.6, (container.value?.clientWidth ?? 1200) / (container.value?.clientHeight ?? 700))
+  const dV = (size.y / 2) / Math.tan(fov / 2)
+  const dH = (Math.max(size.x, size.z) / 2) / (Math.tan(fov / 2) * aspect)
+  camState.radiusT = Math.min(90, Math.max(18, Math.max(dV, dH) * 1.15))
+}
+
+/** 退出寻脉：恢复全景取景 */
+function restoreHome() {
+  camTargetT.copy(homeTarget)
+  camState.radiusT = homeRadius
+}
+
+function buildPathParticles(edgeIndices: number[]) {
+  removePathParticles()
+  if (!edgeIndices.length || !sceneRef) return
+  const PER_EDGE = 5
+  const count = edgeIndices.length * PER_EDGE
+  const posArr = new Float32Array(count * 3)
+  particleState = []
+  for (let i = 0; i < edgeIndices.length; i++) {
+    for (let k = 0; k < PER_EDGE; k++) {
+      particleState.push({
+        edgeIdx: edgeIndices[i],
+        t: k / PER_EDGE + hash01('pt' + i + k) * 0.12,
+        speed: 0.22 + 0.12 * ((i + k) % 3)
+      })
+    }
+  }
+  pathParticleGeo = new THREE.BufferGeometry()
+  pathParticleGeo.setAttribute('position', new THREE.BufferAttribute(posArr, 3))
+  pathParticles = new THREE.Points(
+    pathParticleGeo,
+    new THREE.PointsMaterial({
+      color: PATH_COLOR.clone(),
+      size: 1.1,
+      sizeAttenuation: true,
+      transparent: true,
+      opacity: 0.95,
+      depthWrite: false
+    })
+  )
+  sceneRef.add(pathParticles)
+  updateParticles(0)
+}
+
+function removePathParticles() {
+  if (pathParticles && sceneRef) sceneRef.remove(pathParticles)
+  pathParticles = null
+  pathParticleGeo = null
+  particleState = []
+}
+
+const _pTmp = new THREE.Vector3()
+function quadBezierInto(a: THREE.Vector3, c: THREE.Vector3, b: THREE.Vector3, t: number, out: THREE.Vector3) {
+  const u = 1 - t
+  out.set(
+    u * u * a.x + 2 * u * t * c.x + t * t * b.x,
+    u * u * a.y + 2 * u * t * c.y + t * t * b.y,
+    u * u * a.z + 2 * u * t * c.z + t * t * b.z
+  )
+  return out
+}
+
+function updateParticles(dt: number) {
+  if (!pathParticles || !pathParticleGeo) return
+  const attr = pathParticleGeo.getAttribute('position') as THREE.BufferAttribute
+  const arr = attr.array as Float32Array
+  for (let i = 0; i < particleState.length; i++) {
+    const ps = particleState[i]
+    ps.t = (ps.t + ps.speed * dt) % 1
+    const m = edgeMeta[ps.edgeIdx]
+    if (!m) continue
+    quadBezierInto(m.pa, m.ctrl, m.pb, ps.t, _pTmp)
+    arr[i * 3] = _pTmp.x
+    arr[i * 3 + 1] = _pTmp.y
+    arr[i * 3 + 2] = _pTmp.z
+  }
+  attr.needsUpdate = true
+}
+
 /* ── 高亮更新 ── */
 function refreshHighlight() {
   if (!pointsGeo) return
   const hlAttr = pointsGeo.getAttribute('aHighlight') as THREE.BufferAttribute
   const arr = hlAttr.array as Float32Array
-  const activeIdx = focusIdx >= 0 ? focusIdx : hoverIdx
-  if (activeIdx < 0) {
-    for (let i = 0; i < packed.length; i++) arr[i] = 1
+  // 寻脉模式：路径星辰点亮，其余隐入夜幕（保留微弱上下文）
+  if (pathNodeSet) {
+    for (let i = 0; i < packed.length; i++) arr[i] = pathNodeSet.has(i) ? 1.4 : 0.2
   } else {
-    const nbrs = packed[activeIdx].neighbors
-    for (let i = 0; i < packed.length; i++) {
-      if (i === activeIdx) arr[i] = 1.35
-      else if (nbrs.has(i)) arr[i] = 1.0
-      else arr[i] = 0.16
+    const activeIdx = focusIdx >= 0 ? focusIdx : hoverIdx
+    if (activeIdx < 0) {
+      for (let i = 0; i < packed.length; i++) arr[i] = 1
+    } else {
+      const nbrs = packed[activeIdx].neighbors
+      for (let i = 0; i < packed.length; i++) {
+        if (i === activeIdx) arr[i] = 1.35
+        else if (nbrs.has(i)) arr[i] = 1.0
+        else arr[i] = 0.16
+      }
     }
   }
   hlAttr.needsUpdate = true
   updateEdgeColors()
+  updateLabelContent()
 }
 
 /* ── 指针事件 ── */
@@ -753,5 +1035,38 @@ watch(
     @pointerup="onPointerUp"
     @pointercancel="onPointerUp"
     @wheel="onWheel"
-  />
+  >
+    <div ref="labelLayer" class="sg-labels" aria-hidden="true"></div>
+  </div>
 </template>
+
+<style>
+/* 万卷星图 · 中文标签层（池化 DOM，每帧投影定位） */
+.sg-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 5;
+}
+.sg-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 1px 7px;
+  font-family: var(--font-serif);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  line-height: 1.5;
+  color: var(--ink-strong);
+  background: color-mix(in srgb, var(--paper-base) 78%, transparent);
+  border: 1px solid var(--hairline);
+  white-space: nowrap;
+  will-change: transform;
+}
+.sg-label-focus {
+  color: var(--dynasty-accent);
+  border-color: color-mix(in srgb, var(--dynasty-accent) 45%, transparent);
+  font-weight: 700;
+}
+</style>
