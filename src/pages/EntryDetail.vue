@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, watch } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
-import { ArrowLeft } from 'lucide-vue-next'
+import { ArrowLeft, ArrowRight } from 'lucide-vue-next'
 import TextbookHeader from '../components/common/TextbookHeader.vue'
 import SealStamp from '../components/common/SealStamp.vue'
 import { getEntryById, allHistoryEntries } from '../data'
@@ -283,8 +283,8 @@ onMounted(() => {
                 <span class="eyebrow">知识链接 · 关联谱系</span>
               </div>
               <div class="text-[15px] font-serif">
-                <div 
-                  v-for="(rel, rIdx) in entry.relations" 
+                <div
+                  v-for="(rel, rIdx) in entry.relations"
                   :key="rIdx"
                   class="py-3.5 border-b border-border/40 last:border-b-0"
                 >
@@ -299,6 +299,14 @@ onMounted(() => {
                   <p class="text-muted-foreground leading-relaxed mt-1">{{ rel.note }}</p>
                 </div>
               </div>
+              <RouterLink
+                :to="`/graph?focus=${entry.id}`"
+                class="inline-flex items-center gap-1.5 mt-3 text-[13px] font-serif text-[var(--dynasty-accent)] hover:opacity-80 transition-opacity"
+                title="在万卷星图中查看此卷的关系网络"
+              >
+                <span>在星图中查看此卷</span>
+                <ArrowRight class="w-3.5 h-3.5" />
+              </RouterLink>
             </div>
 
             <!-- 资料考证出处 -->

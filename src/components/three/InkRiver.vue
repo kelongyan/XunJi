@@ -15,6 +15,8 @@ const emit = defineEmits<{
   fallback: []
   'intro-done': []
   probe: [pos: { x: number; y: number }]
+  /** 悬停卷轴（可显示浮签：名称/年代/题记）；离开为 null */
+  hover: [theme: DynastyTheme | null]
 }>()
 
 const container = ref<HTMLElement>()
@@ -24,24 +26,38 @@ const { supported, getHandle } = useThreeScene(container, { fov: 45, near: 0.1, 
 const reducedMotion =
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
+/* 河面灯火（夜读灯影，昼夜统一暖金色） */
+const LAMP = new THREE.Color('#E8B96A')
+
 /* ── 色板（与 style.css token 对应）── */
 const DAY = {
   paper: new THREE.Color('#F2EDDC'),
   ink: new THREE.Color('#3D372F'),
   mountain: new THREE.Color('#5A5147'),
-  lamp: new THREE.Color('#E8B96A')
+  /** 卷轴纸面日读原色（不染色） */
+  scrollTint: new THREE.Color('#FFFFFF'),
+  /** 漂浮墨点日读色 */
+  dust: new THREE.Color('#3D372F'),
+  /** 聚字开场墨色 */
+  intro: new THREE.Color('#2B2620')
 }
 const NIGHT = {
   paper: new THREE.Color('#1A1611'),
   ink: new THREE.Color('#B8B2A4'),
-  mountain: new THREE.Color('#8F887A'),
-  lamp: new THREE.Color('#E8B96A')
+  mountain: new THREE.Color('#6E675B'),
+  /** 夜读卷轴纸面：暖黄灯下纸 */
+  scrollTint: new THREE.Color('#EFDFC0'),
+  /** 夜读漂浮微尘（浅暖灰） */
+  dust: new THREE.Color('#C9C0AE'),
+  /** 夜读聚字（暖白） */
+  intro: new THREE.Color('#EDE6D6')
 }
 
 let disposeFns: Array<() => void> = []
 let nightTarget = ui.mode === 'night' ? 1 : 0
 let nightValue = nightTarget
 let introFinished = false
+const _tmpColor = new THREE.Color()
 
 /* ── canvas 纹理工具 ── */
 function makeCanvas(w: number, h: number): [HTMLCanvasElement, CanvasRenderingContext2D] {
@@ -59,6 +75,7 @@ function toTexture(c: HTMLCanvasElement): THREE.CanvasTexture {
   return tex
 }
 
+/** 山形纹理：只烘白色 + 透明度（颜色交给 material 染色，日/夜可过渡） */
 function makeMountainTexture(seed: number, alphaTop: number): THREE.CanvasTexture {
   const W = 512
   const H = 160
@@ -74,94 +91,142 @@ function makeMountainTexture(seed: number, alphaTop: number): THREE.CanvasTextur
   ctx.lineTo(W, H)
   ctx.closePath()
   const grad = ctx.createLinearGradient(0, 0, 0, H)
-  grad.addColorStop(0, `rgba(74, 68, 58, ${alphaTop})`)
-  grad.addColorStop(0.55, `rgba(74, 68, 58, ${alphaTop * 0.45})`)
-  grad.addColorStop(1, `rgba(74, 68, 58, 0)`)
+  grad.addColorStop(0, `rgba(255, 255, 255, ${alphaTop})`)
+  grad.addColorStop(0.55, `rgba(255, 255, 255, ${alphaTop * 0.45})`)
+  grad.addColorStop(1, 'rgba(255, 255, 255, 0)')
   ctx.fillStyle = grad
   ctx.fill()
   return toTexture(c)
 }
 
 function makeScrollTexture(theme: DynastyTheme): THREE.CanvasTexture {
-  const W = 512
-  const H = 768
+  const W = 640
+  const H = 960
   const [c, ctx] = makeCanvas(W, H)
+  const INK = '#2B2620'
 
-  // 纸底
-  ctx.fillStyle = '#EFE7D3'
-  roundRect(ctx, 26, 14, W - 52, H - 28, 10)
+  const paperX = 34
+  const paperY = 36
+  const paperW = W - 68
+  const paperH = H - paperY - 36
+
+  // ── 纸面（暖纸底 + 纵向微渐变）──
+  const paperGrad = ctx.createLinearGradient(0, paperY, 0, paperY + paperH)
+  paperGrad.addColorStop(0, '#F2EBD9')
+  paperGrad.addColorStop(0.5, '#EDE5D0')
+  paperGrad.addColorStop(1, '#E6DCC2')
+  ctx.fillStyle = paperGrad
+  roundRect(ctx, paperX, paperY, paperW, paperH, 6)
   ctx.fill()
-  // 内衬文武线
-  ctx.strokeStyle = 'rgba(61, 55, 47, 0.75)'
-  ctx.lineWidth = 3
-  roundRect(ctx, 44, 32, W - 88, H - 64, 6)
-  ctx.stroke()
-  ctx.strokeStyle = 'rgba(61, 55, 47, 0.35)'
-  ctx.lineWidth = 1.5
-  roundRect(ctx, 54, 42, W - 108, H - 84, 4)
+
+  // 纸纹（细密墨点，克制）
+  ctx.save()
+  roundRect(ctx, paperX, paperY, paperW, paperH, 6)
+  ctx.clip()
+  for (let i = 0; i < 900; i++) {
+    const px = paperX + Math.random() * paperW
+    const py = paperY + Math.random() * paperH
+    ctx.fillStyle = `rgba(88, 76, 58, ${0.015 + Math.random() * 0.035})`
+    ctx.fillRect(px, py, 1.4, 1.4)
+  }
+  ctx.restore()
+
+  // 纸边轻描
+  ctx.strokeStyle = 'rgba(58, 48, 36, 0.45)'
+  ctx.lineWidth = 2
+  roundRect(ctx, paperX + 1, paperY + 1, paperW - 2, paperH - 2, 6)
   ctx.stroke()
 
-  // 竖排朝代大字
-  ctx.fillStyle = '#2B2620'
-  ctx.font = '700 168px "Songti SC", "STSong", "SimSun", serif'
+  // 内衬文武线（外粗内细）
+  ctx.strokeStyle = 'rgba(61, 55, 47, 0.6)'
+  ctx.lineWidth = 2.5
+  roundRect(ctx, paperX + 24, paperY + 24, paperW - 48, paperH - 48, 3)
+  ctx.stroke()
+  ctx.strokeStyle = 'rgba(61, 55, 47, 0.26)'
+  ctx.lineWidth = 1
+  roundRect(ctx, paperX + 35, paperY + 35, paperW - 70, paperH - 70, 2)
+  ctx.stroke()
+
+  // ── 竖排文字（题记在左 / 年代在右）──
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  const chars = theme.hanzi.split('')
-  const cx = W / 2
-  chars.forEach((ch, i) => {
-    const total = chars.length * 190
-    ctx.fillText(ch, cx, H / 2 - total / 2 + 95 + i * 190)
-  })
+  // 左：一句话题记（去间隔点，竖排）
+  const tagline = theme.tagline.replace(/[·\s]/g, '')
+  ctx.fillStyle = 'rgba(74, 66, 54, 0.8)'
+  ctx.font = '400 30px "Kaiti SC", "KaiTi", "STKaiti", serif'
+  const tlX = paperX + 64
+  const tlStart = H / 2 - (tagline.length * 38) / 2 + 19
+  tagline.split('').forEach((ch, i) => ctx.fillText(ch, tlX, tlStart + i * 38))
+  // 右：起讫年
+  ctx.fillStyle = 'rgba(90, 81, 71, 0.78)'
+  ctx.font = '400 27px "Songti SC", "STSong", "SimSun", serif'
+  const spanChars = theme.span.replace(/\s/g, '').split('')
+  spanChars.forEach((ch, i) => ctx.fillText(ch, W - paperX - 62, paperY + 46 + i * 32))
 
-  // 右上竖排起讫年
-  ctx.fillStyle = 'rgba(90, 81, 71, 0.85)'
-  ctx.font = '400 26px "Songti SC", "STSong", "SimSun", serif'
-  const spanChars = theme.span.split('')
-  spanChars.forEach((ch, i) => {
-    ctx.fillText(ch, W - 86, 92 + i * 30)
-  })
+  // ── 朝代大字（居中，上下主题色题头线）──
+  const bigY = H * 0.5 - 10
+  ctx.font = '700 206px "Songti SC", "STSong", "SimSun", serif'
+  ctx.fillStyle = INK
+  ctx.fillText(theme.hanzi, W / 2, bigY)
+  ctx.fillStyle = theme.accent
+  ctx.globalAlpha = 0.8
+  ctx.fillRect(W / 2 - 42, bigY - 158, 84, 4)
+  ctx.fillRect(W / 2 - 42, bigY + 132, 84, 4)
+  ctx.globalAlpha = 1
 
-  // 左下印章
+  // ── 左下印章（主题色；修典中为描边）──
+  const sealSize = 118
+  const sealX = paperX + 50
+  const sealY = paperY + paperH - sealSize - 52
   ctx.save()
   if (theme.live) {
     ctx.fillStyle = theme.accent
-    roundRect(ctx, 66, H - 176, 104, 104, 10)
+    roundRect(ctx, sealX, sealY, sealSize, sealSize, 12)
     ctx.fill()
-    ctx.fillStyle = '#FFFFFF'
-    ctx.font = '800 58px "Songti SC", "STSong", "SimSun", serif'
-    ctx.fillText(theme.hanzi, 66 + 52, H - 176 + 54)
+    ctx.strokeStyle = 'rgba(255, 250, 240, 0.5)'
+    ctx.lineWidth = 2
+    roundRect(ctx, sealX + 7, sealY + 7, sealSize - 14, sealSize - 14, 8)
+    ctx.stroke()
+    ctx.fillStyle = 'rgba(255, 252, 245, 0.96)'
+    ctx.font = '800 62px "Songti SC", "STSong", "SimSun", serif'
+    ctx.fillText(theme.hanzi, sealX + sealSize / 2, sealY + sealSize / 2 + 4)
   } else {
     ctx.strokeStyle = theme.accent
     ctx.lineWidth = 5
-    ctx.globalAlpha = 0.55
-    roundRect(ctx, 66, H - 176, 104, 104, 10)
+    ctx.globalAlpha = 0.6
+    roundRect(ctx, sealX, sealY, sealSize, sealSize, 12)
     ctx.stroke()
     ctx.fillStyle = theme.accent
-    ctx.font = '800 58px "Songti SC", "STSong", "SimSun", serif'
-    ctx.fillText(theme.hanzi, 66 + 52, H - 176 + 54)
-    // 修典中题记
+    ctx.font = '800 62px "Songti SC", "STSong", "SimSun", serif'
+    ctx.fillText(theme.hanzi, sealX + sealSize / 2, sealY + sealSize / 2 + 4)
     ctx.font = '400 30px "Kaiti SC", "KaiTi", "STKaiti", serif'
     ctx.fillStyle = 'rgba(61, 55, 47, 0.7)'
-    ctx.fillText('修 典 中', 66 + 52, H - 214)
+    ctx.fillText('修 典 中', sealX + sealSize / 2, sealY - 30)
     ctx.globalAlpha = 1
   }
   ctx.restore()
 
-  // 上下轴头（卷轴杆）
-  ctx.fillStyle = '#3A2E22'
-  roundRect(ctx, 0, 0, W, 20, 6)
-  ctx.fill()
-  roundRect(ctx, 0, H - 20, W, 20, 6)
-  ctx.fill()
-  ctx.fillStyle = '#54432F'
-  roundRect(ctx, -8, 0, 18, 20, 6)
-  ctx.fill()
-  roundRect(ctx, W - 10, 0, 18, 20, 6)
-  ctx.fill()
-  roundRect(ctx, -8, H - 20, 18, 20, 6)
-  ctx.fill()
-  roundRect(ctx, W - 10, H - 20, 18, 20, 6)
-  ctx.fill()
+  // ── 上下轴杆（圆柱感 + 轴头，伸出纸面）──
+  const drawRod = (y: number) => {
+    const g = ctx.createLinearGradient(0, y, 0, y + 32)
+    g.addColorStop(0, '#6E543A')
+    g.addColorStop(0.3, '#8A6B47')
+    g.addColorStop(0.6, '#5A4229')
+    g.addColorStop(1, '#39291A')
+    ctx.fillStyle = g
+    ctx.fillRect(paperX - 18, y, paperW + 36, 32)
+    // 轴头（端面）
+    ctx.fillStyle = '#2C2014'
+    roundRect(ctx, paperX - 34, y - 4, 24, 40, 5)
+    ctx.fill()
+    roundRect(ctx, paperX + paperW + 10, y - 4, 24, 40, 5)
+    ctx.fill()
+    // 高光
+    ctx.fillStyle = 'rgba(255, 240, 214, 0.2)'
+    ctx.fillRect(paperX - 18, y + 6, paperW + 36, 3)
+  }
+  drawRod(6)
+  drawRod(H - 38)
 
   return toTexture(c)
 }
@@ -257,13 +322,19 @@ interface Island {
   theme: DynastyTheme
   mesh: THREE.Mesh
   baseY: number
+  baseScale: number
   glowMat: THREE.MeshBasicMaterial
   lampMat: THREE.MeshBasicMaterial
+  paperMat: THREE.MeshBasicMaterial
+  ringMat: THREE.MeshBasicMaterial
+  reflectMat: THREE.MeshBasicMaterial
   wobbleRemaining: number
 }
 
 let islands: Island[] = []
 let riverUniforms: Record<string, THREE.IUniform> | null = null
+let mountainMats: THREE.MeshBasicMaterial[] = []
+let dustMat: THREE.PointsMaterial | null = null
 let intro: {
   points: THREE.Points
   mat: THREE.PointsMaterial
@@ -273,6 +344,8 @@ let intro: {
   startTime: number
 } | null = null
 let camState = { yaw: 0, pitch: 0, yawT: 0, pitchT: 0, z: 24, zT: 24 }
+/** 相机基准距离（沉浸态全屏画布推近构图，退出恢复 24） */
+let baseZ = 24
 let raycaster: THREE.Raycaster | null = null
 let pointerNdc = new THREE.Vector2(-10, -10)
 let hoverIsland: Island | null = null
@@ -287,6 +360,8 @@ function buildScene() {
 
   // 重置模块级开场状态（支持组件重挂载）
   introFinished = false
+  mountainMats = []
+  dustMat = null
 
   const startNight = ui.mode === 'night'
   nightValue = startNight ? 1 : 0
@@ -307,7 +382,7 @@ function buildScene() {
     uNight: { value: nightValue },
     uPaper: { value: (startNight ? NIGHT.paper : DAY.paper).clone() },
     uInk: { value: (startNight ? NIGHT.ink : DAY.ink).clone() },
-    uLamp: { value: DAY.lamp.clone() }
+    uLamp: { value: LAMP.clone() }
   }
   const river = new THREE.Mesh(
     riverGeo,
@@ -321,7 +396,7 @@ function buildScene() {
   river.position.set(0, 0, -40)
   scene.add(river)
 
-  /* 远山（四层视差） */
+  /* 远山（四层视差；颜色由 material 染色，随日夜过渡） */
   const mountains: THREE.Mesh[] = []
   const mtnCfg = [
     { z: -86, scale: 1.35, alpha: 0.16 },
@@ -333,6 +408,10 @@ function buildScene() {
     const tex = makeMountainTexture(i * 4.7 + 1.3, cfg.alpha)
     const geo = new THREE.PlaneGeometry(210 * cfg.scale, 46 * cfg.scale)
     const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, fog: false })
+    // 近山更实、远山更淡（夜读时统一向夜色收敛）
+    mat.color.copy(startNight ? NIGHT.mountain : DAY.mountain)
+    mat.color.multiplyScalar(1 - i * 0.06)
+    mountainMats.push(mat)
     const m = new THREE.Mesh(geo, mat)
     m.position.set(0, 8, cfg.z)
     scene!.add(m)
@@ -344,23 +423,32 @@ function buildScene() {
     })
   })
 
-  /* 朝代卷轴浮岛 */
+  /* 朝代卷轴浮岛：五卷沿长河展卷（近大远小）
+   * 世界坐标经透视反解并做矩形碰撞校验：自汉（左上远）至清（右下近）成一条展卷弧线，
+   * 全部落位在画面右侧 60%~91% 区，避开左侧标题与检索区；底边统一贴水面。 */
   const lampTex = makeLampTexture()
-  const layout: Record<string, [number, number, number]> = {
-    han: [-13, 2.6, -46],
-    tang: [10, 2.6, -34],
-    song: [-6, 2.6, -22],
-    qing: [12, 2.6, -14],
-    ming: [3.5, 2.6, -7]
+  const layout: Record<string, { pos: [number, number, number]; scale: number }> = {
+    han: { pos: [11.83, 2.7, -52], scale: 1.0 },
+    tang: { pos: [16.29, 2.71, -38], scale: 1.0 },
+    song: { pos: [18.46, 2.73, -26], scale: 1.0 },
+    ming: { pos: [18.32, 3.0, -15], scale: 1.1 },
+    qing: { pos: [18.83, 2.77, -7], scale: 1.0 }
   }
   islands = dynastyThemes.map(theme => {
     const tex = makeScrollTexture(theme)
-    const mesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(3.4, 5.1),
-      new THREE.MeshBasicMaterial({ map: tex, transparent: true, fog: false, toneMapped: false })
-    )
-    const [x, y, z] = layout[theme.id] ?? [0, 2.6, -10]
+    const paperMat = new THREE.MeshBasicMaterial({
+      map: tex,
+      transparent: true,
+      fog: false,
+      toneMapped: false
+    })
+    // 夜读把纸面染暖（灯下纸），日读保持原色
+    paperMat.color.copy(startNight ? NIGHT.scrollTint : DAY.scrollTint)
+    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 5.1), paperMat)
+    const cfg = layout[theme.id] ?? { pos: [0, 2.6, -10] as [number, number, number], scale: 1 }
+    const [x, y, z] = cfg.pos
     mesh.position.set(x, y, z)
+    mesh.scale.setScalar(cfg.scale)
     scene!.add(mesh)
 
     // 浮岛主题色微光（衬底）
@@ -376,6 +464,38 @@ function buildScene() {
     glow.position.set(x, y + 0.4, z - 0.2)
     scene!.add(glow)
 
+    // 悬停朱砂描框（默认全透明，hover 时浮现）
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: 0xa8352a,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      fog: false,
+      side: THREE.DoubleSide
+    })
+    const ringGeo = new THREE.EdgesGeometry(new THREE.PlaneGeometry(3.4 * cfg.scale + 0.35, 5.1 * cfg.scale + 0.35))
+    const ring = new THREE.LineSegments(ringGeo, ringMat)
+    ring.position.set(x, y, z + 0.05)
+    scene!.add(ring)
+
+    // 水面倒影：卷轴纹理垂直翻转压扁，淡出在水面（浮岛感的关键）
+    const reflectTex = tex.clone()
+    reflectTex.needsUpdate = true
+    reflectTex.wrapS = reflectTex.wrapT = THREE.ClampToEdgeWrapping
+    reflectTex.repeat.set(1, -0.42)   // 纵向翻转 + 压扁
+    reflectTex.offset.set(0, 0.42)
+    const reflectMat = new THREE.MeshBasicMaterial({
+      map: reflectTex,
+      transparent: true,
+      opacity: 0.16,
+      depthWrite: false,
+      fog: false
+    })
+    const reflect = new THREE.Mesh(new THREE.PlaneGeometry(3.4 * cfg.scale, 2.1 * cfg.scale), reflectMat)
+    reflect.rotation.x = -Math.PI / 2
+    reflect.position.set(x, 0.02, z + 2.35 * cfg.scale)
+    scene!.add(reflect)
+
     // 水面灯影（夜读可见）
     const lampMat = new THREE.MeshBasicMaterial({
       map: lampTex,
@@ -390,12 +510,13 @@ function buildScene() {
     lamp.position.set(x, 0.03, z + 1.2)
     scene!.add(lamp)
 
-    return { theme, mesh, baseY: y, glowMat, lampMat, wobbleRemaining: 0 }
+    return { theme, mesh, baseY: y, baseScale: cfg.scale, glowMat, lampMat, paperMat, ringMat, reflectMat, wobbleRemaining: 0 }
   })
 
   onFrame((dt, t) => {
     islands.forEach((isl, i) => {
-      const hoverLift = hoverIsland === isl ? 0.35 : 0
+      const isHover = hoverIsland === isl
+      const hoverLift = isHover ? 0.45 : 0
       let wobble = 0
       if (isl.wobbleRemaining > 0) {
         isl.wobbleRemaining -= dt
@@ -404,10 +525,20 @@ function buildScene() {
       const targetY = isl.baseY + Math.sin(t * 0.7 + i * 2.1) * 0.1 + hoverLift
       isl.mesh.position.y += (targetY - isl.mesh.position.y) * Math.min(1, dt * 6)
       isl.mesh.rotation.z = wobble
+      // 悬停放大 4%（反馈存在感，不做夸张）
+      const sTarget = isl.baseScale * (isHover ? 1.04 : 1)
+      isl.mesh.scale.setScalar(isl.mesh.scale.x + (sTarget - isl.mesh.scale.x) * Math.min(1, dt * 7))
       const lampTarget = nightValue * (isl.theme.live ? 0.85 : 0.4)
       isl.lampMat.opacity += (lampTarget - isl.lampMat.opacity) * Math.min(1, dt * 3)
-      const glowTarget = (isl.theme.live ? 0.3 : 0.14) + nightValue * 0.22
+      const glowTarget = (isl.theme.live ? 0.3 : 0.14) + nightValue * 0.22 + (isHover ? 0.16 : 0)
       isl.glowMat.opacity += (glowTarget - isl.glowMat.opacity) * Math.min(1, dt * 3)
+      // 悬停描框：可入卷的点亮朱砂，修典中的用灰墨弱描
+      const ringTarget = isHover ? (isl.theme.live ? 0.55 : 0.22) : 0
+      isl.ringMat.opacity += (ringTarget - isl.ringMat.opacity) * Math.min(1, dt * 6)
+      isl.ringMat.color.set(isl.theme.live ? 0xa8352a : 0x8c8378)
+      // 倒影：日读淡、夜读浓（灯影落水），悬停再亮一档
+      const reflTarget = (0.14 + nightValue * 0.24) * (isHover ? 1.6 : 1)
+      isl.reflectMat.opacity += (reflTarget - isl.reflectMat.opacity) * Math.min(1, dt * 3)
     })
   })
 
@@ -433,6 +564,8 @@ function buildScene() {
       depthWrite: false,
       fog: false
     })
+    mat.color.copy(startNight ? NIGHT.dust : DAY.dust)
+    dustMat = mat
     const points = new THREE.Points(geo, mat)
     scene.add(points)
     onFrame(dt => {
@@ -457,11 +590,13 @@ function buildScene() {
 
   /* 相机与日夜过渡主循环 */
   onFrame((dt, t) => {
-    // 相机入场 + 滚轮缩放
+    // 相机入场 + 滚轮缩放（基准距离随沉浸态联动：全屏时推近压低视角，卷轴占更大画幅）
+    baseZ = ui.immersive ? 16.5 : 24
     camState.z += (camState.zT - camState.z) * Math.min(1, dt * 1.4)
-    if (!reducedMotion) camState.zT += (24 - camState.zT) * Math.min(1, dt * 0.55)
+    if (!reducedMotion) camState.zT += (baseZ - camState.zT) * Math.min(1, dt * 0.55)
     camera.position.z = camState.z
-    camera.position.y = 6.5 + (camState.z - 24) * 0.28
+    const baseY = ui.immersive ? 4.6 : 6.5
+    camera.position.y = baseY + (camState.z - baseZ) * 0.28
 
     // 拖拽环视 + idle 扫视
     camState.yaw += (camState.yawT - camState.yaw) * Math.min(1, dt * 4)
@@ -471,7 +606,11 @@ function buildScene() {
       camState.pitchT += (0 - camState.pitchT) * Math.min(1, dt * 0.8)
     }
     const idleX = reducedMotion ? 0 : Math.sin(t * 0.07) * 1.4
-    camera.lookAt(camState.yaw * 9 + idleX - 1.6, 2.2 - camState.pitch * 6, -12)
+    // 沉浸态：注视点上移并朝卷轴群（右侧）偏移，收掉大片空水面
+    const lookX = ui.immersive ? 9.5 : -1.6
+    const lookY = ui.immersive ? 3.4 : 2.2
+    const lookZ = ui.immersive ? -20 : -12
+    camera.lookAt(camState.yaw * 9 + idleX + lookX, lookY - camState.pitch * 6, lookZ)
 
     // 日夜过渡
     nightValue += (nightTarget - nightValue) * Math.min(1, dt * 2)
@@ -485,6 +624,20 @@ function buildScene() {
       scene.background.lerp(nightTarget ? NIGHT.paper : DAY.paper, dt * 2)
       if (scene.fog) (scene.fog as THREE.Fog).color.copy(scene.background)
     }
+    // 远山 / 漂浮墨点 / 卷轴纸面 / 聚字：颜色随日夜平滑过渡
+    for (let i = 0; i < mountainMats.length; i++) {
+      const base = nightTarget ? NIGHT.mountain : DAY.mountain
+      mountainMats[i].color.lerp(
+        _tmpColor.copy(base).multiplyScalar(1 - i * 0.06),
+        Math.min(1, dt * 2)
+      )
+    }
+    if (dustMat) dustMat.color.lerp(nightTarget ? NIGHT.dust : DAY.dust, Math.min(1, dt * 2))
+    for (const isl of islands) {
+      isl.paperMat.color.lerp(nightTarget ? NIGHT.scrollTint : DAY.scrollTint, Math.min(1, dt * 2))
+      isl.reflectMat.color.copy(isl.paperMat.color)
+    }
+    if (intro) intro.mat.color.lerp(nightTarget ? NIGHT.intro : DAY.intro, Math.min(1, dt * 2))
 
     // hover 拾取
     if (raycaster && !dragging) {
@@ -495,6 +648,7 @@ function buildScene() {
       if (found !== hoverIsland) {
         hoverIsland = found
         document.body.style.cursor = found ? 'pointer' : ''
+        emit('hover', found?.theme ?? null)
       }
     }
   })
@@ -536,7 +690,8 @@ function buildIntro(scene: THREE.Scene) {
   geo.setAttribute('position', new THREE.BufferAttribute(arr, 3))
   const mat = new THREE.PointsMaterial({
     size: 0.14,
-    color: new THREE.Color('#2B2620'),
+    // 墨色随日夜联动（夜读为暖白，避免深底上隐形）
+    color: (nightTarget ? NIGHT.intro : DAY.intro).clone(),
     transparent: true,
     opacity: 0.92,
     depthWrite: false
@@ -599,6 +754,15 @@ function onPointerMove(e: PointerEvent) {
     camState.yawT = THREE.MathUtils.clamp(camState.yawT + dx * 0.0016, -0.5, 0.5)
     camState.pitchT = THREE.MathUtils.clamp(camState.pitchT + dy * 0.0016, -0.28, 0.28)
     dragStart = { x: e.clientX, y: e.clientY }
+  }
+}
+
+function onPointerLeave() {
+  pointerNdc.set(-10, -10)
+  if (hoverIsland) {
+    hoverIsland = null
+    emit('hover', null)
+    document.body.style.cursor = ''
   }
 }
 
@@ -681,6 +845,7 @@ watch(
     @pointerdown="onPointerDown"
     @pointerup="onPointerUp"
     @pointercancel="onPointerUp"
+    @pointerleave="onPointerLeave"
     @wheel="onWheel"
   />
 </template>

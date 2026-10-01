@@ -137,8 +137,14 @@ function closeProbe() {
 }
 
 function onDynastySelect(theme: DynastyTheme) {
+  // Timeline 已支持五朝（han/tang/song/ming/qing），统一携带朝代参数直达对应长卷
   if (theme.id === 'ming') router.push('/timeline')
-  else if (theme.id === 'tang' || theme.id === 'song') router.push(`/timeline?dynasty=${theme.id}`)
+  else router.push(`/timeline?dynasty=${theme.id}`)
+}
+
+const hoverTheme = ref<DynastyTheme | null>(null)
+function onDynastyHover(theme: DynastyTheme | null) {
+  hoverTheme.value = theme
 }
 
 function onSearchSelect(entry: { id: string }) {
@@ -189,7 +195,26 @@ onBeforeUnmount(() => {
             @fallback="show3d = false"
             @intro-done="introDone = true"
             @probe="onProbe"
+            @hover="onDynastyHover"
           />
+
+          <!-- 卷轴悬停浮签：朝代名 / 年号跨度 / 一句题记 / 是否可入 -->
+          <Transition name="guide-fade">
+            <div
+              v-if="introDone && hoverTheme && !ui.immersive"
+              class="absolute z-20 right-6 bottom-24 md:bottom-28 px-4 py-3 bg-card/95 border border-border/80 backdrop-blur-sm pointer-events-none max-w-[280px] space-y-1.5"
+            >
+              <div class="flex items-center gap-2.5">
+                <span class="w-2 h-2 shrink-0" :style="{ backgroundColor: hoverTheme.accent }"></span>
+                <span class="font-serif text-[15px] text-foreground">{{ hoverTheme.hanzi }}朝</span>
+                <span class="index-meta">{{ hoverTheme.span }}</span>
+              </div>
+              <p class="text-[13px] font-serif text-muted-foreground leading-snug">{{ hoverTheme.tagline }}</p>
+              <p class="text-[12px] font-serif" :class="hoverTheme.live ? 'text-[var(--dynasty-accent)]' : 'text-muted-foreground/70'">
+                {{ hoverTheme.live ? '点击卷轴 · 展开编年长卷' : '修典中 · 尚未开卷' }}
+              </p>
+            </div>
+          </Transition>
 
           <div
             class="relative z-10 flex flex-col justify-center py-12 pointer-events-none transition-opacity duration-[1200ms]"

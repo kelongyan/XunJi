@@ -288,6 +288,12 @@ export const events: HistoryEntry[] = [
     timeline: [
       { year: 1644, event: "三月十九日崇祯殉国，大明亡；四月清军入关占领北京" }
     ],
+    relations: [
+      { targetId: "lizicheng-qiyi", name: "李自成起义", type: "直接导致", note: "大顺军攻陷北京，成为压垮明廷的最后一击" },
+      { targetId: "qingjun-ruguan", name: "清军入关", type: "后续事件", note: "吴三桂引清军入关，明清易代就此完成" },
+      { targetId: "zhu-youjian", name: "朱由检", type: "核心人物", note: "崇祯帝煤山自缢，明祚告终" },
+      { targetId: "nanming-kangqing", name: "南明抗清", type: "后续事件", note: "京师既陷，宗室于江南播迁续祚" }
+    ],
     sources: ["《明史·庄烈帝本纪》", "《甲申纪事》"],
     tags: ["明亡", "崇祯自缢", "李自成", "清军入关"]
   },

@@ -9,8 +9,20 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-const dir = path.resolve(import.meta.dirname, 'out')
-const dry = process.argv.includes('--dry')
+const ROOT = path.resolve(import.meta.dirname, '../..')
+const opts = {}
+for (const a of process.argv.slice(2)) {
+  const [k, ...r] = a.replace(/^--/, '').split('=')
+  opts[k] = r.join('=') || true
+}
+
+const dir = path.resolve(ROOT, opts.dir ?? 'tools/content-forge/out')
+const dry = Boolean(opts.dry)
+
+if (!fs.existsSync(dir)) {
+  console.log(`ℹ 目录不存在或为空，无需清洗：${dir}`)
+  process.exit(0)
+}
 
 let fixed = 0
 for (const f of fs.readdirSync(dir)) {

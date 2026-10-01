@@ -2568,7 +2568,12 @@ export const hanEntries: HistoryEntry[] = [
         event: "九月卒，年二十四，武帝发玄甲军送葬，起冢如祁连山"
       }
     ],
-    relations: [],
+    relations: [
+      { targetId: "liu-che", name: "刘彻", type: "君臣", note: "武帝识拔于微时，委以骠骑将军" },
+      { targetId: "weiqing", name: "卫青", type: "舅甥", note: "卫青外甥，同出卫氏，并称帝国双璧" },
+      { targetId: "hanxiong-zhanzheng", name: "汉匈战争", type: "军事", note: "河西、漠北两役击破匈奴主力" },
+      { targetId: "zhangqian-tongxiyu", name: "张骞通西域", type: "因果", note: "河西走廊既通，西域之道始畅" }
+    ],
     quotes: [
       {
         text: "匈奴未灭，无以家为也。",
@@ -3471,7 +3476,11 @@ export const hanEntries: HistoryEntry[] = [
         event: "薨于山阳，年五十四，魏以天子礼葬于禅陵"
       }
     ],
-    relations: [],
+    relations: [
+      { targetId: "dongzhuo-zhiluan", name: "董卓之乱", type: "因果", note: "董卓废少帝立献帝，刘协自此为傀儡" },
+      { targetId: "guandu-zhizhan", name: "官渡之战", type: "时代背景", note: "许都天子为曹操所挟，官渡之战奉汉正朔" },
+      { targetId: "huangjin-qiyi", name: "黄巾起义", type: "前因", note: "黄巾乱后州郡割据，帝室播迁之始" }
+    ],
     quotes: [
       {
         text: "遂废帝为弘农王，立陈留王协为帝，是为献帝。",
@@ -5623,7 +5632,11 @@ export const hanEntries: HistoryEntry[] = [
         event: "病逝，谥烈侯，陪葬茂陵，冢象阴山"
       }
     ],
-    relations: [],
+    relations: [
+      { targetId: "liu-che", name: "刘彻", type: "君臣", note: "武帝皇后卫子夫之弟，外戚而有大功" },
+      { targetId: "huo-qubing", name: "霍去病", type: "舅甥", note: "外甥霍去病同为大汉双璧" },
+      { targetId: "hanxiong-zhanzheng", name: "汉匈战争", type: "军事", note: "七出匈奴，收河南地置朔方郡" }
+    ],
     quotes: [
       {
         text: "大将军青凡七出击匈奴，斩捕首虏五万余级。一与单于战，收河南地，置朔方郡。",
@@ -5868,7 +5881,11 @@ export const hanEntries: HistoryEntry[] = [
         event: "武帝崩，昭帝立；后宣帝即位，追谥刘据为戾太子"
       }
     ],
-    relations: [],
+    relations: [
+      { targetId: "liu-che", name: "刘彻", type: "父子", note: "武帝晚年猜忌，父子相残之祸" },
+      { targetId: "hanwudi-gaige", name: "汉武帝改革", type: "政治清洗", note: "酷吏政治与储位之争交织的时代悲剧" },
+      { targetId: "weiqing", name: "卫青", type: "外戚之争", note: "卫氏外戚集团为江充构陷所波及" }
+    ],
     quotes: [
       {
         text: "充见上年老，恐晏驾后为太子所诛，因是为奸，奏言上疾祟在巫蛊。",

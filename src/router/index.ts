@@ -4,6 +4,7 @@ import Search from '../pages/Search.vue'
 import EntryDetail from '../pages/EntryDetail.vue'
 import Timeline from '../pages/Timeline.vue'
 import Compare from '../pages/Compare.vue'
+import Graph from '../pages/Graph.vue'
 
 const routes = [
   { path: '/', name: 'Home', component: Home },
@@ -11,6 +12,7 @@ const routes = [
   { path: '/entry/:id', name: 'EntryDetail', component: EntryDetail, props: true },
   { path: '/timeline', name: 'Timeline', component: Timeline },
   { path: '/compare', name: 'Compare', component: Compare },
+  { path: '/graph', name: 'Graph', component: Graph },
   { path: '/:pathMatch(.*)*', redirect: '/' }
 ]
 

@@ -27,11 +27,6 @@ export const classicsAndSystems: HistoryEntry[] = [
     },
     sources: ["《明史·艺文志》"],
     tags: ["典籍", "类书", "永乐", "解缙"],
-    image: {
-      src: "/images/classic-yongle-dadian.svg",
-      caption: "图版 4-1　《永乐大典》嘉靖副本开本封皮与书函（按国家图书馆善本部藏本考绘）",
-      source: "国家图书馆善本特藏"
-    }
   },
   {
     id: "bencao-gangmu",
@@ -96,6 +91,11 @@ export const classicsAndSystems: HistoryEntry[] = [
       }
     ],
     interpretation: "《徐霞客游记》熔高超文学游记笔法与严谨野外地理实地考证于一炉，是古代士人探知自然科学天地的精神高峰。",
+    relations: [
+      { targetId: "song-yingxing", name: "宋应星", type: "同时代著作", note: "同为明末实学考察传统的代表" },
+      { targetId: "tiangong-kaiwu", name: "《天工开物》", type: "时代同类", note: "一考山川地理，一记工艺技术，皆明末实证之学" },
+      { targetId: "xu-guangqi", name: "徐光启", type: "同时代人物", note: "同为晚明实学思潮中人，皆重实地考察" }
+    ],
     sources: ["《明史·地理志》"],
     tags: ["地理", "喀斯特地貌", "徐霞客", "典籍"]
   },

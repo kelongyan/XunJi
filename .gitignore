@@ -14,9 +14,11 @@ dist-ssr/
 !.vscode/extensions.json
 
 # 工作产物
+/work/
 .playwright-mcp/
 .playwright-cli/
 *.log
+*.bak
 /ref-*.png
 /p0-*.png
 /p1-*.png

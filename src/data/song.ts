@@ -731,6 +731,11 @@ export const songEntries: HistoryEntry[] = [
       { year: 1160, event: "南宋发行会子，行于东南" },
       { year: 1287, event: "元代宝钞通行，纸币制度承宋制而普及欧亚" }
     ],
+    relations: [
+      { targetId: "shibosi", name: "市舶司", type: "制度关联", note: "纸币与市舶贸易同为宋代商业革命的两翼" },
+      { targetId: "dongjing-menghualu", name: "《东京梦华录》", type: "史料记载", note: "笔记所载汴京繁华，正是交子流通的商业土壤" },
+      { targetId: "yitiaobian-fa", name: "一条鞭法", type: "制度渊源", note: "由纸币到白银，货币财政变革的漫长前奏" }
+    ],
     sources: ["《宋史·食货志》", "《宋朝事实》"],
     tags: ["纸币", "商业革命", "益州"]
   },
