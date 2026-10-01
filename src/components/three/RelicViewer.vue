@@ -9,7 +9,7 @@ import { useThreeScene } from '../../composables/useThreeScene'
 import { useUiStore } from '../../stores/ui'
 
 export interface RelicKind {
-  kind: 'vase' | 'codex' | 'armillary' | 'ship'
+  kind: 'vase' | 'codex' | 'armillary' | 'ship' | 'typecase'
 }
 
 const props = defineProps<{
@@ -120,6 +120,23 @@ function makeLabelTexture(text: string): THREE.CanvasTexture {
   return toTexture(c)
 }
 
+/** 泥活字单字字面（陶底墨字，居中） */
+function makeTypeFaceTexture(ch: string): THREE.CanvasTexture {
+  const [c, ctx] = makeCanvas(64, 64)
+  ctx.fillStyle = '#C9BBA0'
+  ctx.fillRect(0, 0, 64, 64)
+  // 陶字边沿一圈深色（凸出字面感）
+  ctx.strokeStyle = 'rgba(74, 62, 48, 0.55)'
+  ctx.lineWidth = 3
+  ctx.strokeRect(2, 2, 60, 60)
+  ctx.font = '700 34px "Songti SC", "STSong", "SimSun", serif'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillStyle = '#2B2620'
+  ctx.fillText(ch, 32, 34)
+  return toTexture(c)
+}
+
 function buildRelic(): THREE.Group {
   const g = new THREE.Group()
   if (props.kind === 'vase') {
@@ -181,6 +198,49 @@ function buildRelic(): THREE.Group {
     pillar.position.y = -0.85
     g.add(pillar)
     g.position.y = 0.1
+  } else if (props.kind === 'typecase') {
+    // 泥活字格：木框托盘 + 6×4 陶字阵列（字面朝上，轮换常用字）
+    const wood = new THREE.MeshStandardMaterial({ color: 0x6b5138, roughness: 0.8 })
+    const tray = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.14, 1.6), wood)
+    tray.position.y = 0.02
+    g.add(tray)
+    // 四周围框（略高于字格，如木匣边沿）
+    const rail: Array<[number, number, number, number]> = [
+      [2.3, 0.22, 0.08, 0.78], [2.3, 0.22, 0.08, -0.78],
+      [0.08, 0.22, 1.6, 1.11], [0.08, 0.22, 1.6, -1.11]
+    ]
+    rail.forEach(([w, h, d, z]) => {
+      const r = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wood)
+      r.position.set(z === 1.11 || z === -1.11 ? z : 0, h / 2, z === 1.11 || z === -1.11 ? 0 : z)
+      // 侧栏沿 x 轴排布
+      if (Math.abs(z) === 0.78) r.position.x = 0
+      else r.position.x = z
+      g.add(r)
+    })
+    // 陶字：6 列 × 4 行，格盘分格 + 字面
+    const chars = '尋跡活字印書溯源'.split('')
+    const clayMat = new THREE.MeshStandardMaterial({ color: 0xb8a888, roughness: 0.9 })
+    const COLS = 6
+    const ROWS = 4
+    for (let cIdx = 0; cIdx < COLS; cIdx++) {
+      for (let rIdx = 0; rIdx < ROWS; rIdx++) {
+        const x = -0.95 + cIdx * 0.38
+        const z = -0.57 + rIdx * 0.38
+        const cell = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.14, 0.32), clayMat)
+        cell.position.set(x, 0.15, z)
+        g.add(cell)
+        // 字面（CanvasTexture 单字，朝上）
+        const ch = chars[(cIdx * ROWS + rIdx) % chars.length]
+        const face = new THREE.Mesh(
+          new THREE.PlaneGeometry(0.26, 0.26),
+          new THREE.MeshBasicMaterial({ map: makeTypeFaceTexture(ch), fog: false })
+        )
+        face.rotation.x = -Math.PI / 2
+        face.position.set(x, 0.225, z)
+        g.add(face)
+      }
+    }
+    g.position.y = -0.45
   } else {
     // ship：简版宝船
     const wood = new THREE.MeshStandardMaterial({ color: 0x54432f, roughness: 0.8 })
@@ -280,7 +340,7 @@ function buildScene() {
 }
 
 function buildFloat(t: number) {
-  const base = props.kind === 'vase' ? -0.85 : props.kind === 'codex' ? -0.45 : props.kind === 'armillary' ? 0.1 : -0.55
+  const base = props.kind === 'vase' ? -0.85 : props.kind === 'codex' ? -0.45 : props.kind === 'armillary' ? 0.1 : props.kind === 'typecase' ? -0.45 : -0.55
   return base + (reducedMotion ? 0 : Math.sin(t * 0.9) * 0.045)
 }
 

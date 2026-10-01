@@ -16,7 +16,13 @@ defineProps<{
       <div class="pt-5 pb-9 flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left">
         <span class="eyebrow is-plain">{{ left }}</span>
         <span v-if="note" class="eyebrow is-plain hidden md:inline-flex">{{ note }}</span>
-        <span class="index-no">· {{ folio }} ·</span>
+        <span class="flex items-center gap-4">
+          <RouterLink
+            to="/about"
+            class="text-[12px] tracking-[0.22em] text-muted-foreground/70 hover:text-[var(--dynasty-accent)] transition-colors"
+          >修典纪要</RouterLink>
+          <span class="index-no">· {{ folio }} ·</span>
+        </span>
       </div>
     </div>
   </footer>

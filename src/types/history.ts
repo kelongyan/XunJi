@@ -31,7 +31,7 @@ export interface HistoryImage {
 
 /** 器物 3D 展台引用（RelicViewer 程序化器物） */
 export interface RelicInfo {
-  kind: 'vase' | 'codex' | 'armillary' | 'ship'
+  kind: 'vase' | 'codex' | 'armillary' | 'ship' | 'typecase'
   name: string
   caption: string
 }

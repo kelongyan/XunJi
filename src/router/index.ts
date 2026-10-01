@@ -5,6 +5,8 @@ import EntryDetail from '../pages/EntryDetail.vue'
 import Timeline from '../pages/Timeline.vue'
 import Compare from '../pages/Compare.vue'
 import Graph from '../pages/Graph.vue'
+import Exam from '../pages/Exam.vue'
+import About from '../pages/About.vue'
 
 const routes = [
   { path: '/', name: 'Home', component: Home },
@@ -13,6 +15,8 @@ const routes = [
   { path: '/timeline', name: 'Timeline', component: Timeline },
   { path: '/compare', name: 'Compare', component: Compare },
   { path: '/graph', name: 'Graph', component: Graph },
+  { path: '/exam', name: 'Exam', component: Exam },
+  { path: '/about', name: 'About', component: About },
   { path: '/:pathMatch(.*)*', redirect: '/' }
 ]
 

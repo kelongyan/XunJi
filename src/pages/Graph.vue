@@ -46,6 +46,8 @@ const star = computed<StarGraphApi | null>(() => (show3d.value ? starRef.value :
 const routeMode = ref<'idle' | 'pick-destination'>('idle')
 const routeFrom = ref<string | null>(null)
 const routePath = ref<PathStep[] | null>(null)
+/** 寻脉不连通提示（自动消隐） */
+const routeBroken = ref<{ from: string; to: string } | null>(null)
 
 /* ── 视图预设 ── */
 const activeView = ref<GraphView>('all')
@@ -194,6 +196,13 @@ function finishRoute(toId: string) {
   routePath.value = steps
   star.value?.setPath(steps)
   routeMode.value = 'idle'
+  if (!steps) {
+    // 不连通：六步之内无驿路可达（关系图可能不连通），给出史学叙事式反馈
+    routeBroken.value = { from: routeFromName.value, to: graphData.nodes.find(n => n.id === toId)?.name ?? toId }
+    star.value?.focusNodeById(toId)
+    window.setTimeout(() => { routeBroken.value = null }, 6000)
+    return
+  }
   // 聚焦终点，侧栏同步
   star.value?.focusNodeById(toId)
 }
@@ -427,6 +436,14 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
               <span>自「{{ routeFromName }}」出发 · 请点击终点星辰</span>
               <button type="button" class="text-muted-foreground hover:text-foreground cursor-pointer" @click="cancelRoute">取消</button>
             </div>
+            <!-- 寻脉不连通：六步内无驿路可达 -->
+            <div
+              v-else-if="routeBroken"
+              class="absolute top-3 left-1/2 -translate-x-1/2 z-20 px-4 py-1.5 bg-card/95 border border-border/80 text-[13px] font-serif text-foreground flex items-center gap-3 max-w-[92%]"
+            >
+              <span class="dynasty-accent-text font-bold shrink-0">寻脉</span>
+              <span class="text-muted-foreground truncate">「{{ routeBroken.from }}」与「{{ routeBroken.to }}」之间，六步之内暂无驿路相通——二者之间隔着朝代与史事的断层。</span>
+            </div>
           </Transition>
 
           <!-- 操作提示（底部细条） -->
@@ -435,6 +452,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
             <span>{{ show3d ? '滚轮推近' : '滚轮 / 双指缩放' }}</span>
             <span>点击星辰聚焦</span>
             <span>空白处取消</span>
+            <span v-if="!show3d" class="text-muted-foreground/60">简版星图 · 寻脉路径粒子与视图过滤仅 3D 版呈现</span>
           </div>
 
           <!-- 悬停题名（左上角即时反馈） -->

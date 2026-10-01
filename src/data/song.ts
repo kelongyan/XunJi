@@ -862,6 +862,11 @@ export const songEntries: HistoryEntry[] = [
       { year: 1455, event: "古腾堡金属活字印成《四十二行圣经》" }
     ],
     sources: ["沈括《梦溪笔谈》", "《宋史·艺文志》"],
+    relic: {
+      kind: "typecase",
+      name: "泥活字格",
+      caption: "毕昇泥活字字格（3D 示意模型）——胶泥刻字、火烧令坚，铁板上敷松脂蜡固定排印。拖动可旋转器物。"
+    },
     tags: ["四大发明", "毕昇", "出版业"]
   },
   {

@@ -235,6 +235,20 @@ watch(currentId, () => {
           </p>
         </div>
 
+        <!-- 入闱应试：读罢此卷，殿试三题 -->
+        <div v-reveal class="mt-10 rule pt-6 pb-2 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div class="eyebrow mb-1.5">入闱应试</div>
+            <p class="text-[13px] font-serif text-muted-foreground">
+              读罢此卷，何不试才？——三问皆出自历代编年，答毕放榜，颁功名印。
+            </p>
+          </div>
+          <RouterLink
+            to="/exam"
+            class="px-5 py-2 border border-[var(--dynasty-accent)] text-[var(--dynasty-accent)] text-[13px] font-serif tracking-[0.2em] hover:bg-[color-mix(in_srgb,var(--dynasty-accent)_8%,transparent)] transition-colors shrink-0"
+          >入闱赴试 →</RouterLink>
+        </div>
+
         <!-- 时空推演（反事实历史，非史实标注） -->
         <CounterfactualPanel v-reveal :dynasty="currentId" class="mt-16" />
       </main>

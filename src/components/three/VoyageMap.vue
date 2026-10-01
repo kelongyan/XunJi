@@ -1,13 +1,17 @@
 <script setup lang="ts">
 /**
- * 郑和下西洋 · 针路图（详情页内嵌 3D 场景）
+ * 针路图（详情页内嵌 3D 场景，数据驱动可复用）
  * 仿《郑和航海图》罗盘针路风格：纸底图 + 金色飞线 + 宝船沿线巡游。
  * 航点为历史航路的风格化示意（非精确地理投影）。
+ * 航线数据外置：voyages.ts（郑和下西洋 / 玄奘西行等），新图加数据即可挂载。
  */
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
 import { useThreeScene } from '../../composables/useThreeScene'
 import { useUiStore } from '../../stores/ui'
+import { getVoyage, type VoyageChart, type VoyagePort } from '../../data/voyages'
+
+const props = defineProps<{ chartId: string }>()
 
 const container = ref<HTMLElement>()
 const ui = useUiStore()
@@ -21,30 +25,9 @@ const PAPER_NIGHT = new THREE.Color('#1A1611')
 const CHART_TINT_DAY = new THREE.Color('#FFFFFF')
 const CHART_TINT_NIGHT = new THREE.Color('#5E584C')
 
-/* 航点（风格化坐标，非地理投影） */
-interface Port {
-  name: string
-  x: number
-  y: number
-  major?: boolean
-}
-const PORTS: Port[] = [
-  { name: '刘家港', x: -16, y: 5.5, major: true },
-  { name: '长乐港', x: -13.5, y: 3.8 },
-  { name: '占城', x: -11, y: 2.2 },
-  { name: '满剌加', x: -6, y: 0.4, major: true },
-  { name: '苏门答腊', x: -4, y: -0.8 },
-  { name: '锡兰山', x: -0.5, y: -1.6 },
-  { name: '古里', x: 2.5, y: -2.2, major: true },
-  { name: '忽鲁谟斯', x: 7.5, y: -3.6 },
-  { name: '天方', x: 4.5, y: -6 },
-  { name: '木骨都束', x: 8.5, y: -6.4 }
-]
-/* 航线段（按航点索引；古里为西向枢纽） */
-const ROUTES: number[][] = [
-  [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6],
-  [6, 7], [6, 8], [6, 9]
-]
+const chart: VoyageChart = getVoyage(props.chartId)
+const PORTS = chart.ports
+const ROUTES = chart.routes
 
 /* 相机控制状态（交互与渲染循环共享同一份） */
 const cam = { yaw: 0, pitch: 0.62, yawT: 0, pitchT: 0.62, dist: 20, distT: 20 }
@@ -118,7 +101,7 @@ function makeChartTexture(): THREE.CanvasTexture {
   // 题跋
   ctx.fillStyle = 'rgba(61, 55, 47, 0.75)'
   ctx.font = '400 22px "Kaiti SC", "KaiTi", "STKaiti", serif'
-  ctx.fillText('自刘家港开船至忽鲁谟斯诸番 · 针路摹本', 26, H - 30)
+  ctx.fillText(chart.caption, 26, H - 30)
   // 文武边框
   ctx.strokeStyle = 'rgba(61, 55, 47, 0.7)'
   ctx.lineWidth = 4
@@ -153,12 +136,12 @@ function buildScene() {
   scene.background = (ui.mode === 'night' ? PAPER_NIGHT : PAPER_DAY).clone()
 
   /* 底图 */
-  const chart = new THREE.Mesh(
+  const chartMesh = new THREE.Mesh(
     new THREE.PlaneGeometry(40, 22),
     new THREE.MeshBasicMaterial({ map: makeChartTexture(), fog: false, toneMapped: false })
   )
-  chart.rotation.x = -Math.PI / 2
-  scene.add(chart)
+  chartMesh.rotation.x = -Math.PI / 2
+  scene.add(chartMesh)
 
   /* 航线（金色飞线 tube + 流光 shader） */
   const flowUniforms = { uTime: { value: 0 } }
@@ -186,7 +169,7 @@ function buildScene() {
       }
     `
   })
-  const portPos = (p: Port) => new THREE.Vector3(p.x, 0.12, p.y)
+  const portPos = (p: VoyagePort) => new THREE.Vector3(p.x, 0.12, p.y)
   ROUTES.forEach(([a, b]) => {
     const pa = portPos(PORTS[a])
     const pb = portPos(PORTS[b])
@@ -219,45 +202,73 @@ function buildScene() {
     scene.add(label)
   })
 
-  /* 宝船（程序化低模） */
-  const ship = new THREE.Group()
-  const hull = new THREE.Mesh(
-    new THREE.BoxGeometry(0.44, 0.14, 1.05),
-    new THREE.MeshBasicMaterial({ color: 0x54432f, fog: false })
-  )
-  const deck = new THREE.Mesh(
-    new THREE.BoxGeometry(0.34, 0.1, 0.72),
-    new THREE.MeshBasicMaterial({ color: 0x6b5138, fog: false })
-  )
-  deck.position.y = 0.12
-  ship.add(hull, deck)
-  ;[-0.3, 0, 0.3].forEach(z => {
-    const mast = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.02, 0.02, 0.5 - Math.abs(z) * 0.2, 8),
-      new THREE.MeshBasicMaterial({ color: 0x3a2e22, fog: false })
+  /* 巡游主体（程序化低模）：chart.traveler 决定形制——sea=宝船 / land=行脚僧 */
+  const traveler = new THREE.Group()
+  if (chart.traveler === 'land') {
+    // 行脚僧：棕袍身 + 斗笠 + 背篓（杖）
+    const robe = new THREE.Mesh(
+      new THREE.ConeGeometry(0.16, 0.42, 10),
+      new THREE.MeshBasicMaterial({ color: 0x6b5138, fog: false })
     )
-    mast.position.set(0, 0.35 - Math.abs(z) * 0.08, z)
-    const sail = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.3, 0.34 - Math.abs(z) * 0.14),
-      new THREE.MeshBasicMaterial({ color: 0xe8dcc0, side: THREE.DoubleSide, fog: false })
+    robe.position.y = 0.21
+    const head = new THREE.Mesh(
+      new THREE.SphereGeometry(0.09, 10, 10),
+      new THREE.MeshBasicMaterial({ color: 0xd9c4a5, fog: false })
     )
-    sail.position.set(0, mast.position.y + 0.02, z)
-    ship.add(mast, sail)
-  })
-  scene.add(ship)
+    head.position.y = 0.48
+    // 斗笠（扁圆锥）
+    const hat = new THREE.Mesh(
+      new THREE.ConeGeometry(0.16, 0.08, 12),
+      new THREE.MeshBasicMaterial({ color: 0xa89468, fog: false })
+    )
+    hat.position.y = 0.55
+    // 背篓（身后小方筐）
+    const pack = new THREE.Mesh(
+      new THREE.BoxGeometry(0.14, 0.2, 0.1),
+      new THREE.MeshBasicMaterial({ color: 0x8a6b3a, fog: false })
+    )
+    pack.position.set(0, 0.34, -0.13)
+    traveler.add(robe, head, hat, pack)
+  } else {
+    // 宝船
+    const hull = new THREE.Mesh(
+      new THREE.BoxGeometry(0.44, 0.14, 1.05),
+      new THREE.MeshBasicMaterial({ color: 0x54432f, fog: false })
+    )
+    const deck = new THREE.Mesh(
+      new THREE.BoxGeometry(0.34, 0.1, 0.72),
+      new THREE.MeshBasicMaterial({ color: 0x6b5138, fog: false })
+    )
+    deck.position.y = 0.12
+    traveler.add(hull, deck)
+    ;[-0.3, 0, 0.3].forEach(z => {
+      const mast = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.02, 0.02, 0.5 - Math.abs(z) * 0.2, 8),
+        new THREE.MeshBasicMaterial({ color: 0x3a2e22, fog: false })
+      )
+      mast.position.set(0, 0.35 - Math.abs(z) * 0.08, z)
+      const sail = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.3, 0.34 - Math.abs(z) * 0.14),
+        new THREE.MeshBasicMaterial({ color: 0xe8dcc0, side: THREE.DoubleSide, fog: false })
+      )
+      sail.position.set(0, mast.position.y + 0.02, z)
+      traveler.add(mast, sail)
+    })
+  }
+  scene.add(traveler)
 
-  /* 主航线巡游曲线（刘家港→古里） */
-  const mainPath = new THREE.CatmullRomCurve3([0, 1, 2, 3, 4, 5, 6].map(i => portPos(PORTS[i])))
+  /* 主航线巡游曲线（按 chart.mainPath） */
+  const mainPath = new THREE.CatmullRomCurve3(chart.mainPath.map(i => portPos(PORTS[i])))
 
   onFrame((dt, t) => {
     flowUniforms.uTime.value = t
     if (!reducedMotion) {
-      // 宝船往复巡游
+      // 巡游主体往复巡游
       const span = 7
       const phase = Math.abs(((t * 0.035) % (span * 2)) - span) / span
-      ship.position.copy(mainPath.getPointAt(phase))
+      traveler.position.copy(mainPath.getPointAt(phase))
       const tangent = mainPath.getTangentAt(phase)
-      ship.rotation.y = Math.atan2(tangent.x, tangent.z)
+      traveler.rotation.y = Math.atan2(tangent.x, tangent.z)
       // idle 缓慢自转
       if (!dragging) cam.yawT += dt * 0.045
     }
@@ -275,7 +286,7 @@ function buildScene() {
     if (scene.background instanceof THREE.Color) {
       scene.background.lerp(target ? PAPER_NIGHT : PAPER_DAY, dt * 2)
     }
-    ;(chart.material as THREE.MeshBasicMaterial).color.lerp(
+    ;(chartMesh.material as THREE.MeshBasicMaterial).color.lerp(
       target ? CHART_TINT_NIGHT : CHART_TINT_DAY,
       dt * 2
     )
@@ -325,7 +336,7 @@ onBeforeUnmount(() => {
     ref="container"
     class="relative w-full h-[380px] md:h-[440px] touch-none select-none cursor-grab active:cursor-grabbing"
     role="img"
-    aria-label="郑和下西洋针路图：自刘家港至忽鲁谟斯等诸番航路，金色飞线，宝船巡游"
+    :aria-label="chart.ariaLabel"
     @pointerdown="onPointerDown"
     @pointermove="onPointerMove"
     @pointerup="onPointerUp"

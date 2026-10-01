@@ -9,9 +9,18 @@ import { dynastyIdFromHanzi, defaultDynasty } from '../data/dynastyThemes'
 import { useTypewriter } from '../composables/useTypewriter'
 import { useFootprint } from '../composables/useFootprint'
 import { playStampSound } from '../composables/useSound'
+import { downloadExLibris } from '../data/exlibris'
 
 const VoyageMap = defineAsyncComponent(() => import('../components/three/VoyageMap.vue'))
 const RelicViewer = defineAsyncComponent(() => import('../components/three/RelicViewer.vue'))
+
+/* 针路图挂载表：词条 id → 航线图数据（voyages.ts）；新图加一行即可 */
+const VOYAGE_MOUNT: Record<string, { chartId: string; title: string }> = {
+  'zhenghe-xiaxiyang': { chartId: 'zhenghe', title: '郑和七下西洋航路摹本' },
+  xuanzang: { chartId: 'xuanzang', title: '玄奘西行取经之路摹本' },
+  'xuanzang-xixing-qufa': { chartId: 'xuanzang', title: '玄奘西行取经之路摹本' }
+}
+const voyage = computed(() => VOYAGE_MOUNT[entry.value.id] ?? null)
 
 const route = useRoute()
 const entryId = computed(() => (route.params.id as string) || 'zhang-juzheng')
@@ -43,6 +52,11 @@ function onToggleCollect() {
   }
 }
 onBeforeUnmount(() => window.clearTimeout(stampTimer))
+
+/** 拓藏书票：Canvas 合成并下载（exlibris.ts） */
+function onExlibris() {
+  downloadExLibris(entry.value)
+}
 
 /** 读此卷者亦读：关系直连 + 标签重叠 + 同朝代加权 */
 const related = computed(() => {
@@ -197,7 +211,7 @@ onBeforeUnmount(() => {
                 {{ entry.summary }}
               </p>
 
-              <div v-reveal="320" class="pt-1">
+              <div v-reveal="320" class="pt-1 flex flex-wrap items-center gap-x-5 gap-y-3">
                 <button
                   type="button"
                   class="collect-btn stamp-ripple"
@@ -207,6 +221,16 @@ onBeforeUnmount(() => {
                 >
                   <SealStamp :text="collected ? '已藏' : '钤印'" class="seal-stamp-sm !opacity-100" />
                   <span>{{ collected ? '已入藏书阁 · 点击取出' : '钤印收藏 · 入藏书阁' }}</span>
+                </button>
+                <button
+                  v-if="collected"
+                  type="button"
+                  class="text-[13px] font-serif text-muted-foreground hover:text-[var(--dynasty-accent)] transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                  title="生成一张可下载分享的藏书票"
+                  @click="onExlibris"
+                >
+                  <span class="seal-stamp text-[11px] py-0.5 px-1">票</span>
+                  <span>拓一枚藏书票</span>
                 </button>
               </div>
 
@@ -271,14 +295,14 @@ onBeforeUnmount(() => {
               </div>
             </section>
 
-            <!-- 针路图（词条专属 3D 航路，窄屏隐藏） -->
-            <section v-if="entry.id === 'zhenghe-xiaxiyang'" v-reveal class="hidden md:block mb-12">
+            <!-- 针路图（词条专属 3D 航路，窄屏隐藏；数据驱动，见 VOYAGE_MOUNT） -->
+            <section v-if="voyage" v-reveal class="hidden md:block mb-12">
               <div class="framed-plate bg-card/65 shadow-sm overflow-hidden">
                 <div class="text-[13px] font-serif text-muted-foreground border-b border-border/80 px-4 py-2.5 flex items-center justify-between">
-                  <span class="font-bold text-foreground">【针路图】郑和七下西洋航路摹本</span>
+                  <span class="font-bold text-foreground">【针路图】{{ voyage.title }}</span>
                   <span class="seal-stamp text-[12px] py-0.5 px-1">针路</span>
                 </div>
-                <VoyageMap />
+                <VoyageMap :chart-id="voyage.chartId" />
                 <p class="textbook-caption text-center py-2.5">
                   航路为历史航线之风格化摹本，非精确地理投影 · 拖动环视，滚轮推近
                 </p>
