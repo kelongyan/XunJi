@@ -150,7 +150,9 @@ async function runLive() {
         liveBuffer += delta
         displayedText.value = liveBuffer
       },
-      { signal: liveAbort.signal, maxTokens: 2000 }
+      // 预算须覆盖思考链 + 正文（Atria 的 reasoning:false 只减不消，个别词条
+      // 思考链会超长——实测郑和条约 2000 被烧穿，留足 4000）
+      { signal: liveAbort.signal, maxTokens: 4000 }
     )
     isTypingManual.value = false
   } catch (e) {
