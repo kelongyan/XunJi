@@ -483,13 +483,18 @@ onBeforeUnmount(() => {
                   :to="`/entry/${item.id}`"
                   class="group block"
                 >
-                  <div class="framed-plate bg-card/50 overflow-hidden p-1.5">
+                  <div class="framed-plate bg-card/50 overflow-hidden p-1.5 relative">
                     <img
                       :src="item.image?.src"
                       :alt="item.image?.caption"
                       loading="lazy"
                       class="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-[1.04]"
                     />
+                    <!-- 藏印角标：hover 时浮出（观画钤印的暗示，点击即入词条） -->
+                    <span
+                      class="absolute top-2.5 right-2.5 seal-stamp seal-stamp-sm pointer-events-none opacity-0 translate-y-1 rotate-6 transition-all duration-300 group-hover:opacity-95 group-hover:translate-y-0 group-hover:rotate-0"
+                      aria-hidden="true"
+                    >藏</span>
                   </div>
                   <div class="mt-3 flex items-baseline justify-between gap-2">
                     <span class="text-[13px] font-serif text-foreground truncate group-hover:text-[var(--dynasty-accent)] transition-colors">{{ item.name }}</span>

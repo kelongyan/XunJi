@@ -6,6 +6,7 @@
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
 import { useThreeScene } from '../../composables/useThreeScene'
+import { useUiStore } from '../../stores/ui'
 
 export interface RelicKind {
   kind: 'vase' | 'codex' | 'armillary' | 'ship'
@@ -16,6 +17,7 @@ const props = defineProps<{
 }>()
 
 const container = ref<HTMLElement>()
+const ui = useUiStore()
 const { supported, getHandle } = useThreeScene(container, { fov: 42, near: 0.1, far: 60 })
 
 const reducedMotion =
@@ -25,6 +27,13 @@ let spinVel = 0.35
 let dragging = false
 let last = { x: 0 }
 let relicGroup: THREE.Group | null = null
+/* P2：入场浮起 + 底座呼吸 + 夜读灯光联动 */
+let haloMat: THREE.MeshBasicMaterial | null = null
+let keyLight: THREE.DirectionalLight | null = null
+let ambientLight: THREE.AmbientLight | null = null
+let appearT = 0
+/** 夜读灯光过渡值（0=日读 1=夜读） */
+let nightValue = 0
 
 function makeCanvas(w: number, h: number): [HTMLCanvasElement, CanvasRenderingContext2D] {
   const c = document.createElement('canvas')
@@ -202,16 +211,17 @@ function buildScene() {
 
   scene.background = null
 
-  /* 灯光（暖光展台） */
-  scene.add(new THREE.AmbientLight(0xfff6e8, 1.1))
-  const key = new THREE.DirectionalLight(0xffe8c4, 2.2)
-  key.position.set(3, 5, 4)
-  scene.add(key)
+  /* 灯光（暖光展台；夜读联动调暗降温） */
+  ambientLight = new THREE.AmbientLight(0xfff6e8, 1.1)
+  scene.add(ambientLight)
+  keyLight = new THREE.DirectionalLight(0xffe8c4, 2.2)
+  keyLight.position.set(3, 5, 4)
+  scene.add(keyLight)
   const rim = new THREE.DirectionalLight(0xd8e4f0, 0.7)
   rim.position.set(-4, 2.5, -3)
   scene.add(rim)
 
-  /* 墨晕底座 */
+  /* 墨晕底座（呼吸光晕由 haloMat 引用驱动） */
   const [c, ctx] = makeCanvas(256, 256)
   const grad = ctx.createRadialGradient(128, 128, 20, 128, 128, 126)
   grad.addColorStop(0, 'rgba(61, 55, 47, 0.35)')
@@ -219,28 +229,51 @@ function buildScene() {
   grad.addColorStop(1, 'rgba(61, 55, 47, 0)')
   ctx.fillStyle = grad
   ctx.fillRect(0, 0, 256, 256)
-  const halo = new THREE.Mesh(
-    new THREE.PlaneGeometry(5.5, 5.5),
-    new THREE.MeshBasicMaterial({ map: toTexture(c), transparent: true, depthWrite: false, fog: false })
-  )
+  haloMat = new THREE.MeshBasicMaterial({ map: toTexture(c), transparent: true, depthWrite: false, fog: false })
+  const halo = new THREE.Mesh(new THREE.PlaneGeometry(5.5, 5.5), haloMat)
   halo.rotation.x = -Math.PI / 2
   halo.position.y = -1.02
   scene.add(halo)
 
-  /* 器物 */
+  /* 器物（入场自底座升起；reducedMotion 直落位） */
   relicGroup = buildRelic()
   scene.add(relicGroup)
+  appearT = reducedMotion ? 1 : 0
 
   camera.position.set(0, 1.4, 4.6)
   camera.lookAt(0, 0, 0)
 
   onFrame((dt, t) => {
+    // 入场浮起：0.9s 缓出，自下方 1.2 单位升起并淡入（材质透明度渐显）
+    if (appearT < 1) {
+      appearT = Math.min(1, appearT + dt / 0.9)
+      const e = 1 - Math.pow(1 - appearT, 3)
+      relicGroup!.position.y = buildFloat(t) + (1 - e) * -1.2
+      relicGroup!.traverse(obj => {
+        const mesh = obj as THREE.Mesh
+        const mat = mesh.material as THREE.Material | undefined
+        if (mat && 'opacity' in mat) {
+          ;(mat as THREE.Material).transparent = true
+          ;(mat as THREE.Material).opacity = e
+        }
+      })
+    } else if (relicGroup) {
+      relicGroup.position.y = buildFloat(t)
+    }
     // 惯性衰减 + idle 自转
     if (!dragging) {
       spinVel += (0.35 - spinVel) * Math.min(1, dt * 1.2)
       if (relicGroup) relicGroup.rotation.y += spinVel * dt * (reducedMotion ? 0 : 1)
     }
-    if (relicGroup) relicGroup.position.y = buildFloat(t)
+    // 底座光晕：呼吸（浮起完成后才有存在感）+ 夜读增强
+    nightValue += ((ui.mode === 'night' ? 1 : 0) - nightValue) * Math.min(1, dt * 2)
+    if (haloMat) {
+      const breath = reducedMotion ? 1 : 0.9 + Math.sin(t * 1.1) * 0.1
+      haloMat.opacity = appearT * breath * (1 + nightValue * 0.5)
+    }
+    // 夜读灯光联动：整体稍暗、偏暖（展台灯下观器）
+    if (keyLight) keyLight.intensity = 2.2 - nightValue * 0.6
+    if (ambientLight) ambientLight.intensity = 1.1 - nightValue * 0.25
     camera.position.y = 1.4
     camera.lookAt(0, 0, 0)
   })
