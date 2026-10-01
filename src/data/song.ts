@@ -45,6 +45,11 @@ export const songEntries: HistoryEntry[] = [
       { year: 965, event: "平后蜀，置封桩库储备赎燕云之资" },
       { year: 976, event: "暴卒于万岁殿，烛影斧声千古疑案" }
     ],
+    image: {
+      src: '/images/entries/song/emperor-song-taizu-zhaokuangyin.webp',
+      caption: '【图版】赵匡胤御容坐像摹本 · 选自清代重摹历代帝王像',
+      source: '南薰殿旧藏历代帝王像'
+    },
     sources: ["《宋史·太祖本纪》", "《续资治通鉴长编》"],
     tags: ["开国", "杯酒释兵权", "祖宗家法"]
   },
@@ -90,6 +95,11 @@ export const songEntries: HistoryEntry[] = [
     relations: [
       { targetId: "baozheng", name: "包拯", type: "君臣" }
     ],
+    image: {
+      src: '/images/entries/song/emperor-song-renzong-zhaozhen.webp',
+      caption: '【图版】赵祯御容坐像摹本 · 选自清代重摹历代帝王像',
+      source: '南薰殿旧藏历代帝王像'
+    },
     sources: ["《宋史·仁宗本纪》", "《宋史·包拯传》"],
     tags: ["宽仁", "庆历", "士大夫政治"]
   },
@@ -126,6 +136,11 @@ export const songEntries: HistoryEntry[] = [
       { year: 1120, event: "与金订海上之盟，方腊起义同年平定" },
       { year: 1127, event: "靖康之变被掳北去，后死于五国城" }
     ],
+    image: {
+      src: '/images/entries/song/emperor-song-huizong-zhaoji.webp',
+      caption: '【图版】赵佶御容坐像摹本 · 选自清代重摹历代帝王像',
+      source: '南薰殿旧藏历代帝王像'
+    },
     sources: ["《宋史·徽宗本纪》", "《三朝北盟会编》"],
     tags: ["瘦金体", "宣和", "靖康之耻"]
   },
@@ -264,6 +279,11 @@ export const songEntries: HistoryEntry[] = [
     relations: [
       { targetId: "wanganshi-bianfa", name: "王安石变法", type: "政见相左" }
     ],
+    image: {
+      src: '/images/entries/song/figure-sushi.webp',
+      caption: '【图版】苏轼先生画像摹本 · 选自明清名贤画传',
+      source: '《晚笑堂画传》'
+    },
     sources: ["《宋史·苏轼传》", "《苏轼诗集》"],
     tags: ["东坡", "乌台诗案", "旷达"]
   },
@@ -309,6 +329,11 @@ export const songEntries: HistoryEntry[] = [
     relations: [
       { targetId: "jingkang-zhibian", name: "靖康之变", type: "国仇所自" }
     ],
+    image: {
+      src: '/images/entries/song/figure-yuefei.webp',
+      caption: '【图版】岳飞先生画像摹本 · 选自明清名贤画传',
+      source: '《晚笑堂画传》'
+    },
     sources: ["《宋史·岳飞传》", "《金佗稡编》"],
     tags: ["抗金", "岳家军", "风波亭"]
   },
@@ -440,6 +465,11 @@ export const songEntries: HistoryEntry[] = [
       { targetId: "song-taizu-zhaokuangyin", name: "赵匡胤", type: "主角" },
       { targetId: "beijiu-shibingquan", name: "杯酒释兵权", type: "善后之策" }
     ],
+    image: {
+      src: '/images/entries/song/event-chenqiao-bingbian.webp',
+      caption: '【图版】陈桥兵变历史长卷全景图摹本',
+      source: '明清纪事版画舆图'
+    },
     sources: ["《宋史·太祖本纪》", "《续资治通鉴长编》"],
     tags: ["政变", "黄袍加身", "宋朝开国"]
   },
@@ -483,6 +513,11 @@ export const songEntries: HistoryEntry[] = [
     relations: [
       { targetId: "song-taizu-zhaokuangyin", name: "赵匡胤", type: "主导者" }
     ],
+    image: {
+      src: '/images/entries/song/event-beijiu-shibingquan.webp',
+      caption: '【图版】杯酒释兵权历史长卷全景图摹本',
+      source: '明清纪事版画舆图'
+    },
     sources: ["《宋史·石守信传》", "《续资治通鉴长编》"],
     tags: ["收兵权", "重文轻武", "祖宗之法"]
   },
@@ -526,6 +561,11 @@ export const songEntries: HistoryEntry[] = [
     relations: [
       { targetId: "song-renzong-zhaozhen", name: "赵祯", type: "承盟之君" }
     ],
+    image: {
+      src: '/images/entries/song/event-chanyuan-zhimeng.webp',
+      caption: '【图版】澶渊之盟历史长卷全景图摹本',
+      source: '明清纪事版画舆图'
+    },
     sources: ["《宋史·真宗本纪》", "《续资治通鉴长编》"],
     tags: ["宋辽", "岁币", "亲征"]
   },
@@ -609,6 +649,11 @@ export const songEntries: HistoryEntry[] = [
       { targetId: "song-huizong-zhaoji", name: "赵佶", type: "亡国之君" },
       { targetId: "yuefei", name: "岳飞", type: "雪耻之志" }
     ],
+    image: {
+      src: '/images/entries/song/event-jingkang-zhibian.webp',
+      caption: '【图版】靖康之变历史长卷全景图摹本',
+      source: '明清纪事版画舆图'
+    },
     sources: ["《宋史·钦宗本纪》", "《三朝北盟会编》"],
     tags: ["亡国", "衣冠南渡", "宋金战争"]
   },

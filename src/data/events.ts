@@ -65,6 +65,11 @@ export const events: HistoryEntry[] = [
       { year: 1400, event: "白沟河之战击溃朝廷官军主力" },
       { year: 1402, event: "攻破南京金川门，朱棣即皇帝位" }
     ],
+    image: {
+      src: '/images/entries/ming/event-jingnan-zhiyi.webp',
+      caption: '【图版】靖难之役历史长卷全景图摹本',
+      source: '明清纪事版画舆图'
+    },
     sources: ["《明史·成祖本纪》", "《明通鉴》"],
     tags: ["内乱", "夺位", "永乐", "建文"]
   },
@@ -99,6 +104,11 @@ export const events: HistoryEntry[] = [
       { year: 1421, event: "第六次远航，护送十六国使节回国" },
       { year: 1433, event: "宣德八年第七次返航，郑和病殁于古里" }
     ],
+    image: {
+      src: '/images/entries/ming/event-zhenghe-xiaxiyang.webp',
+      caption: '【图版】郑和下西洋历史长卷全景图摹本',
+      source: '明清纪事版画舆图'
+    },
     sources: ["《明史·郑和传》", "《瀛涯胜览》"],
     tags: ["航海", "大明宝船", "朝贡贸易", "宣德"],
     relic: {
@@ -131,6 +141,11 @@ export const events: HistoryEntry[] = [
     timeline: [
       { year: 1449, event: "八月土木堡官军惨败，明英宗被俘；十月于谦取得北京保卫战大捷" }
     ],
+    image: {
+      src: '/images/entries/ming/event-tumu-zhi-bian.webp',
+      caption: '【图版】土木堡之变历史长卷全景图摹本',
+      source: '明清纪事版画舆图'
+    },
     sources: ["《明史·英宗本纪》", "《明史纪事本末》"],
     tags: ["战乱", "瓦剌", "也先", "于谦"]
   },
@@ -163,6 +178,11 @@ export const events: HistoryEntry[] = [
     timeline: [
       { year: 1449, event: "十月瓦剌兵抵西直门外；于谦指挥明军德胜门大捷，也先退走" }
     ],
+    image: {
+      src: '/images/entries/ming/event-beijing-baoweizhan.webp',
+      caption: '【图版】北京保卫战历史长卷全景图摹本',
+      source: '明清纪事版画舆图'
+    },
     sources: ["《明史·于谦传》"],
     tags: ["保卫战", "于谦", "德胜门", "火器"]
   },
@@ -294,6 +314,11 @@ export const events: HistoryEntry[] = [
       { targetId: "zhu-youjian", name: "朱由检", type: "核心人物", note: "崇祯帝煤山自缢，明祚告终" },
       { targetId: "nanming-kangqing", name: "南明抗清", type: "后续事件", note: "京师既陷，宗室于江南播迁续祚" }
     ],
+    image: {
+      src: '/images/entries/ming/event-jiashan-zhi-bian.webp',
+      caption: '【图版】甲申之变历史长卷全景图摹本',
+      source: '明清纪事版画舆图'
+    },
     sources: ["《明史·庄烈帝本纪》", "《甲申纪事》"],
     tags: ["明亡", "崇祯自缢", "李自成", "清军入关"]
   },

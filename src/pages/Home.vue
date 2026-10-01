@@ -77,6 +77,46 @@ const indexItems = [
   { name: '制度地理', meta: '内阁制 · 一条鞭法', value: `${typeCounts.system} 项`, to: '/search?type=system' }
 ]
 
+/** 图版大观：从已配图词条中轮转精选（每日轮换，五朝兼顾，按汉唐宋明清编年排序） */
+const galleryItems = computed(() => {
+  const pool = allHistoryEntries.filter(e => e.image?.src?.endsWith('.webp'))
+  if (!pool.length) return []
+  const d = new Date()
+  const seed = d.getFullYear() * 372 + (d.getMonth() + 1) * 31 + d.getDate()
+  const byDynasty = new Map<string, typeof pool>()
+  for (const e of pool) {
+    if (!byDynasty.has(e.dynasty)) byDynasty.set(e.dynasty, [])
+    byDynasty.get(e.dynasty)!.push(e)
+  }
+  const lists = [...byDynasty.values()].map(list => {
+    const arr = [...list]
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = (seed * 9301 + i * 49297) % (i + 1)
+      ;[arr[i], arr[j]] = [arr[j], arr[i]]
+    }
+    return arr
+  })
+  const picked: typeof pool = []
+  for (let round = 0; picked.length < 8; round++) {
+    let added = false
+    for (const l of lists) {
+      if (l[round]) {
+        picked.push(l[round])
+        added = true
+        if (picked.length >= 8) break
+      }
+    }
+    if (!added) break
+  }
+  const order = ['汉', '唐', '宋', '明', '清']
+  return picked.sort((a, b) => order.indexOf(a.dynasty) - order.indexOf(b.dynasty))
+})
+
+/** 已开卷图版总数（数据诚信：运行时真实统计） */
+const galleryTotal = computed(
+  () => allHistoryEntries.filter(e => e.image?.src?.endsWith('.webp')).length
+)
+
 /** 我的寻迹：足迹 + 藏书阁 */
 const recentFootprints = computed(() => footprints.value.slice(0, 3))
 const collectedItems = computed(() => collections.value.slice(0, 8))
@@ -362,7 +402,17 @@ onBeforeUnmount(() => {
                     <p class="text-indent-chinese textbook-dropcap">{{ todayEntry.summary }}</p>
                   </div>
                 </div>
-                <SealStamp text="首辅" class="seal-drop hidden sm:block shrink-0" />
+                <div v-if="todayEntry.image" class="hidden sm:block shrink-0 w-44">
+                  <div class="framed-plate bg-card/50 overflow-hidden p-1.5">
+                    <img
+                      :src="todayEntry.image.src"
+                      :alt="todayEntry.image.caption"
+                      class="w-full h-auto object-cover"
+                    />
+                  </div>
+                  <p class="index-meta mt-2.5 text-center">图版 · 古籍摹本</p>
+                </div>
+                <SealStamp v-else text="首辅" class="seal-drop hidden sm:block shrink-0" />
               </div>
 
               <div
@@ -417,6 +467,36 @@ onBeforeUnmount(() => {
                 <span class="index-meta hidden sm:inline">双词条跨朝代合参</span>
                 <ArrowRight class="w-3.5 h-3.5 text-[var(--dynasty-accent)]" />
               </RouterLink>
+            </div>
+
+            <!-- 图版大观（历代木刻绣像精选） -->
+            <div v-if="galleryItems.length" v-reveal="165">
+              <div class="rule"></div>
+              <div class="py-4 flex items-baseline justify-between gap-4">
+                <span class="eyebrow">图版大观 · 历代绣像精选</span>
+                <span class="index-meta">已开卷 {{ galleryTotal }} 幅</span>
+              </div>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-x-5 gap-y-8 mt-6">
+                <RouterLink
+                  v-for="item in galleryItems"
+                  :key="item.id"
+                  :to="`/entry/${item.id}`"
+                  class="group block"
+                >
+                  <div class="framed-plate bg-card/50 overflow-hidden p-1.5">
+                    <img
+                      :src="item.image?.src"
+                      :alt="item.image?.caption"
+                      loading="lazy"
+                      class="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                    />
+                  </div>
+                  <div class="mt-3 flex items-baseline justify-between gap-2">
+                    <span class="text-[13px] font-serif text-foreground truncate group-hover:text-[var(--dynasty-accent)] transition-colors">{{ item.name }}</span>
+                    <span class="index-meta shrink-0">{{ item.dynasty }}</span>
+                  </div>
+                </RouterLink>
+              </div>
             </div>
 
             <!-- 延伸思辨（页边批注形态） -->

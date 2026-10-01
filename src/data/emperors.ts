@@ -42,6 +42,11 @@ export const emperors: HistoryEntry[] = [
     quotes: [
       { text: "自古三公论道，六卿分职，未闻设立丞相。自秦始置丞相，不旋踵而亡。", source: "《皇明祖训》" }
     ],
+    image: {
+      src: '/images/entries/ming/emperor-zhu-yuanzhang.webp',
+      caption: '【图版】朱元璋御容坐像摹本 · 选自清代重摹历代帝王像',
+      source: '南薰殿旧藏历代帝王像'
+    },
     sources: ["《明史·太祖本纪》", "《明实录·太祖实录》"],
     tags: ["开国", "洪武", "废丞相", "锦衣卫"],
   },
@@ -129,6 +134,11 @@ export const emperors: HistoryEntry[] = [
     quotes: [
       { text: "斯民小康，朕之愿也。", source: "《明史·成祖本纪》" }
     ],
+    image: {
+      src: '/images/entries/ming/emperor-zhu-di.webp',
+      caption: '【图版】朱棣御容坐像摹本 · 选自清代重摹历代帝王像',
+      source: '南薰殿旧藏历代帝王像'
+    },
     sources: ["《明史·成祖本纪》"],
     tags: ["永乐", "迁都北京", "郑和下西洋", "靖难之役"]
   },
@@ -171,6 +181,11 @@ export const emperors: HistoryEntry[] = [
     quotes: [
       { text: "君臣协德，天下乐业，刑名罕用，海内昇平。", source: "《明史·宣宗本纪》" }
     ],
+    image: {
+      src: '/images/entries/ming/emperor-zhu-zhanji.webp',
+      caption: '【图版】朱瞻基御容坐像摹本 · 选自清代重摹历代帝王像',
+      source: '南薰殿旧藏历代帝王像'
+    },
     sources: ["《明史·宣宗本纪》"],
     tags: ["仁宣之治", "宣德炉", "三杨", "内书堂"]
   },
@@ -214,6 +229,11 @@ export const emperors: HistoryEntry[] = [
     quotes: [
       { text: "古者天子亲耕，后妃亲蚕，祈年育民，敬天勤民之本也。", source: "《明史·世宗本纪》" }
     ],
+    image: {
+      src: '/images/entries/ming/emperor-zhu-houcong.webp',
+      caption: '【图版】朱厚熜御容坐像摹本 · 选自清代重摹历代帝王像',
+      source: '南薰殿旧藏历代帝王像'
+    },
     sources: ["《明史·世宗本纪》"],
     tags: ["大礼议", "嘉靖", "严嵩", "修仙"]
   },
@@ -255,6 +275,11 @@ export const emperors: HistoryEntry[] = [
     quotes: [
       { text: "朕非亡国之君，臣皆亡国之臣。", source: "《明史·庄烈帝本纪》" }
     ],
+    image: {
+      src: '/images/entries/ming/emperor-zhu-youjian.webp',
+      caption: '【图版】朱由检御容坐像摹本 · 选自清代重摹历代帝王像',
+      source: '南薰殿旧藏历代帝王像'
+    },
     sources: ["《明史·庄烈帝本纪》"],
     tags: ["末代", "崇祯", "甲申之变"]
   },

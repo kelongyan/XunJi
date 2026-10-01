@@ -201,6 +201,11 @@ export const figures: HistoryEntry[] = [
     quotes: [
       { text: "知是行之始，行是知之成。知行不可分作两事。", source: "《传习录》" }
     ],
+    image: {
+      src: '/images/entries/ming/figure-wang-yangming.webp',
+      caption: '【图版】王阳明先生画像摹本 · 选自明清名贤画传',
+      source: '《晚笑堂画传》'
+    },
     sources: ["《明史·王守仁传》", "《王阳明全集》"],
     tags: ["心学", "知行合一", "致良知", "传习录"]
   },
@@ -293,6 +298,11 @@ export const figures: HistoryEntry[] = [
     quotes: [
       { text: "如有一念之私，天地神明必殛之。吾以身殉社稷，复何言哉！", source: "《答中丞孙槐溪书》" }
     ],
+    image: {
+      src: '/images/entries/ming/figure-zhang-juzheng.webp',
+      caption: '【图版】张居正先生画像摹本 · 选自明清名贤画传',
+      source: '《晚笑堂画传》'
+    },
     sources: ["《明史·张居正传》", "《张文忠公全集》"],
     tags: ["万历新政", "一条鞭法", "考成法", "首辅"],
   },
