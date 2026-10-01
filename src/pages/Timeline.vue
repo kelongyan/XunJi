@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { ExternalLink } from 'lucide-vue-next'
 import TextbookHeader from '../components/common/TextbookHeader.vue'
@@ -44,6 +44,45 @@ function selectDynasty(id: string) {
   if (!availableIds.includes(id)) return
   router.replace({ query: { ...route.query, dynasty: id } })
 }
+
+/* ── 长卷「描线生长」：中轴墨线随滚动自上而下生长 ── */
+const axisRef = ref<HTMLElement | null>(null)
+const axisProgress = ref(0)
+const reducedMotion =
+  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+let scrollRaf = 0
+
+function updateAxis() {
+  scrollRaf = 0
+  const el = axisRef.value
+  if (!el) return
+  const rect = el.getBoundingClientRect()
+  const vh = window.innerHeight
+  // 起点：轴线顶到达视口 72% 处；终点：轴线底经过视口 40% 处
+  const traveled = vh * 0.72 - rect.top
+  const total = rect.height - vh * 0.32
+  axisProgress.value = reducedMotion ? 1 : Math.min(1, Math.max(0, traveled / Math.max(1, total)))
+}
+
+function onScroll() {
+  if (!scrollRaf) scrollRaf = requestAnimationFrame(updateAxis)
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', onScroll, { passive: true })
+  window.addEventListener('resize', onScroll, { passive: true })
+  updateAxis()
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', onScroll)
+  window.removeEventListener('resize', onScroll)
+  if (scrollRaf) cancelAnimationFrame(scrollRaf)
+})
+
+/* 朝代切换后重新测量（内容高度变了） */
+watch(currentId, () => {
+  requestAnimationFrame(updateAxis)
+})
 </script>
 
 <template>
@@ -91,9 +130,33 @@ function selectDynasty(id: string) {
           </div>
         </div>
 
-        <!-- 编年时间轴（朝代切换时内容淡入替换） -->
+        <!-- 编年时间轴（朝代切换时内容淡入替换）；中轴墨线随滚动生长 -->
         <Transition name="fade-swap" mode="out-in">
-          <div :key="currentId" class="space-y-16 relative before:absolute before:inset-0 before:left-8 before:w-px before:bg-border/70 md:before:left-1/2">
+          <div ref="axisRef" :key="currentId" class="relative space-y-16">
+            <!-- 中轴：底墨线（淡）+ 生长墨线（主题色，随滚动描画）+ 生长端光点
+                 桌面用 left:50% 对齐（不靠 translate 取整，避免 1px 双线） -->
+            <div class="hidden md:block absolute inset-y-0 left-1/2 -ml-px w-px bg-border/50 pointer-events-none" aria-hidden="true"></div>
+            <div class="md:hidden absolute inset-y-0 left-8 w-px bg-border/50 pointer-events-none" aria-hidden="true"></div>
+            <div
+              class="hidden md:block absolute top-0 left-1/2 -ml-px w-px pointer-events-none timeline-ink-grow"
+              :style="{ height: `${axisProgress * 100}%` }"
+              aria-hidden="true"
+            ></div>
+            <div
+              class="md:hidden absolute top-0 left-8 w-px pointer-events-none timeline-ink-grow"
+              :style="{ height: `${axisProgress * 100}%` }"
+              aria-hidden="true"
+            ></div>
+            <div
+              class="hidden md:block absolute left-1/2 -ml-1 -translate-y-1/2 w-2 h-2 rounded-full pointer-events-none timeline-grow-dot"
+              :style="{ top: `${axisProgress * 100}%`, opacity: axisProgress > 0.01 && axisProgress < 0.99 ? 1 : 0 }"
+              aria-hidden="true"
+            ></div>
+            <div
+              class="md:hidden absolute left-8 -ml-1 -translate-y-1/2 w-2 h-2 rounded-full pointer-events-none timeline-grow-dot"
+              :style="{ top: `${axisProgress * 100}%`, opacity: axisProgress > 0.01 && axisProgress < 0.99 ? 1 : 0 }"
+              aria-hidden="true"
+            ></div>
           <div
             v-for="(ev, idx) in events"
             :key="ev.title"
@@ -175,6 +238,51 @@ function selectDynasty(id: string) {
         <!-- 时空推演（反事实历史，非史实标注） -->
         <CounterfactualPanel v-reveal :dynasty="currentId" class="mt-16" />
       </main>
+
+      <!-- 编年刻度尺（桌面右侧固定）：汉→清五段，当前段点墨、其余淡点 -->
+      <nav
+        class="hidden xl:flex fixed right-7 top-1/2 -translate-y-1/2 z-30 flex-col items-center gap-0.5"
+        aria-label="朝代刻度尺"
+      >
+        <span class="w-px h-6 bg-border/70" aria-hidden="true"></span>
+        <template v-for="(d, i) in dynastyThemes" :key="d.id">
+          <button
+            v-if="i > 0"
+            type="button"
+            class="w-px h-5 transition-colors"
+            :class="currentId === d.id || currentId === dynastyThemes[i - 1].id ? 'bg-border' : 'bg-border/40'"
+            aria-hidden="true"
+            tabindex="-1"
+          ></button>
+          <button
+            type="button"
+            :disabled="!availableIds.includes(d.id)"
+            class="group flex items-center gap-2 py-0.5 cursor-pointer disabled:cursor-not-allowed"
+            :title="availableIds.includes(d.id) ? `跳转${d.hanzi}朝长卷` : `${d.hanzi}朝修典中`"
+            @click="selectDynasty(d.id)"
+          >
+            <span
+              class="font-serif transition-all"
+              :class="[
+                currentId === d.id
+                  ? 'text-[15px] text-[var(--dynasty-accent)] font-bold'
+                  : availableIds.includes(d.id)
+                    ? 'text-[12px] text-muted-foreground/70 group-hover:text-foreground'
+                    : 'text-[12px] text-muted-foreground/35'
+              ]"
+            >{{ d.hanzi }}</span>
+            <span
+              class="rounded-full transition-all"
+              :class="currentId === d.id ? 'w-2.5 h-2.5' : 'w-1.5 h-1.5 bg-border group-hover:bg-muted-foreground'"
+              :style="currentId === d.id ? {
+                backgroundColor: 'var(--dynasty-accent)',
+                boxShadow: '0 0 0 4px color-mix(in srgb, var(--dynasty-accent) 18%, transparent)'
+              } : undefined"
+            ></span>
+          </button>
+        </template>
+        <span class="w-px h-6 bg-border/70" aria-hidden="true"></span>
+      </nav>
     </div>
 
     <!-- 底部版心页码 -->

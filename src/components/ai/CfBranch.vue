@@ -17,8 +17,8 @@ const hasChildren = !!props.node.children?.length
 </script>
 
 <template>
-  <div :class="depth ? 'mt-4 pl-5 border-l-2 border-dashed border-primary/40' : ''">
-    <div class="border-wenwu border-l-4 border-l-primary/70 bg-card/80 p-4 md:p-5 shadow-sm relative">
+  <div :class="depth ? 'cf-branch mt-4 pl-5' : ''">
+    <div class="cf-card border-wenwu border-l-4 border-l-primary/70 bg-card/80 p-4 md:p-5 shadow-sm relative">
       <!-- 推演支线小标 -->
       <span
         v-if="depth"
@@ -44,9 +44,80 @@ const hasChildren = !!props.node.children?.length
       </button>
     </div>
 
-    <!-- 下层分支 -->
-    <div v-if="expanded && node.children" class="space-y-0">
-      <CfBranch v-for="child in node.children" :key="child.id" :node="child" :depth="(depth ?? 0) + 1" />
-    </div>
+    <!-- 下层分支：展开时枝条生长 + 卡片错落浮现 -->
+    <Transition name="cf-children">
+      <div v-if="expanded && node.children" class="space-y-0">
+        <CfBranch
+          v-for="(child, ci) in node.children"
+          :key="child.id"
+          :node="child"
+          :depth="(depth ?? 0) + 1"
+          class="cf-stagger"
+          :style="{ animationDelay: `${ci * 90}ms` }"
+        />
+      </div>
+    </Transition>
   </div>
 </template>
+
+<style scoped>
+/* 枝条：自父卡底部向下"生长"的朱色虚线，常态缓缓流动（推演仍在延续） */
+.cf-branch {
+  position: relative;
+}
+.cf-branch::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--primary) 55%, transparent) 0 6px,
+    transparent 6px 12px
+  );
+  transform-origin: top;
+  animation:
+    cfLineGrow 0.42s cubic-bezier(0.3, 0.7, 0.3, 1) both,
+    cfDashFlow 2.2s linear 0.42s infinite;
+}
+@keyframes cfLineGrow {
+  0% { transform: scaleY(0); }
+  100% { transform: scaleY(1); }
+}
+@keyframes cfDashFlow {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 12px; }
+}
+
+/* 卡片浮现（错落由内联 animationDelay 驱动） */
+.cf-stagger .cf-card {
+  animation: cfCardIn 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+@keyframes cfCardIn {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* 展开容器入场 */
+.cf-children-enter-active {
+  transition: opacity 0.3s ease;
+}
+.cf-children-enter-from {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cf-branch::before {
+    animation: none;
+    transform: scaleY(1);
+  }
+  .cf-stagger .cf-card {
+    animation: none;
+  }
+  .cf-children-enter-active {
+    transition: none;
+  }
+}
+</style>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, watch } from 'vue'
+import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
 import { ArrowLeft, ArrowRight } from 'lucide-vue-next'
 import TextbookHeader from '../components/common/TextbookHeader.vue'
@@ -26,10 +26,23 @@ watch(
 )
 
 const collected = computed(() => isCollected(entry.value.id))
+/** 钤印压印动效开关（点击入藏时重播） */
+const stampPress = ref(false)
+let stampTimer = 0
 function onToggleCollect() {
   const now = toggleCollect(entry.value.id)
-  if (now) playStampSound()
+  if (now) {
+    playStampSound()
+    // 重播"压印 + 墨渗涟漪"（先复位再触发，保证连续点击都能播放）
+    stampPress.value = false
+    requestAnimationFrame(() => {
+      stampPress.value = true
+      window.clearTimeout(stampTimer)
+      stampTimer = window.setTimeout(() => (stampPress.value = false), 750)
+    })
+  }
 }
+onBeforeUnmount(() => window.clearTimeout(stampTimer))
 
 /** 读此卷者亦读：关系直连 + 标签重叠 + 同朝代加权 */
 const related = computed(() => {
@@ -87,6 +100,37 @@ function handleSkip() {
 onMounted(() => {
   runFlow()
 })
+
+/* ── 阅读书签线：滚动进度 + 回卷首 ── */
+const readProgress = ref(0)
+const showBackTop = computed(() => readProgress.value > 0.7)
+let readRaf = 0
+
+function updateReadProgress() {
+  readRaf = 0
+  const doc = document.documentElement
+  const total = doc.scrollHeight - window.innerHeight
+  readProgress.value = total > 0 ? Math.min(1, Math.max(0, window.scrollY / total)) : 0
+}
+
+function onReadScroll() {
+  if (!readRaf) readRaf = requestAnimationFrame(updateReadProgress)
+}
+
+function backToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', onReadScroll, { passive: true })
+  window.addEventListener('resize', onReadScroll, { passive: true })
+  updateReadProgress()
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', onReadScroll)
+  window.removeEventListener('resize', onReadScroll)
+  if (readRaf) cancelAnimationFrame(readRaf)
+})
 </script>
 
 <template>
@@ -95,23 +139,48 @@ onMounted(() => {
       <TextbookHeader folio="116" :subChapter="`${entry.dynasty}代 · ${entry.name}词条详述`" />
 
       <main class="max-w-7xl mx-auto px-6 py-12">
-        <!-- 词条头信息：编目式刊头（去框，靠细线与留白组织层级） -->
-        <div v-reveal class="mb-14">
-          <div class="flex items-baseline justify-between gap-4 pb-4 border-b border-border/60">
+        <!-- 阅读书签线（右侧固定：墨线随滚动填充，朱头随行，滚过七成浮出回卷首） -->
+        <aside class="hidden xl:flex fixed right-8 top-1/2 -translate-y-1/2 z-30 flex-col items-center gap-3" aria-hidden="true">
+          <span class="text-[12px] font-serif text-muted-foreground/60 tracking-[0.3em]" style="writing-mode: vertical-rl">卷</span>
+          <div class="relative w-px h-44 bg-border/60">
+            <div
+              class="absolute top-0 left-0 w-px bg-[var(--dynasty-accent)] transition-[height] duration-150 ease-out"
+              :style="{ height: `${readProgress * 100}%` }"
+            ></div>
+            <div
+              class="absolute -left-[3.5px] w-2 h-2 rounded-full bg-[var(--dynasty-accent)] transition-[top] duration-150 ease-out"
+              :style="{ top: `calc(${readProgress * 100}% - 4px)` }"
+            ></div>
+          </div>
+          <button
+            type="button"
+            class="text-[12px] font-serif text-[var(--dynasty-accent)] hover:opacity-75 transition-opacity duration-300 cursor-pointer tracking-[0.24em]"
+            style="writing-mode: vertical-rl"
+            :class="showBackTop ? 'opacity-100' : 'opacity-0 pointer-events-none'"
+            title="回到卷首"
+            @click="backToTop"
+          >
+            回卷首
+          </button>
+        </aside>
+
+        <!-- 词条头信息：编目式刊头（去框，靠细线与留白组织层级）；开卷逐层写就 -->
+        <div class="mb-14">
+          <div v-reveal class="flex items-baseline justify-between gap-4 pb-4 border-b border-border/60">
             <span class="eyebrow">{{ entry.dynasty }}代 · {{ entry.name }}</span>
             <span class="index-meta">{{ entry.sources[0] }}</span>
           </div>
 
           <div class="flex items-start justify-between gap-8 mt-8">
             <div class="space-y-5 flex-1 min-w-0">
-              <div class="flex flex-wrap items-center gap-2.5 text-[13px] font-serif text-muted-foreground">
+              <div v-reveal="80" class="flex flex-wrap items-center gap-2.5 text-[13px] font-serif text-muted-foreground">
                 <span class="dynasty-chip px-2.5 py-0.5 tracking-wider">
                   {{ entry.type === 'emperor' ? '帝王篇' : entry.type === 'figure' ? '人物篇' : entry.type === 'event' ? '重大事件' : '典章制度' }}
                 </span>
                 <span class="index-meta">正史核心词条</span>
               </div>
 
-              <div>
+              <div v-reveal="160">
                 <div class="flex flex-wrap items-baseline gap-x-5 gap-y-2">
                   <h1 class="display-title">{{ entry.name }}</h1>
                   <span class="index-meta">{{ entry.pinyin }}</span>
@@ -124,15 +193,15 @@ onMounted(() => {
                 </p>
               </div>
 
-              <p class="text-[15px] md:text-[15px] font-serif text-foreground/85 max-w-2xl leading-relaxed">
+              <p v-reveal="240" class="text-[15px] md:text-[15px] font-serif text-foreground/85 max-w-2xl leading-relaxed">
                 {{ entry.summary }}
               </p>
 
-              <div class="pt-1">
+              <div v-reveal="320" class="pt-1">
                 <button
                   type="button"
-                  class="collect-btn"
-                  :class="collected ? 'is-collected' : ''"
+                  class="collect-btn stamp-ripple"
+                  :class="[collected ? 'is-collected' : '', stampPress ? 'stamp-pressing' : '']"
                   :title="collected ? '从藏书阁取出' : '钤一枚私人藏书印，收入藏书阁'"
                   @click="onToggleCollect"
                 >
@@ -143,6 +212,7 @@ onMounted(() => {
 
               <div
                 v-if="entry.background"
+                v-reveal="400"
                 class="mt-5 pl-5 border-l-2"
                 :style="{ borderColor: 'color-mix(in srgb, var(--dynasty-accent) 45%, transparent)' }"
               >
@@ -242,9 +312,9 @@ onMounted(() => {
 
           <!-- 右侧：侧栏朱批 + 器物展台 + 史料卡片 + 知识链接 -->
           <div class="md:col-span-4 space-y-8">
-            <!-- 史家朱批（竖排页边批语） -->
+            <!-- 史家朱批（竖排页边批语）：入视口时自上而下"书写"浮现 -->
             <aside v-if="entry.comment" v-reveal class="flex justify-end pr-3 pt-1" aria-label="史家朱批">
-              <p class="zhu-pi">{{ entry.comment }}</p>
+              <p class="zhu-pi zhu-pi-write">{{ entry.comment }}</p>
             </aside>
 
             <!-- 器物 3D 展台 -->

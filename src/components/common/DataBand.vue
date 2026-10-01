@@ -27,7 +27,7 @@ withDefaults(
       :class="i > 0 ? 'border-l pl-5 sm:pl-6' : ''"
       :style="i > 0 ? { borderColor: 'var(--hairline)' } : undefined"
     >
-      <div class="spec-number">{{ item.value }}</div>
+      <div v-count-up="{ to: Number(item.value), duration: 1400 + i * 160 }" class="spec-number"></div>
       <div class="spec-label mt-2.5">{{ item.label }}</div>
     </div>
   </div>

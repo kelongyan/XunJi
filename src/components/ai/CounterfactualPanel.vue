@@ -61,21 +61,46 @@ function toggle(id: string) {
           <component :is="expandedId === tree.id ? ChevronUp : ChevronDown" class="w-4 h-4 text-muted-foreground shrink-0" />
         </button>
 
-        <!-- 展开态：史实主干 + 分叉长卷 -->
-        <div v-if="expandedId === tree.id" class="px-5 pb-6 pt-2 border-t border-border/60">
-          <!-- 史实主干（实线） -->
-          <div class="border-l-4 border-l-muted-foreground/40 bg-card/70 p-4 mt-3">
-            <span class="text-[12px] font-serif font-bold px-1.5 py-0.5 bg-muted-foreground/20 text-muted-foreground tracking-widest">史实</span>
-            <p class="text-[15px] font-serif text-foreground/85 leading-relaxed mt-2">{{ tree.reality }}</p>
+        <!-- 展开态：史实主干 + 分叉长卷（展开时内容淡入，枝条生长由 CfBranch 承担） -->
+        <Transition name="cf-panel">
+          <div v-if="expandedId === tree.id" class="px-5 pb-6 pt-2 border-t border-border/60">
+            <!-- 史实主干（实线） -->
+            <div class="border-l-4 border-l-muted-foreground/40 bg-card/70 p-4 mt-3">
+              <span class="text-[12px] font-serif font-bold px-1.5 py-0.5 bg-muted-foreground/20 text-muted-foreground tracking-widest">史实</span>
+              <p class="text-[15px] font-serif text-foreground/85 leading-relaxed mt-2">{{ tree.reality }}</p>
+            </div>
+            <!-- 分叉起点 -->
+            <div class="mt-5 flex items-center space-x-3">
+              <span class="w-2.5 h-2.5 bg-primary rotate-45 cf-fork-dot"></span>
+              <span class="text-[13px] font-serif font-bold dynasty-accent-text tracking-widest">自此处岔出 · 沿另一条路推想</span>
+            </div>
+            <CfBranch :node="tree.root" class="mt-3" />
           </div>
-          <!-- 分叉起点 -->
-          <div class="mt-5 flex items-center space-x-3">
-            <span class="w-2.5 h-2.5 bg-primary rotate-45"></span>
-            <span class="text-[13px] font-serif font-bold dynasty-accent-text tracking-widest">自此处岔出 · 沿另一条路推想</span>
-          </div>
-          <CfBranch :node="tree.root" class="mt-3" />
-        </div>
+        </Transition>
       </div>
     </div>
   </section>
 </template>
+
+<style scoped>
+/* 卷宗展开：整体淡入下移；岔出菱形点微弹 */
+.cf-panel-enter-active {
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.cf-panel-enter-from {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+.cf-fork-dot {
+  animation: cfForkPop 0.45s cubic-bezier(0.34, 1.4, 0.5, 1) 0.12s both;
+}
+@keyframes cfForkPop {
+  0% { transform: rotate(45deg) scale(0); }
+  70% { transform: rotate(45deg) scale(1.35); }
+  100% { transform: rotate(45deg) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cf-panel-enter-active { transition: none; }
+  .cf-fork-dot { animation: none; transform: rotate(45deg); }
+}
+</style>

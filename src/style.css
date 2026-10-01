@@ -387,6 +387,61 @@ body {
   max-height: 15em;
 }
 
+/* 朱批书写浮现：入视口（父级 reveal-in）后自上而下"写"出来（竖排书写方向） */
+.zhu-pi-write {
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path 1.5s cubic-bezier(0.3, 0.6, 0.3, 1) 0.15s;
+}
+.reveal-in .zhu-pi-write {
+  clip-path: inset(0 0 0% 0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .zhu-pi-write {
+    clip-path: none;
+    transition: none;
+  }
+}
+
+/* 钤印压印（点击入藏时）：印章先放大压下再回弹 */
+.stamp-pressing .seal-stamp {
+  animation: stampPress 0.7s cubic-bezier(0.3, 1.4, 0.4, 1) both;
+}
+@keyframes stampPress {
+  0% { transform: scale(1); }
+  28% { transform: scale(1.45) rotate(-6deg); }
+  58% { transform: scale(0.94) rotate(-2deg); }
+  100% { transform: scale(1.05) rotate(-3deg); }
+}
+
+/* 钤印涟漪：点击处一圈朱色墨渗扩散（按钮层） */
+.stamp-ripple {
+  position: relative;
+}
+.stamp-ripple.stamp-pressing::after {
+  content: "";
+  position: absolute;
+  left: 33px;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--dynasty-accent) 55%, transparent);
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 0;
+  pointer-events: none;
+  animation: stampInkRipple 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) 0.06s;
+}
+@keyframes stampInkRipple {
+  0% { opacity: 0.9; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(4.6); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stamp-pressing .seal-stamp,
+  .stamp-ripple.stamp-pressing::after {
+    animation: none;
+  }
+}
+
 /* 纸纹升级：点阵底纹上叠加 SVG 纤维噪声（极低透明度宣纸肌理） */
 .paper-texture {
   background-image:
@@ -498,19 +553,49 @@ html.dark .paper-texture {
   100% { opacity: 1; transform: scale(1) rotate(-3deg); }
 }
 
-/* 路由页面过渡（App.vue Transition name="page"） */
-.page-enter-active {
-  transition: opacity 0.45s ease, transform 0.45s ease;
-}
+/* 路由页面过渡（App.vue Transition name="page"）
+ * 离开：0.16s 快速退场；进入：墨团自中心洇开揭示（mask-size 驱动，边沿柔和）
+ * 无 mask 支持的环境自动退化为纯显示（禁用动画），不影响可读性 */
 .page-leave-active {
-  transition: opacity 0.22s ease;
-}
-.page-enter-from {
-  opacity: 0;
-  transform: translateY(14px);
+  transition: opacity 0.16s ease-in;
 }
 .page-leave-to {
   opacity: 0;
+}
+
+.page-enter-active {
+  -webkit-mask-image: radial-gradient(circle, #000 0%, #000 54%, transparent 76%);
+  mask-image: radial-gradient(circle, #000 0%, #000 54%, transparent 76%);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  /* 锚点取视口高度 45%：长页面在 scroll=0 时墨团从"眼前"洇开，而非文档中部 */
+  -webkit-mask-position: 50% 45vh;
+  mask-position: 50% 45vh;
+  animation: pageInkReveal 0.58s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+@keyframes pageInkReveal {
+  0% {
+    -webkit-mask-size: 0% 0%;
+    mask-size: 0% 0%;
+    opacity: 0.5;
+  }
+  42% {
+    opacity: 1;
+  }
+  100% {
+    -webkit-mask-size: 270% 270%;
+    mask-size: 270% 270%;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-leave-active {
+    transition-duration: 0.01s;
+  }
+  .page-enter-active {
+    animation: none;
+  }
 }
 
 /* 内容块切换淡入（长卷朝代切换 / 对读组切换） */
@@ -528,14 +613,110 @@ html.dark .paper-texture {
   opacity: 0;
 }
 
-/* 编年圆点点亮（父容器 reveal-in 时播放） */
+/* 编年圆点点亮（父容器 reveal-in 时播放）：墨滴落纸的涟漪扩散 */
 .reveal-in .dot-pop {
-  animation: dotPop 0.5s cubic-bezier(0.34, 1.4, 0.5, 1) backwards;
+  animation: dotPop 0.62s cubic-bezier(0.34, 1.4, 0.5, 1) backwards;
 }
 @keyframes dotPop {
-  0% { transform: scale(0); }
-  70% { transform: scale(1.35); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(0);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--dynasty-accent) 55%, transparent);
+  }
+  62% {
+    transform: scale(1.3);
+    box-shadow: 0 0 0 9px transparent;
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 13px transparent;
+  }
+}
+
+/* 编年长卷 · 描线生长（Timeline.vue 滚动驱动） */
+.timeline-ink-grow {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--dynasty-accent) 30%, transparent),
+    var(--dynasty-accent)
+  );
+  /* 生长端淡出，避免硬切；随高度变化的 linear-gradient 由容器高度驱动即可 */
+  transition: height 0.18s linear;
+}
+.timeline-grow-dot {
+  background-color: var(--dynasty-accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--dynasty-accent) 18%, transparent);
+  transition: top 0.18s linear, opacity 0.3s ease;
+}
+html.dark .timeline-grow-dot {
+  box-shadow: 0 0 8px 2px color-mix(in srgb, var(--dynasty-accent) 45%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .timeline-ink-grow, .timeline-grow-dot {
+    transition: none;
+  }
+}
+
+/* ── 朝代对读 · 合卷动效（Compare.vue）─────────────────────────
+ * 切组时甲卷自左、乙卷自右向中缝合拢；合拢后中缝线自上而下缝合，
+ * 最后骑缝印"啪"地压在两卷接缝处。 */
+
+/* 合拢入场：甲卷从左侧、乙卷从右侧滑入（带轻微影深，表现"卷"的实感） */
+.duo-join {
+  animation-duration: 0.62s;
+  animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+  animation-fill-mode: both;
+}
+.duo-join-left {
+  animation-name: duoJoinLeft;
+}
+.duo-join-right {
+  animation-name: duoJoinRight;
+}
+@keyframes duoJoinLeft {
+  0% { opacity: 0; transform: translateX(-26px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+@keyframes duoJoinRight {
+  0% { opacity: 0; transform: translateX(26px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+/* 中缝缝合线：合拢后（延迟 0.5s 起）自上而下"缝"出 */
+.duo-seam {
+  background: var(--hairline);
+  transform: scaleY(0);
+  transform-origin: top;
+  animation: duoSeamDraw 0.7s cubic-bezier(0.4, 0, 0.3, 1) 0.5s forwards;
+}
+@keyframes duoSeamDraw {
+  to { transform: scaleY(1); }
+}
+
+/* 骑缝印：缝合近尾声时（0.95s）落下 —— 印先大后小、微旋，落定后常驻 */
+.duo-seal {
+  opacity: 0;
+  animation: duoSealPress 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2) 0.95s forwards;
+}
+@keyframes duoSealPress {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(2.1) rotate(-10deg); }
+  62% { opacity: 1; transform: translate(-50%, -50%) scale(0.93) rotate(-4deg); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(-4deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .duo-join-left,
+  .duo-join-right {
+    animation: none;
+  }
+  .duo-seam {
+    transform: none;
+    animation: none;
+  }
+  .duo-seal {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(-4deg);
+    animation: none;
+  }
 }
 
 /* 卡片悬停抬升（配合 transition，加在可交互卡片上） */
@@ -550,7 +731,40 @@ html.dark .hover-lift:hover {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
 }
 
-/* ── 检索联想 / 键帽 / 命中高亮 / 钤印按钮 / 点墨拾遗 ───────────── */
+/* 检索结果换场（Search.vue TransitionGroup）
+ * 新结果错落入场（--stagger 由 index 驱动，上限 400ms）；旧结果快速退场；move 平滑让位 */
+.result-swap-enter-active {
+  transition: opacity 0.5s cubic-bezier(0.22, 0.61, 0.36, 1), transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+  transition-delay: var(--stagger, 0ms);
+}
+.result-swap-leave-active {
+  transition: opacity 0.18s ease-in;
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+.result-swap-move {
+  transition: transform 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.result-swap-enter-from {
+  opacity: 0;
+  transform: translateY(16px);
+}
+.result-swap-leave-to {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .result-swap-enter-active,
+  .result-swap-move {
+    transition: none;
+  }
+  .result-swap-enter-from {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 检索联想 / 键帽 / 命中高亮 / 钤印按钮 / 点墨拾遗 ───────────── */
 
 .suggest-list {
   border-radius: 0;

@@ -30,10 +30,22 @@ const steps = [
 
 const step = ref(0)
 const isLast = computed(() => step.value === steps.length - 1)
+/** 翻页方向：前进时新页自右滑入，后退自左（预留后退操作） */
+const direction = ref<'forward' | 'backward'>('forward')
+const slideName = computed(() => (direction.value === 'forward' ? 'guide-next' : 'guide-prev'))
 
 function next() {
   if (isLast.value) close()
-  else step.value++
+  else {
+    direction.value = 'forward'
+    step.value++
+  }
+}
+
+function prev() {
+  if (step.value === 0) return
+  direction.value = 'backward'
+  step.value--
 }
 
 function close() {
@@ -51,20 +63,35 @@ function close() {
             <SealStamp text="启程" class="seal-stamp-sm" />
           </div>
           <div class="text-[13px] font-mono text-muted-foreground tracking-[0.3em] mb-3">{{ step + 1 }} / {{ steps.length }}</div>
-          <component :is="steps[step].icon" class="w-7 h-7 mx-auto text-primary mb-3" />
-          <h3 class="text-xl font-serif font-black text-foreground tracking-wide">{{ steps[step].title }}</h3>
-          <p class="text-[15px] font-serif text-muted-foreground leading-relaxed mt-3 font-textbook-body">
-            {{ steps[step].desc }}
-          </p>
+          <!-- 步骤内容：横向翻页过渡（overflow-hidden 承载滑移） -->
+          <div class="relative overflow-hidden">
+            <Transition :name="slideName" mode="out-in">
+              <div :key="step">
+                <component :is="steps[step].icon" class="w-7 h-7 mx-auto text-primary mb-3" />
+                <h3 class="text-xl font-serif font-black text-foreground tracking-wide">{{ steps[step].title }}</h3>
+                <p class="text-[15px] font-serif text-muted-foreground leading-relaxed mt-3 font-textbook-body">
+                  {{ steps[step].desc }}
+                </p>
+              </div>
+            </Transition>
+          </div>
           <div class="flex items-center justify-center gap-1.5 my-5">
             <span
               v-for="(_, i) in steps"
               :key="i"
-              class="w-1.5 h-1.5 rounded-full transition-colors"
-              :class="i === step ? 'bg-primary' : 'bg-border'"
+              class="rounded-full transition-all duration-300"
+              :class="i === step ? 'w-4 h-1.5 bg-primary' : 'w-1.5 h-1.5 bg-border'"
             ></span>
           </div>
           <div class="flex items-center justify-center gap-3">
+            <button
+              v-if="step > 0"
+              type="button"
+              class="text-[13px] font-serif text-muted-foreground hover:text-foreground transition-colors cursor-pointer px-3 py-1.5"
+              @click="prev"
+            >
+              上一步
+            </button>
             <button
               type="button"
               class="text-[13px] font-serif text-muted-foreground hover:text-foreground transition-colors cursor-pointer px-3 py-1.5"
@@ -85,3 +112,43 @@ function close() {
     </Transition>
   </Teleport>
 </template>
+
+<style scoped>
+/* 步骤翻页：前进时新页自右滑入、旧页向左淡出；后退反之 */
+.guide-next-enter-active,
+.guide-next-leave-active,
+.guide-prev-enter-active,
+.guide-prev-leave-active {
+  transition: opacity 0.32s cubic-bezier(0.22, 0.61, 0.36, 1), transform 0.32s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.guide-next-enter-from {
+  opacity: 0;
+  transform: translateX(28px);
+}
+.guide-next-leave-to {
+  opacity: 0;
+  transform: translateX(-22px);
+}
+.guide-prev-enter-from {
+  opacity: 0;
+  transform: translateX(-28px);
+}
+.guide-prev-leave-to {
+  opacity: 0;
+  transform: translateX(22px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .guide-next-enter-active,
+  .guide-next-leave-active,
+  .guide-prev-enter-active,
+  .guide-prev-leave-active {
+    transition: opacity 0.15s ease;
+  }
+  .guide-next-enter-from,
+  .guide-next-leave-to,
+  .guide-prev-enter-from,
+  .guide-prev-leave-to {
+    transform: none;
+  }
+}
+</style>
