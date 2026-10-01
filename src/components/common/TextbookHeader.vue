@@ -43,7 +43,7 @@ const navItems = [
             v-for="item in navItems"
             :key="item.to"
             :to="item.to"
-            class="text-[13px] tracking-[0.2em] text-muted-foreground hover:text-[var(--dynasty-accent)] transition-colors whitespace-nowrap"
+            class="nav-link text-[13px] tracking-[0.2em] text-muted-foreground hover:text-[var(--dynasty-accent)] transition-colors whitespace-nowrap"
             :class="
               item.exact
                 ? '[&.router-link-exact-active]:text-[var(--dynasty-accent)]'
@@ -79,3 +79,35 @@ const navItems = [
     </div>
   </header>
 </template>
+
+<style scoped>
+/* 导航朱点延展：hover / 当前路由时，下方朱线自左向右画出（呼应朱笔批点） */
+.nav-link {
+  position: relative;
+  padding-bottom: 3px;
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1.5px;
+  background-color: var(--dynasty-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.32s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.nav-link:hover::after {
+  transform: scaleX(1);
+}
+.nav-link.router-link-active::after,
+.nav-link.router-link-exact-active::after {
+  transform: scaleX(1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-link::after {
+    transition: none;
+  }
+}
+</style>

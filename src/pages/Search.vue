@@ -179,7 +179,7 @@ onMounted(() => {
             <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1.5">
               <span class="eyebrow">检索核心词</span>
               <strong class="text-foreground text-[15px]">「{{ query || '历代通览' }}」</strong>
-              <span class="index-meta">寻得相关文献 {{ searchResults.length }} 卷</span>
+              <span class="index-meta">寻得相关文献 <span v-count-up="{ to: searchResults.length, duration: 700 }" class="tabular-nums"></span> 卷</span>
             </div>
             <div class="flex items-center space-x-4">
               <span v-if="isTyping" class="inline-flex items-center text-primary font-bold tracking-wider">
@@ -212,12 +212,12 @@ onMounted(() => {
             </div>
           </div>
 
-          <div v-else class="space-y-8">
+          <TransitionGroup v-else name="result-swap" tag="div" class="space-y-8 relative" appear>
             <article
               v-for="(entry, index) in searchResults"
               :key="entry.id"
-              v-reveal="index * 70"
               class="result-card relative pt-7 border-t border-border/60 space-y-4"
+              :style="{ '--stagger': `${Math.min(400, index * 55)}ms` }"
             >
               <div class="flex items-start justify-between gap-6">
                 <div class="space-y-2.5 flex-1 min-w-0">
@@ -275,7 +275,7 @@ onMounted(() => {
                 </RouterLink>
               </div>
             </article>
-          </div>
+          </TransitionGroup>
         </div>
       </main>
     </div>

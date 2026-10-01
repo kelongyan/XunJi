@@ -100,6 +100,37 @@ function handleSkip() {
 onMounted(() => {
   runFlow()
 })
+
+/* ── 阅读书签线：滚动进度 + 回卷首 ── */
+const readProgress = ref(0)
+const showBackTop = computed(() => readProgress.value > 0.7)
+let readRaf = 0
+
+function updateReadProgress() {
+  readRaf = 0
+  const doc = document.documentElement
+  const total = doc.scrollHeight - window.innerHeight
+  readProgress.value = total > 0 ? Math.min(1, Math.max(0, window.scrollY / total)) : 0
+}
+
+function onReadScroll() {
+  if (!readRaf) readRaf = requestAnimationFrame(updateReadProgress)
+}
+
+function backToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', onReadScroll, { passive: true })
+  window.addEventListener('resize', onReadScroll, { passive: true })
+  updateReadProgress()
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', onReadScroll)
+  window.removeEventListener('resize', onReadScroll)
+  if (readRaf) cancelAnimationFrame(readRaf)
+})
 </script>
 
 <template>
@@ -108,6 +139,31 @@ onMounted(() => {
       <TextbookHeader folio="116" :subChapter="`${entry.dynasty}代 · ${entry.name}词条详述`" />
 
       <main class="max-w-7xl mx-auto px-6 py-12">
+        <!-- 阅读书签线（右侧固定：墨线随滚动填充，朱头随行，滚过七成浮出回卷首） -->
+        <aside class="hidden xl:flex fixed right-8 top-1/2 -translate-y-1/2 z-30 flex-col items-center gap-3" aria-hidden="true">
+          <span class="text-[12px] font-serif text-muted-foreground/60 tracking-[0.3em]" style="writing-mode: vertical-rl">卷</span>
+          <div class="relative w-px h-44 bg-border/60">
+            <div
+              class="absolute top-0 left-0 w-px bg-[var(--dynasty-accent)] transition-[height] duration-150 ease-out"
+              :style="{ height: `${readProgress * 100}%` }"
+            ></div>
+            <div
+              class="absolute -left-[3.5px] w-2 h-2 rounded-full bg-[var(--dynasty-accent)] transition-[top] duration-150 ease-out"
+              :style="{ top: `calc(${readProgress * 100}% - 4px)` }"
+            ></div>
+          </div>
+          <button
+            type="button"
+            class="text-[12px] font-serif text-[var(--dynasty-accent)] hover:opacity-75 transition-opacity duration-300 cursor-pointer tracking-[0.24em]"
+            style="writing-mode: vertical-rl"
+            :class="showBackTop ? 'opacity-100' : 'opacity-0 pointer-events-none'"
+            title="回到卷首"
+            @click="backToTop"
+          >
+            回卷首
+          </button>
+        </aside>
+
         <!-- 词条头信息：编目式刊头（去框，靠细线与留白组织层级）；开卷逐层写就 -->
         <div class="mb-14">
           <div v-reveal class="flex items-baseline justify-between gap-4 pb-4 border-b border-border/60">

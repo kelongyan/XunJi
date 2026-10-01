@@ -731,7 +731,40 @@ html.dark .hover-lift:hover {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
 }
 
-/* ── 检索联想 / 键帽 / 命中高亮 / 钤印按钮 / 点墨拾遗 ───────────── */
+/* 检索结果换场（Search.vue TransitionGroup）
+ * 新结果错落入场（--stagger 由 index 驱动，上限 400ms）；旧结果快速退场；move 平滑让位 */
+.result-swap-enter-active {
+  transition: opacity 0.5s cubic-bezier(0.22, 0.61, 0.36, 1), transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+  transition-delay: var(--stagger, 0ms);
+}
+.result-swap-leave-active {
+  transition: opacity 0.18s ease-in;
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+.result-swap-move {
+  transition: transform 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.result-swap-enter-from {
+  opacity: 0;
+  transform: translateY(16px);
+}
+.result-swap-leave-to {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .result-swap-enter-active,
+  .result-swap-move {
+    transition: none;
+  }
+  .result-swap-enter-from {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 检索联想 / 键帽 / 命中高亮 / 钤印按钮 / 点墨拾遗 ───────────── */
 
 .suggest-list {
   border-radius: 0;
