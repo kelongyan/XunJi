@@ -167,7 +167,7 @@ const rankTone = computed(() =>
                 >展开此卷 · 看词条全文 →</RouterLink>
                 <button
                   type="button"
-                  class="px-6 py-2 border border-[var(--dynasty-accent)] text-[var(--dynasty-accent)] text-[14px] font-serif tracking-[0.2em] hover:bg-[color-mix(in_srgb,var(--dynasty-accent)_8%,transparent)] transition-colors cursor-pointer"
+                  class="px-6 py-2 border border-[var(--dynasty-accent)] text-[var(--dynasty-accent)] text-[15px] font-serif tracking-[0.2em] hover:bg-[color-mix(in_srgb,var(--dynasty-accent)_8%,transparent)] transition-colors cursor-pointer"
                   @click="next"
                 >
                   {{ idx + 1 >= paper.questions.length ? '呈卷放榜' : '下一问 →' }}
@@ -201,7 +201,7 @@ const rankTone = computed(() =>
           <div v-reveal="220" class="max-w-lg mx-auto text-left space-y-2">
             <div v-for="(item, i) in paper.questions" :key="i" class="flex items-center gap-3 text-[13px] font-serif">
               <span
-                class="w-5 h-5 shrink-0 border flex items-center justify-center text-[11px]"
+                class="w-5 h-5 shrink-0 border flex items-center justify-center text-[12px]"
                 :style="picks[i] === item.answer
                   ? { borderColor: 'var(--dynasty-accent)', color: 'var(--dynasty-accent)' }
                   : { borderColor: 'var(--hairline)', color: 'var(--ink-faint)' }"
@@ -214,7 +214,7 @@ const rankTone = computed(() =>
           <div v-reveal="320" class="flex items-center justify-center gap-8 pt-2">
             <button
               type="button"
-              class="px-7 py-2.5 border border-[var(--dynasty-accent)] text-[var(--dynasty-accent)] text-[14px] font-serif tracking-[0.22em] hover:bg-[color-mix(in_srgb,var(--dynasty-accent)_8%,transparent)] transition-colors cursor-pointer"
+              class="px-7 py-2.5 border border-[var(--dynasty-accent)] text-[var(--dynasty-accent)] text-[15px] font-serif tracking-[0.22em] hover:bg-[color-mix(in_srgb,var(--dynasty-accent)_8%,transparent)] transition-colors cursor-pointer"
               @click="retake"
             >再考一卷</button>
             <RouterLink

@@ -209,8 +209,8 @@ watch(active, t => {
           @click.stop
         >
           <div class="flex items-baseline justify-between gap-4 mb-1.5">
-            <span class="font-serif font-bold text-[14px] text-foreground">{{ active.term }}</span>
-            <span class="text-[11px] tracking-[0.18em] text-muted-foreground/70">{{ KIND_LABEL[active.kind] }}</span>
+            <span class="font-serif font-bold text-[15px] text-foreground">{{ active.term }}</span>
+            <span class="text-[12px] tracking-[0.18em] text-muted-foreground/70">{{ KIND_LABEL[active.kind] }}</span>
           </div>
           <p class="font-serif text-[13px] text-muted-foreground leading-relaxed">{{ active.note }}</p>
 
@@ -254,7 +254,7 @@ watch(active, t => {
               @click="close"
             >直达此卷 →</RouterLink>
             <span v-else-if="active.see" class="text-[12px] font-serif text-muted-foreground/60">参见「{{ active.see }}」</span>
-            <span v-else class="text-[11px] font-serif text-muted-foreground/50">夹注</span>
+            <span v-else class="text-[12px] font-serif text-muted-foreground/50">夹注</span>
             <button type="button" class="text-[12px] text-muted-foreground/60 hover:text-foreground transition-colors cursor-pointer" @click.stop="close">收</button>
           </div>
         </div>

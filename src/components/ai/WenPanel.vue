@@ -81,7 +81,7 @@ void reset
       <button
         type="button"
         :disabled="state === 'loading' || !question.trim()"
-        class="px-6 border border-[var(--dynasty-accent)] text-[var(--dynasty-accent)] text-[14px] font-serif tracking-[0.18em] hover:bg-[color-mix(in_srgb,var(--dynasty-accent)_8%,transparent)] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+        class="px-6 border border-[var(--dynasty-accent)] text-[var(--dynasty-accent)] text-[15px] font-serif tracking-[0.18em] hover:bg-[color-mix(in_srgb,var(--dynasty-accent)_8%,transparent)] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
         @click="ask()"
       >
         {{ state === 'loading' ? '史官运笔中……' : '问典' }}
@@ -122,7 +122,7 @@ void reset
         :to="`/entry/${p.id}`"
         class="index-row"
       >
-        <span class="seal-stamp text-[11px] py-0.5 px-1 shrink-0">卷</span>
+        <span class="seal-stamp text-[12px] py-0.5 px-1 shrink-0">卷</span>
         <span class="index-name">{{ p.name }}</span>
         <span class="index-meta hidden sm:inline">{{ p.dynasty }} · {{ p.text.slice(0, 28) }}……</span>
         <span class="index-meta">直达 ↗</span>

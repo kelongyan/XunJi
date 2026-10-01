@@ -3,8 +3,11 @@
  * 检索联想输入框：输入即下拉建议（名称/别名/标签/拼音首字母），
  * ↑↓ 键盘选择、Enter 直达词条或提交检索、Esc 收起。
  * Home 与 Search 两处共用。
+ *
+ * 下拉层 Teleport 到 body + fixed 定位：Home 的 Hero 区带 overflow-hidden
+ * （3D 长河溢控），内联下拉会被裁到只剩数条；脱离文档流后不再受祖先裁剪。
  */
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Search as SearchIcon } from 'lucide-vue-next'
 import { pinyin } from 'pinyin-pro'
 import { allHistoryEntries } from '../../data'
@@ -34,6 +37,31 @@ const emit = defineEmits<{
 const inputRef = ref<HTMLInputElement>()
 const focused = ref(false)
 const activeIndex = ref(-1)
+
+/* Teleport 下拉定位：随输入框视口坐标漂移 */
+const dropStyle = ref<Record<string, string>>({})
+function updateDropPos() {
+  const el = inputRef.value
+  if (!el) return
+  const r = el.getBoundingClientRect()
+  dropStyle.value = {
+    position: 'fixed',
+    left: `${r.left}px`,
+    top: `${r.bottom + 8}px`,
+    width: `${r.width}px`
+  }
+}
+function onViewportChange() {
+  updateDropPos()
+}
+onMounted(() => {
+  window.addEventListener('scroll', onViewportChange, true)
+  window.addEventListener('resize', onViewportChange)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', onViewportChange, true)
+  window.removeEventListener('resize', onViewportChange)
+})
 
 /* 拼音首字母缓存（懒构建一次） */
 const firstLetterCache = new Map<string, string>()
@@ -73,6 +101,11 @@ watch(
     activeIndex.value = -1
   }
 )
+
+/* 联想出现时默认预选第一条：Enter 即直达；同时重算下拉视口坐标 */
+watch(showList, visible => {
+  if (visible) updateDropPos()
+})
 
 /* 联想出现时默认预选第一条：Enter 即直达 */
 watch(suggestions, list => {
@@ -137,36 +170,39 @@ defineExpose({
       @blur="focused = false"
     />
 
-    <!-- 联想下拉 -->
-    <Transition name="fade-swap">
-      <ul
-        v-if="showList"
-        class="suggest-list absolute left-0 right-0 top-full mt-2 z-50 border border-border bg-card shadow-lg overflow-hidden"
-        role="listbox"
-      >
-        <li
-          v-for="(entry, i) in suggestions"
-          :key="entry.id"
-          class="suggest-item px-4 py-2.5 flex items-center justify-between gap-3 cursor-pointer"
-          :class="i === activeIndex ? 'bg-primary/10' : ''"
-          @mousedown.prevent="doSelect(entry)"
-          @mousemove="activeIndex = i"
+    <!-- 联想下拉：Teleport 到 body（fixed 定位），不受祖先 overflow-hidden 裁剪 -->
+    <Teleport to="body">
+      <Transition name="fade-swap">
+        <ul
+          v-if="showList"
+          class="suggest-list z-[80] border border-border bg-card shadow-lg overflow-hidden"
+          :style="dropStyle"
+          role="listbox"
         >
-          <span class="text-[15px] font-serif text-foreground truncate">
-            <template v-for="(seg, si) in splitHighlight(entry.name, modelValue)" :key="si">
-              <span v-if="seg.hit" class="suggest-hit">{{ seg.text }}</span>
-              <template v-else>{{ seg.text }}</template>
-            </template>
-          </span>
-          <span class="text-[13px] font-serif text-muted-foreground shrink-0">
-            <span class="dynasty-accent-text">{{ entry.dynasty }}</span>
-            <span class="mx-1 text-border">/</span>{{ typeLabel(entry) }}<template v-if="entry.era"> · {{ entry.era }}</template>
-          </span>
-        </li>
-        <li class="px-4 py-1.5 text-[12px] font-serif text-muted-foreground/70 border-t border-border/60 bg-background/60">
-          ↑↓ 选择 · Enter 直达词条 · Esc 收起
-        </li>
-      </ul>
-    </Transition>
+          <li
+            v-for="(entry, i) in suggestions"
+            :key="entry.id"
+            class="suggest-item px-4 py-2.5 flex items-center justify-between gap-3 cursor-pointer"
+            :class="i === activeIndex ? 'bg-primary/10' : ''"
+            @mousedown.prevent="doSelect(entry)"
+            @mousemove="activeIndex = i"
+          >
+            <span class="text-[15px] font-serif text-foreground truncate">
+              <template v-for="(seg, si) in splitHighlight(entry.name, modelValue)" :key="si">
+                <span v-if="seg.hit" class="suggest-hit">{{ seg.text }}</span>
+                <template v-else>{{ seg.text }}</template>
+              </template>
+            </span>
+            <span class="text-[13px] font-serif text-muted-foreground shrink-0">
+              <span class="dynasty-accent-text">{{ entry.dynasty }}</span>
+              <span class="mx-1 text-border">/</span>{{ typeLabel(entry) }}<template v-if="entry.era"> · {{ entry.era }}</template>
+            </span>
+          </li>
+          <li class="px-4 py-1.5 text-[12px] font-serif text-muted-foreground/70 border-t border-border/60 bg-background/60">
+            ↑↓ 选择 · Enter 直达词条 · Esc 收起
+          </li>
+        </ul>
+      </Transition>
+    </Teleport>
   </div>
 </template>

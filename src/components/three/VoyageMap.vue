@@ -3,6 +3,10 @@
  * 针路图（详情页内嵌 3D 场景，数据驱动可复用）
  * 仿《郑和航海图》罗盘针路风格：纸底图 + 金色飞线 + 宝船沿线巡游。
  * 航点为历史航路的风格化示意（非精确地理投影）。
+ *
+ * 沉浸式长卷（2026-10-01 精修）：无矩形边框——底图四边以 alpha 渐隐
+ * 融入页面纸色（日夜读自适应）；平面尺寸外扩、相机锁定航路包围盒中心，
+ * 保持地图内容居中、四周只余"无边海面"。
  * 航线数据外置：voyages.ts（郑和下西洋 / 玄奘西行等），新图加数据即可挂载。
  */
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
@@ -20,8 +24,6 @@ const { supported, getHandle } = useThreeScene(container, { fov: 50, near: 0.1, 
 const reducedMotion =
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-const PAPER_DAY = new THREE.Color('#F2EDDC')
-const PAPER_NIGHT = new THREE.Color('#1A1611')
 const CHART_TINT_DAY = new THREE.Color('#FFFFFF')
 const CHART_TINT_NIGHT = new THREE.Color('#5E584C')
 
@@ -29,8 +31,15 @@ const chart: VoyageChart = getVoyage(props.chartId)
 const PORTS = chart.ports
 const ROUTES = chart.routes
 
+/* 航路包围盒中心（相机环绕与 lookAt 的目标，数据驱动） */
+const focus = (() => {
+  const xs = PORTS.map(p => p.x)
+  const ys = PORTS.map(p => p.y)
+  return new THREE.Vector3((Math.min(...xs) + Math.max(...xs)) / 2, 0, (Math.min(...ys) + Math.max(...ys)) / 2)
+})()
+
 /* 相机控制状态（交互与渲染循环共享同一份） */
-const cam = { yaw: 0, pitch: 0.62, yawT: 0, pitchT: 0.62, dist: 20, distT: 20 }
+const cam = { yaw: 0, pitch: 0.62, yawT: 0, pitchT: 0.62, dist: 22, distT: 22 }
 let dragging = false
 let last = { x: 0, y: 0 }
 
@@ -48,19 +57,19 @@ function toTexture(c: HTMLCanvasElement): THREE.CanvasTexture {
   return tex
 }
 
-/** 古地图底图：纸底 + 针路网格 + 罗盘 + 西洋水域晕染 */
+/** 古地图底图：纸底 + 针路网格 + 罗盘 + 西洋水域晕染（无边框，四边渐隐） */
 function makeChartTexture(): THREE.CanvasTexture {
-  const W = 1024
-  const H = 563
+  const W = 1280
+  const H = 720
   const [c, ctx] = makeCanvas(W, H)
   ctx.fillStyle = '#EFE7D3'
   ctx.fillRect(0, 0, W, H)
   ctx.strokeStyle = 'rgba(61, 55, 47, 0.10)'
   ctx.lineWidth = 1
-  for (let x = 0; x <= W; x += 64) {
+  for (let x = 0; x <= W; x += 72) {
     ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke()
   }
-  for (let y = 0; y <= H; y += 64) {
+  for (let y = 0; y <= H; y += 72) {
     ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke()
   }
   // 西洋水域晕染
@@ -75,10 +84,10 @@ function makeChartTexture(): THREE.CanvasTexture {
   ctx.closePath()
   ctx.fill()
   ctx.restore()
-  // 罗盘
-  const cx = W - 108
-  const cy = 108
-  const r = 58
+  // 罗盘（置于淡化带内侧，作为航路右上的细节彩蛋）
+  const cx = W - 260
+  const cy = 240
+  const r = 64
   ctx.strokeStyle = 'rgba(61, 55, 47, 0.55)'
   ctx.lineWidth = 2
   ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke()
@@ -98,17 +107,24 @@ function makeChartTexture(): THREE.CanvasTexture {
   ctx.font = '700 20px "Songti SC", "STSong", "SimSun", serif'
   ctx.textAlign = 'center'
   ctx.fillText('针', cx, cy + r * 0.55 + 24)
-  // 题跋
-  ctx.fillStyle = 'rgba(61, 55, 47, 0.75)'
-  ctx.font = '400 22px "Kaiti SC", "KaiTi", "STKaiti", serif'
-  ctx.fillText(chart.caption, 26, H - 30)
-  // 文武边框
-  ctx.strokeStyle = 'rgba(61, 55, 47, 0.7)'
-  ctx.lineWidth = 4
-  ctx.strokeRect(10, 10, W - 20, H - 20)
-  ctx.strokeStyle = 'rgba(61, 55, 47, 0.3)'
-  ctx.lineWidth = 1.5
-  ctx.strokeRect(20, 20, W - 40, H - 40)
+  // 四边渐隐（destination-out 抹除边缘）：底图不再是"一块板"，
+  // 边缘融进页面纸色，配合 DOM 侧纸色背景实现无边长卷。
+  const FADE = 220
+  ctx.globalCompositeOperation = 'destination-out'
+  const edgeGradients: Array<{ from: [number, number]; to: [number, number]; rect: [number, number, number, number] }> = [
+    { from: [0, 0], to: [FADE, 0], rect: [0, 0, FADE, H] },           // 左
+    { from: [W, 0], to: [W - FADE, 0], rect: [W - FADE, 0, FADE, H] },// 右
+    { from: [0, 0], to: [0, FADE], rect: [0, 0, W, FADE] },           // 上
+    { from: [0, H], to: [0, H - FADE], rect: [0, H - FADE, W, FADE] } // 下
+  ]
+  for (const { from, to, rect } of edgeGradients) {
+    const g = ctx.createLinearGradient(from[0], from[1], to[0], to[1])
+    g.addColorStop(0, 'rgba(0,0,0,1)')
+    g.addColorStop(1, 'rgba(0,0,0,0)')
+    ctx.fillStyle = g
+    ctx.fillRect(rect[0], rect[1], rect[2], rect[3])
+  }
+  ctx.globalCompositeOperation = 'source-over'
   return toTexture(c)
 }
 
@@ -133,14 +149,24 @@ function buildScene() {
   if (!handle) return
   const { scene, camera, onFrame } = handle
 
-  scene.background = (ui.mode === 'night' ? PAPER_NIGHT : PAPER_DAY).clone()
-
-  /* 底图 */
+  /* 底图：平面外扩 + 四边羽化（沉浸式无边界），相机看点为航路包围盒中心。
+   * 不设 scene.background——透明画布 + 页面前景纸色，边缘自然衔接。
+   * renderOrder -1 + depthWrite false：底图先画、不挡后画的航线/标签。 */
   const chartMesh = new THREE.Mesh(
-    new THREE.PlaneGeometry(40, 22),
-    new THREE.MeshBasicMaterial({ map: makeChartTexture(), fog: false, toneMapped: false })
+    new THREE.PlaneGeometry(72, 40),
+    new THREE.MeshBasicMaterial({
+      map: makeChartTexture(),
+      fog: false,
+      toneMapped: false,
+      transparent: true,
+      depthWrite: false
+    })
   )
+  chartMesh.renderOrder = -1
   chartMesh.rotation.x = -Math.PI / 2
+  ;(chartMesh.material as THREE.MeshBasicMaterial).color.copy(
+    ui.mode === 'night' ? CHART_TINT_NIGHT : CHART_TINT_DAY
+  )
   scene.add(chartMesh)
 
   /* 航线（金色飞线 tube + 流光 shader） */
@@ -275,17 +301,15 @@ function buildScene() {
     cam.yaw += (cam.yawT - cam.yaw) * Math.min(1, dt * 4)
     cam.pitch += (cam.pitchT - cam.pitch) * Math.min(1, dt * 4)
     cam.dist += (cam.distT - cam.dist) * Math.min(1, dt * 4)
+    // 相机绕航路包围盒中心（focus）环绕；焦点随 yaw 微移，保证航路始终居中
     camera.position.set(
-      Math.sin(cam.yaw) * Math.cos(cam.pitch) * cam.dist,
+      focus.x + Math.sin(cam.yaw) * Math.cos(cam.pitch) * cam.dist,
       Math.sin(cam.pitch) * cam.dist,
-      Math.cos(cam.yaw) * Math.cos(cam.pitch) * cam.dist
+      focus.z + Math.cos(cam.yaw) * Math.cos(cam.pitch) * cam.dist
     )
-    camera.lookAt(0, 0, -0.5)
-    // 日夜过渡
+    camera.lookAt(focus.x, 0, focus.z)
+    // 日夜过渡：仅底图染色（透明画布无场景背景可过渡）
     const target = ui.mode === 'night' ? 1 : 0
-    if (scene.background instanceof THREE.Color) {
-      scene.background.lerp(target ? PAPER_NIGHT : PAPER_DAY, dt * 2)
-    }
     ;(chartMesh.material as THREE.MeshBasicMaterial).color.lerp(
       target ? CHART_TINT_NIGHT : CHART_TINT_DAY,
       dt * 2
@@ -334,7 +358,7 @@ onBeforeUnmount(() => {
 <template>
   <div
     ref="container"
-    class="relative w-full h-[380px] md:h-[440px] touch-none select-none cursor-grab active:cursor-grabbing"
+    class="relative w-full h-[420px] md:h-[clamp(480px,56vh,600px)] touch-none select-none cursor-grab active:cursor-grabbing"
     role="img"
     :aria-label="chart.ariaLabel"
     @pointerdown="onPointerDown"
@@ -342,5 +366,22 @@ onBeforeUnmount(() => {
     @pointerup="onPointerUp"
     @pointercancel="onPointerUp"
     @wheel="onWheel"
-  />
+  >
+    <!-- 画布边缘渐隐：四边向页面纸色过渡，消解矩形边界（跟随日夜读变量） -->
+    <div class="voyage-vignette" aria-hidden="true"></div>
+  </div>
 </template>
+
+<style scoped>
+.voyage-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background:
+    linear-gradient(to right, var(--paper-base) 0%, transparent 16%),
+    linear-gradient(to left, var(--paper-base) 0%, transparent 16%),
+    linear-gradient(to bottom, var(--paper-base) 0%, transparent 18%),
+    linear-gradient(to top, var(--paper-base) 0%, transparent 18%);
+}
+</style>

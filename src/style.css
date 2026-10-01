@@ -1,5 +1,26 @@
 @import "tailwindcss";
 
+/* ── 语义色 ↔ Tailwind 工具类映射层 ──
+ * Tailwind v4 的 bg-card / text-muted-foreground / border-border 等工具类
+ * 由 @theme 的 --color-* 生成；此前缺少该层，导致全站 300+ 处语义色类
+ * 静默失效（下拉框透明、主按钮无色）。用 inline 引用现有 CSS 变量，
+ * 日/夜读与朝代色切换仍随 :root / html.dark 变量联动。 */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-hairline: var(--hairline);
+  --color-paper-soft: var(--paper-soft);
+  --color-paper-deep: var(--paper-deep);
+}
+
 :root, html.light {
   /* 纸感底色（暖黄宣纸系） */
   --paper-base: #F7F3E8;
@@ -895,6 +916,12 @@ mark.suggest-hit {
 .rule {
   border: 0;
   border-top: 1px solid var(--hairline);
+}
+
+/* 破格全宽：从版心中破出、横贯视口（沉浸式长卷专用；父级需 overflow-x: clip） */
+.full-bleed {
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
 }
 
 /* 主张式巨标题（M2） */

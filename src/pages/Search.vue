@@ -98,13 +98,13 @@ onMounted(() => {
         <div v-reveal class="mb-6 flex items-center gap-6 border-b border-border/60">
           <button
             type="button"
-            class="pb-2.5 -mb-px text-[14px] tracking-[0.22em] font-serif border-b-2 transition-colors cursor-pointer"
+            class="pb-2.5 -mb-px text-[13px] tracking-[0.22em] font-serif border-b-2 transition-colors cursor-pointer"
             :class="mode === 'search' ? 'text-[var(--dynasty-accent)] border-[var(--dynasty-accent)]' : 'text-muted-foreground border-transparent hover:text-foreground'"
             @click="mode = 'search'"
           >史料考索</button>
           <button
             type="button"
-            class="pb-2.5 -mb-px text-[14px] tracking-[0.22em] font-serif border-b-2 transition-colors cursor-pointer"
+            class="pb-2.5 -mb-px text-[13px] tracking-[0.22em] font-serif border-b-2 transition-colors cursor-pointer"
             :class="mode === 'wen' ? 'text-[var(--dynasty-accent)] border-[var(--dynasty-accent)]' : 'text-muted-foreground border-transparent hover:text-foreground'"
             @click="mode = 'wen'"
           >问典 · 请史官作答</button>

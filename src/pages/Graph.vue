@@ -389,9 +389,9 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
           </div>
         </div>
 
-        <!-- 星图画布 -->
+        <!-- 星图画布（沉浸式无框：仅细线分野 + 留白分组，画布与纸色融合） -->
         <div
-          class="relative w-full overflow-hidden border border-border/70 bg-background/40"
+          class="relative w-full overflow-hidden border-t border-border/50"
           :style="{ height: 'clamp(620px, 78vh, 920px)' }"
         >
           <StarGraph v-if="show3d" ref="starRef" @focus="onFocus" @hover="onHover" @fallback="show3d = false" @ready="onStarReady" />
@@ -408,8 +408,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
             </div>
           </Transition>
 
-          <!-- 画角题签（右下角）：画布注记，与画框咬合（窄屏隐藏，避让操作提示） -->
-          <div class="absolute bottom-2 right-3 z-10 text-[11px] tracking-[0.22em] text-muted-foreground/70 font-sans pointer-events-none select-none hidden sm:block">
+          <!-- 画角题签（右下角）：画布注记（窄屏隐藏，避让操作提示） -->
+          <div class="absolute bottom-2 right-3 z-10 text-[12px] tracking-[0.22em] text-muted-foreground/70 font-sans pointer-events-none select-none hidden sm:block">
             万卷星图 · 全站关系网络
           </div>
 

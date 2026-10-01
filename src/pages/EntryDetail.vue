@@ -346,7 +346,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="min-h-screen font-sans text-foreground paper-texture flex flex-col justify-between">
+  <div class="min-h-screen font-sans text-foreground paper-texture flex flex-col justify-between" style="overflow-x: clip">
     <div>
       <TextbookHeader folio="116" :subChapter="`${entry.dynasty}代 · ${entry.name}词条详述`" />
 
@@ -427,7 +427,7 @@ onBeforeUnmount(() => {
                   title="生成一张可下载分享的藏书票"
                   @click="onExlibris"
                 >
-                  <span class="seal-stamp text-[11px] py-0.5 px-1">票</span>
+                  <span class="seal-stamp text-[12px] py-0.5 px-1">票</span>
                   <span>拓一枚藏书票</span>
                 </button>
               </div>
@@ -448,6 +448,31 @@ onBeforeUnmount(() => {
             <SealStamp :text="entry.type === 'emperor' ? '大明天子' : entry.type === 'figure' ? '正史名贤' : '制度典章'" subtext="钦定正史" class="seal-drop hidden sm:block shrink-0" />
           </div>
         </div>
+
+        <!-- 针路图（词条专属 3D 航路长卷，窄屏隐藏；数据驱动，见 VOYAGE_MOUNT）。
+             沉浸式（2026-10-01 精修）：全视口宽破格 + 无框 + 四边羽化融入纸色，
+             题签/钤印/注记浮于画面、与版心对齐。 -->
+        <section v-if="voyage" v-reveal class="hidden md:block relative my-4 full-bleed">
+          <VoyageMap :chart-id="voyage.chartId" />
+          <div class="absolute inset-0 z-10 pointer-events-none select-none">
+            <div class="relative h-full max-w-7xl mx-auto px-6">
+              <!-- 题签（左上）：栏目 + 图名 -->
+              <div class="absolute left-8 top-8">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-1.5 h-1.5 bg-primary shrink-0"></span>
+                  <span class="text-[13px] font-serif text-muted-foreground tracking-[0.18em]">针路图</span>
+                </div>
+                <div class="mt-1.5 text-lg md:text-xl font-serif text-foreground tracking-wide">{{ voyage.title }}</div>
+              </div>
+              <!-- 钤印（右上） -->
+              <SealStamp text="针路" class="absolute right-8 top-8 opacity-90" />
+              <!-- 注记（右下）：风格化声明 + 交互提示 -->
+              <p class="absolute right-8 bottom-6 text-[12px] font-serif text-muted-foreground/70 text-right">
+                航路为历史航线之风格化摹本，非精确地理投影<br />拖动环视 · 滚轮推近
+              </p>
+            </div>
+          </div>
+        </section>
 
         <!-- 桌面双栏：正文 (65%) + 侧栏知识链接与史料卡 (35%) -->
         <div class="grid grid-cols-1 md:grid-cols-12 gap-12">
@@ -499,7 +524,7 @@ onBeforeUnmount(() => {
                     :disabled="relicStudy.state === 'loading'"
                     @click="studyPlate"
                   >
-                    <span class="seal-stamp text-[11px] py-0.5 px-1">考</span>
+                    <span class="seal-stamp text-[12px] py-0.5 px-1">考</span>
                     <span>{{ relicStudy.state === 'loading' ? '史官展卷细鉴……（约需一两分钟）' : '考据对影 · 请史官鉴识此图' }}</span>
                   </button>
                   <div v-if="relicStudy.state === 'done'" class="border-l-2 pl-4 mt-2" :style="{ borderColor: 'color-mix(in srgb, var(--dynasty-accent) 40%, transparent)' }">
@@ -511,20 +536,6 @@ onBeforeUnmount(() => {
                     <InkOut compact :retry="studyPlate" />
                   </div>
                 </div>
-              </div>
-            </section>
-
-            <!-- 针路图（词条专属 3D 航路，窄屏隐藏；数据驱动，见 VOYAGE_MOUNT） -->
-            <section v-if="voyage" v-reveal class="hidden md:block mb-12">
-              <div class="framed-plate bg-card/65 shadow-sm overflow-hidden">
-                <div class="text-[13px] font-serif text-muted-foreground border-b border-border/80 px-4 py-2.5 flex items-center justify-between">
-                  <span class="font-bold text-foreground">【针路图】{{ voyage.title }}</span>
-                  <span class="seal-stamp text-[12px] py-0.5 px-1">针路</span>
-                </div>
-                <VoyageMap :chart-id="voyage.chartId" />
-                <p class="textbook-caption text-center py-2.5">
-                  航路为历史航线之风格化摹本，非精确地理投影 · 拖动环视，滚轮推近
-                </p>
               </div>
             </section>
 
@@ -569,7 +580,7 @@ onBeforeUnmount(() => {
                 <p class="zhu-pi zhu-pi-write">{{ entry.comment ?? aiComment }}</p>
                 <span
                   v-if="!entry.comment && aiComment"
-                  class="absolute -bottom-5 right-0 text-[11px] tracking-[0.18em] text-muted-foreground/60 font-sans whitespace-nowrap"
+                  class="absolute -bottom-5 right-0 text-[12px] tracking-[0.18em] text-muted-foreground/60 font-sans whitespace-nowrap"
                 >翰墨生成</span>
               </div>
             </aside>
