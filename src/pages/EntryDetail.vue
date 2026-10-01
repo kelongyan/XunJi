@@ -13,6 +13,7 @@ import { downloadExLibris } from '../data/exlibris'
 import { createChatStream, userWithImage, llmEnabled, REPLAY_MODE, MODEL_VISION, MODEL_FAST } from '../services/llm'
 import { interpretPrompt, commentPrompt, relicPrompt } from '../services/prompts'
 import InkOut from '../components/common/InkOut.vue'
+import AnnotateText from '../components/common/AnnotateText.vue'
 
 const VoyageMap = defineAsyncComponent(() => import('../components/three/VoyageMap.vue'))
 const RelicViewer = defineAsyncComponent(() => import('../components/three/RelicViewer.vue'))
@@ -403,7 +404,7 @@ onBeforeUnmount(() => {
               </div>
 
               <p v-reveal="240" class="text-[15px] md:text-[15px] font-serif text-foreground/85 max-w-2xl leading-relaxed">
-                {{ entry.summary }}
+                <AnnotateText :text="entry.summary" />
               </p>
 
               <div v-reveal="320" class="pt-1 flex flex-wrap items-center gap-x-5 gap-y-3">
@@ -437,7 +438,7 @@ onBeforeUnmount(() => {
               >
                 <div class="eyebrow mb-2">时代大背景</div>
                 <p class="text-[13px] md:text-[15px] font-serif text-muted-foreground leading-relaxed">
-                  {{ entry.background }}
+                  <AnnotateText :text="entry.background" />
                 </p>
               </div>
             </div>
@@ -463,12 +464,12 @@ onBeforeUnmount(() => {
               </div>
 
               <div class="text-indent-chinese text-[15px] md:text-base text-foreground/90 font-textbook-body space-y-4">
-                <p 
-                  v-for="(para, pIdx) in chapter.paragraphs" 
+                <p
+                  v-for="(para, pIdx) in chapter.paragraphs"
                   :key="pIdx"
                   :class="cIdx === 0 && pIdx === 0 ? 'textbook-dropcap' : ''"
                 >
-                  {{ para }}
+                  <AnnotateText :text="para" />
                 </p>
               </div>
 

@@ -6,6 +6,7 @@ import TextbookHeader from '../components/common/TextbookHeader.vue'
 import SealStamp from '../components/common/SealStamp.vue'
 import Masthead from '../components/common/Masthead.vue'
 import CounterfactualPanel from '../components/ai/CounterfactualPanel.vue'
+import AnnotateText from '../components/common/AnnotateText.vue'
 import { dynastyTimelines } from '../data/timelines'
 import { dynastyThemes, getDynastyTheme, defaultDynasty } from '../data/dynastyThemes'
 
@@ -179,7 +180,7 @@ watch(currentId, () => {
                 <span v-else>{{ ev.title }}</span>
               </h3>
               <p class="text-[13px] md:text-[15px] font-serif text-muted-foreground leading-relaxed mt-2.5">
-                {{ ev.desc }}
+                <AnnotateText :text="ev.desc" />
               </p>
             </div>
             <div
@@ -188,7 +189,7 @@ watch(currentId, () => {
             >
               <div class="pl-4 border-l-2 text-[15px] font-serif text-muted-foreground" style="border-color: color-mix(in srgb, var(--dynasty-accent) 40%, transparent)">
                 <div class="eyebrow mb-2">史事要义</div>
-                <p class="leading-relaxed">{{ ev.gist }}</p>
+                <p class="leading-relaxed"><AnnotateText :text="ev.gist" /></p>
               </div>
             </div>
 
@@ -202,7 +203,7 @@ watch(currentId, () => {
             >
               <div class="pl-4 border-l-2 text-[15px] font-serif text-muted-foreground" style="border-color: color-mix(in srgb, var(--dynasty-accent) 40%, transparent)">
                 <div class="eyebrow mb-2">史事要义</div>
-                <p class="leading-relaxed">{{ ev.gist }}</p>
+                <p class="leading-relaxed"><AnnotateText :text="ev.gist" /></p>
               </div>
             </div>
             <div
@@ -220,7 +221,7 @@ watch(currentId, () => {
                 <span v-else>{{ ev.title }}</span>
               </h3>
               <p class="text-[13px] md:text-[15px] font-serif text-muted-foreground leading-relaxed mt-2.5">
-                {{ ev.desc }}
+                <AnnotateText :text="ev.desc" />
               </p>
             </div>
           </div>
