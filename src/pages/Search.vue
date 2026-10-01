@@ -6,6 +6,7 @@ import TextbookHeader from '../components/common/TextbookHeader.vue'
 import SealStamp from '../components/common/SealStamp.vue'
 import Masthead from '../components/common/Masthead.vue'
 import SearchSuggest from '../components/search/SearchSuggest.vue'
+import WenPanel from '../components/ai/WenPanel.vue'
 import { useSearch } from '../composables/useSearch'
 import { useTypewriter } from '../composables/useTypewriter'
 import { splitHighlight } from '../utils/highlight'
@@ -18,6 +19,8 @@ const { search } = useSearch()
 
 const query = ref((route.query.q as string) || '')
 const currentType = ref((route.query.type as string) || 'all')
+/** 模式页签：考索（传统检索）/ 问典（AI RAG） */
+const mode = ref<'search' | 'wen'>('search')
 const searchResults = ref<HistoryEntry[]>([])
 
 // 第一条重点结果专属的打字机流式呈现
@@ -91,8 +94,29 @@ onMounted(() => {
       <TextbookHeader folio="042" subChapter="中国历史文献数据库 · 全文检索与流式考索" />
 
       <main class="max-w-7xl mx-auto px-6 py-10">
+        <!-- 模式页签：考索（检索）| 问典（AI RAG） -->
+        <div v-reveal class="mb-6 flex items-center gap-6 border-b border-border/60">
+          <button
+            type="button"
+            class="pb-2.5 -mb-px text-[14px] tracking-[0.22em] font-serif border-b-2 transition-colors cursor-pointer"
+            :class="mode === 'search' ? 'text-[var(--dynasty-accent)] border-[var(--dynasty-accent)]' : 'text-muted-foreground border-transparent hover:text-foreground'"
+            @click="mode = 'search'"
+          >史料考索</button>
+          <button
+            type="button"
+            class="pb-2.5 -mb-px text-[14px] tracking-[0.22em] font-serif border-b-2 transition-colors cursor-pointer"
+            :class="mode === 'wen' ? 'text-[var(--dynasty-accent)] border-[var(--dynasty-accent)]' : 'text-muted-foreground border-transparent hover:text-foreground'"
+            @click="mode = 'wen'"
+          >问典 · 请史官作答</button>
+        </div>
+
+        <!-- 问典模式：RAG 问答 -->
+        <div v-if="mode === 'wen'" v-reveal class="max-w-3xl">
+          <WenPanel />
+        </div>
+
         <!-- 检索栏与分类筛选条 (文武双线装帧) -->
-        <div v-reveal class="mb-12 space-y-7">
+        <div v-show="mode === 'search'" class="mb-12 space-y-7">
           <form @submit.prevent="handleSearchSubmit" class="relative flex flex-col md:flex-row gap-4">
             <div class="relative flex-1 flex">
               <SearchSuggest
@@ -173,8 +197,8 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- 结果展示区 -->
-        <div class="space-y-8">
+        <!-- 结果展示区（考索模式） -->
+        <div v-show="mode === 'search'" class="space-y-8">
           <div v-reveal class="flex items-center justify-between gap-4 pb-3.5 border-b border-border/60">
             <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1.5">
               <span class="eyebrow">检索核心词</span>

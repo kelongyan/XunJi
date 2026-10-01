@@ -10,6 +10,9 @@ import { useTypewriter } from '../composables/useTypewriter'
 import { useFootprint } from '../composables/useFootprint'
 import { playStampSound } from '../composables/useSound'
 import { downloadExLibris } from '../data/exlibris'
+import { createChatStream, userWithImage, llmEnabled, REPLAY_MODE, MODEL_VISION, MODEL_FAST } from '../services/llm'
+import { interpretPrompt, commentPrompt, relicPrompt } from '../services/prompts'
+import InkOut from '../components/common/InkOut.vue'
 
 const VoyageMap = defineAsyncComponent(() => import('../components/three/VoyageMap.vue'))
 const RelicViewer = defineAsyncComponent(() => import('../components/three/RelicViewer.vue'))
@@ -93,22 +96,214 @@ onBeforeUnmount(() => {
   document.documentElement.dataset.dynasty = defaultDynasty.id
 })
 
-const { displayedText, isTyping, start: startInterp, skip: skipInterp } = useTypewriter({
+const { displayedText, isTyping, start: startInterp, skip: skipInterp, stop: stopInterp } = useTypewriter({
   baseSpeed: 30,
   commaDelay: 75,
   periodDelay: 150
 })
 
-function runFlow() {
-  if (entry.value?.interpretation) {
-    startInterp(entry.value.interpretation)
+/* ── B1 真·流式史学纵横：活生成优先，静态兜底 ──
+ * 状态机：static（静态回放）| live（AI 流式）| inkout（墨尽回退）
+ * 失败/断网/未配 key 时无缝回退静态 interpretation——页面永远有字。 */
+type InterpMode = 'static' | 'live' | 'inkout'
+const interpMode = ref<InterpMode>('static')
+const interpSource = ref<'static' | 'ai' | 'replay'>('static')
+let liveBuffer = ''
+let liveAbort: AbortController | null = null
+
+/** 静态回放（fallback 与 reduced-motion 路径） */
+function runStatic() {
+  interpMode.value = 'static'
+  interpSource.value = 'static'
+  if (entry.value?.interpretation) startInterp(entry.value.interpretation)
+}
+
+async function runLive() {
+  if (!llmEnabled() || !entry.value) {
+    runStatic()
+    return
+  }
+  // 有静态稿可兜底；live 失败时切回
+  if (!entry.value.interpretation) {
+    runStatic()
+    return
+  }
+  interpMode.value = 'live'
+  interpSource.value = REPLAY_MODE ? 'replay' : 'ai'
+  liveBuffer = ''
+  displayedText.value = ''
+  startInterp('') // 清打字机状态（占位空串，isTyping 会被 AI 流接管）
+  stopInterp()
+  isTypingManual.value = true
+  liveAbort = new AbortController()
+  try {
+    await createChatStream(
+      interpretPrompt({
+        name: entry.value.name,
+        dynasty: entry.value.dynasty,
+        summary: entry.value.summary ?? '',
+        background: entry.value.background ?? '',
+        sources: entry.value.sources ?? []
+      }),
+      delta => {
+        liveBuffer += delta
+        displayedText.value = liveBuffer
+      },
+      { signal: liveAbort.signal, maxTokens: 2000 }
+    )
+    isTypingManual.value = false
+  } catch (e) {
+    if ((e as Error).name === 'AbortError') return
+    // 墨尽：无缝回退静态稿
+    runStatic()
   }
 }
 
+/** 活流式时手控光标（打字机 isTyping 不适用） */
+const isTypingManual = ref(false)
+const interpTyping = computed(() => (interpMode.value === 'live' ? isTypingManual.value : isTyping.value))
+
+function runFlow() {
+  // reduced-motion：直落静态完整呈现，不出 AI（尊重系统动效偏好）
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    runStatic()
+    if (entry.value?.interpretation) skipInterp(entry.value.interpretation)
+    return
+  }
+  runLive()
+}
+
 function handleSkip() {
-  if (entry.value?.interpretation) {
+  if (interpMode.value === 'live') {
+    // 活流式跳过：中止流，保留已到字句（若有静态稿则补全）
+    liveAbort?.abort()
+    isTypingManual.value = false
+    displayedText.value = liveBuffer || entry.value?.interpretation || ''
+  } else if (entry.value?.interpretation) {
     skipInterp(entry.value.interpretation)
   }
+}
+
+/** 重试活生成（墨尽后） */
+function retryLive() {
+  if (llmEnabled()) runLive()
+  else runStatic()
+}
+
+/* ── B4 AI 史官朱批：静态 comment 字段优先；无则按需活批（失败静默，不扰阅读） ── */
+const aiComment = ref('')
+const commentState = ref<'idle' | 'loading' | 'done' | 'inkout'>('idle')
+const commentRequested = new Set<string>()
+
+async function genComment() {
+  const e = entry.value
+  if (!e || e.comment || !llmEnabled()) return
+  commentState.value = 'loading'
+  commentRequested.add(e.id)
+  let buf = ''
+  try {
+    await createChatStream(
+      commentPrompt({ name: e.name, dynasty: e.dynasty, summary: e.summary ?? '' }),
+      d => {
+        buf += d
+        aiComment.value = buf
+      },
+      // 短文本走快速档（非推理模型，秒回；主力 reasoning 模型思考链会烧穿小预算——实测 §0.3）
+      { model: MODEL_FAST, maxTokens: 400 }
+    )
+    commentState.value = 'done'
+  } catch (err) {
+    if ((err as Error).name === 'AbortError') return
+    aiComment.value = ''
+    commentState.value = 'inkout'
+  }
+}
+
+/* ── B5 考据对影：状态声明（须先于 immediate watch，防 TDZ） ── */
+const plateImgRef = ref<HTMLImageElement | null>(null)
+const relicStudy = ref<{ state: 'idle' | 'loading' | 'done' | 'inkout'; text: string; loading: boolean }>({
+  state: 'idle',
+  text: '',
+  loading: false
+})
+let studyAbort: AbortController | null = null
+
+function resetStudy() {
+  studyAbort?.abort()
+  relicStudy.value = { state: 'idle', text: '', loading: false }
+}
+
+// 词条切换：静态批语存在则清 AI 态；无静态批语且服务可用则懒生成（每词条只请求一次）
+watch(
+  () => entry.value.id,
+  () => {
+    liveAbort?.abort()
+    resetStudy()
+    if (entry.value.comment) {
+      aiComment.value = ''
+      commentState.value = 'idle'
+    } else if (llmEnabled() && !commentRequested.has(entry.value.id)) {
+      commentRequested.add(entry.value.id)
+      aiComment.value = ''
+      genComment()
+    } else if (!llmEnabled()) {
+      aiComment.value = ''
+      commentState.value = 'idle'
+    }
+  },
+  { immediate: true }
+)
+
+async function studyPlate() {
+  const e = entry.value
+  const img = plateImgRef.value
+  if (!e?.image || !img || !llmEnabled()) return
+  relicStudy.value = { state: 'loading', text: '', loading: true }
+  studyAbort = new AbortController()
+  try {
+    // 本地图转 base64：先 canvas 栅格化；失败则 fetch blob 转 dataURL。
+    // 禁止直接把本地 URL 发给公网 API（会 400 "port not allowed"——已实测踩坑）。
+    let dataUrl = ''
+    try {
+      const canvas = document.createElement('canvas')
+      const w = 512
+      const ratio = img.naturalHeight && img.naturalWidth ? img.naturalHeight / img.naturalWidth : 1
+      canvas.width = w
+      canvas.height = Math.round(w * ratio) || 384
+      const ctx = canvas.getContext('2d')!
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      dataUrl = canvas.toDataURL('image/png')
+      if (dataUrl.length < 2000) throw new Error('empty raster') // SVG 未渲染兜底
+    } catch {
+      const blob = await (await fetch(e.image.src)).blob()
+      dataUrl = await new Promise<string>((resolve, reject) => {
+        const fr = new FileReader()
+        fr.onload = () => resolve(fr.result as string)
+        fr.onerror = reject
+        fr.readAsDataURL(blob)
+      })
+    }
+    await createChatStream(
+      [userWithImage(relicStudyInstruction(e), dataUrl)],
+      d => {
+        relicStudy.value.text += d
+      },
+      // 图版必须走 vision 模型（主力 Atria 不支持图像——"未获入目"实测踩坑）。
+      // intern-s2 视觉稳（kimi-k2.6 思考链烧穿任何预算，弃用）；
+      // 但其推理链较长（实测 ~600-1400 tokens），预算须 ≥2500，耗时约 60-90s
+      { model: MODEL_VISION, maxTokens: 2600, signal: studyAbort.signal }
+    )
+    relicStudy.value.state = 'done'
+    relicStudy.value.loading = false
+  } catch (err) {
+    if ((err as Error).name === 'AbortError') return
+    relicStudy.value.state = 'inkout'
+    relicStudy.value.loading = false
+  }
+}
+
+function relicStudyInstruction(e: NonNullable<typeof entry.value>): string {
+  return relicPrompt({ name: e.name, caption: e.image?.caption ?? '' })[0].content as string
 }
 
 onMounted(() => {
@@ -277,7 +472,7 @@ onBeforeUnmount(() => {
                 </p>
               </div>
 
-              <!-- 若该词条配有历史插图，则在第一节后插入图版（笺谱套色装裱） -->
+              <!-- 若该词条配有历史插图，则在第一节后插入图版（笺谱套色装裱）+ B5 考据对影 -->
               <div v-if="cIdx === 0 && entry.image" v-reveal class="textbook-figure-box my-8 framed-plate bg-card/50 shadow-sm">
                 <div class="text-[13px] font-serif text-muted-foreground border-b border-border/80 pb-2.5 mb-3 flex items-center justify-between">
                   <span class="font-bold text-foreground flex items-center space-x-2">
@@ -287,11 +482,32 @@ onBeforeUnmount(() => {
                   <span class="seal-stamp text-[12px] py-0.5 px-1">图版</span>
                 </div>
                 <div class="bg-background border border-border/70 p-2 overflow-hidden flex justify-center">
-                  <img :src="entry.image.src" :alt="entry.image.caption" class="w-full max-w-lg h-auto object-contain" />
+                  <img ref="plateImgRef" :src="entry.image.src" :alt="entry.image.caption" class="w-full max-w-lg h-auto object-contain" crossorigin="anonymous" />
                 </div>
                 <p class="textbook-caption text-center">
                   {{ entry.image.caption }}
                 </p>
+                <!-- 考据对影：AI 史官看图鉴识（多模态） -->
+                <div class="px-4 pb-3 pt-1">
+                  <button
+                    v-if="relicStudy.state !== 'done'"
+                    type="button"
+                    class="text-[13px] font-serif text-muted-foreground hover:text-[var(--dynasty-accent)] transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                    :disabled="relicStudy.state === 'loading'"
+                    @click="studyPlate"
+                  >
+                    <span class="seal-stamp text-[11px] py-0.5 px-1">考</span>
+                    <span>{{ relicStudy.state === 'loading' ? '史官展卷细鉴……（约需一两分钟）' : '考据对影 · 请史官鉴识此图' }}</span>
+                  </button>
+                  <div v-if="relicStudy.state === 'done'" class="border-l-2 pl-4 mt-2" :style="{ borderColor: 'color-mix(in srgb, var(--dynasty-accent) 40%, transparent)' }">
+                    <div class="eyebrow mb-1.5">名物考据 · 翰墨生成</div>
+                    <p class="text-[13px] md:text-[15px] font-serif text-muted-foreground leading-relaxed whitespace-pre-wrap">{{ relicStudy.text }}<span v-if="relicStudy.loading" class="ink-cursor"></span></p>
+                    <button type="button" class="mt-2 text-[12px] text-muted-foreground/70 hover:text-foreground transition-colors cursor-pointer" @click="resetStudy">收起考据</button>
+                  </div>
+                  <div v-if="relicStudy.state === 'inkout'" class="mt-2">
+                    <InkOut compact :retry="studyPlate" />
+                  </div>
+                </div>
               </div>
             </section>
 
@@ -309,24 +525,32 @@ onBeforeUnmount(() => {
               </div>
             </section>
 
-            <!-- 史学纵横（流式解读核心区） -->
+            <!-- 史学纵横（流式解读核心区）：AI 活生成，静态稿兜底 -->
             <section v-reveal class="border-wenwu-primary p-7 md:p-9 bg-card/85 relative shadow-sm textbook-reading-column my-8">
               <div class="flex items-baseline justify-between gap-4 pb-3.5 mb-6 border-b border-border/60">
                 <h3 class="text-xl text-foreground tracking-wide" style="font-family: var(--font-serif)">史学纵横 · 深度解读</h3>
-                <span class="index-meta">本地预置流式呈现</span>
+                <span class="index-meta">
+                  <template v-if="interpSource === 'ai'">翰墨生成 · 史官现书</template>
+                  <template v-else-if="interpSource === 'replay'">翰墨生成 · 演示回放</template>
+                  <template v-else>本卷预置 · 流式呈现</template>
+                </span>
               </div>
 
-              <div class="font-serif text-[15px] leading-loose text-foreground">
+              <InkOut v-if="interpMode === 'inkout'" compact :retry="retryLive" />
+
+              <div v-else class="font-serif text-[15px] leading-loose text-foreground">
                 <p class="text-indent-chinese font-textbook-body">
                   {{ displayedText }}
-                  <span v-if="isTyping" class="ink-cursor"></span>
+                  <span v-if="interpTyping" class="ink-cursor"></span>
                 </p>
               </div>
 
               <div class="mt-6 pt-3.5 border-t border-border flex items-center justify-between text-[13px] font-serif text-muted-foreground">
-                <span class="italic text-muted-foreground/90">—— 综合正史与断代专论 · 明代篇</span>
+                <span class="italic text-muted-foreground/90">
+                  {{ interpSource === 'static' ? '—— 综合正史与断代专论' : '—— AI 史官据本卷史料现书 · 或有讹误，以正史为准' }}
+                </span>
                 <div class="flex items-center space-x-2">
-                  <button v-if="isTyping" @click="handleSkip" class="hover:text-primary underline cursor-pointer">
+                  <button v-if="interpTyping" @click="handleSkip" class="hover:text-primary underline cursor-pointer">
                     快速完成
                   </button>
                 </div>
@@ -336,9 +560,19 @@ onBeforeUnmount(() => {
 
           <!-- 右侧：侧栏朱批 + 器物展台 + 史料卡片 + 知识链接 -->
           <div class="md:col-span-4 space-y-8">
-            <!-- 史家朱批（竖排页边批语）：入视口时自上而下"书写"浮现 -->
-            <aside v-if="entry.comment" v-reveal class="flex justify-end pr-3 pt-1" aria-label="史家朱批">
-              <p class="zhu-pi zhu-pi-write">{{ entry.comment }}</p>
+            <!-- 史家朱批（竖排页边批语）：静态字段优先；无则 AI 史官活批（B4） -->
+            <aside v-if="entry.comment || aiComment" v-reveal class="flex justify-end pr-3 pt-1" aria-label="史家朱批">
+              <div class="relative">
+                <p class="zhu-pi zhu-pi-write">{{ entry.comment ?? aiComment }}</p>
+                <span
+                  v-if="!entry.comment && aiComment"
+                  class="absolute -bottom-5 right-0 text-[11px] tracking-[0.18em] text-muted-foreground/60 font-sans whitespace-nowrap"
+                >翰墨生成</span>
+              </div>
+            </aside>
+            <!-- AI 活批生成中/失败（无静态批语时才出现） -->
+            <aside v-if="!entry.comment && commentState === 'inkout'" v-reveal class="flex justify-end pr-3 pt-1">
+              <div class="w-[3.2rem]"><InkOut compact :retry="genComment" /></div>
             </aside>
 
             <!-- 器物 3D 展台 -->
