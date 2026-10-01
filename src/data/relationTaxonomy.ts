@@ -27,23 +27,37 @@ export interface RelationFamilyMeta {
   label: string
   /** 视觉线型（图谱渲染用） */
   line: 'solid' | 'dashed' | 'dotted'
+  /** 日读线色（星图边 / 图例同源） */
+  hue: string
+  /** 夜读线色（灯火提亮） */
+  hueNight: string
   /** 图例说明 */
   note: string
 }
 
-/** 关系族元数据（顺序即图例展示顺序） */
+/** 关系族元数据（顺序即图例展示顺序；色值为星图边色唯一来源） */
 export const RELATION_FAMILIES: RelationFamilyMeta[] = [
-  { id: 'liege', label: '君臣', line: 'solid', note: '君臣知遇 · 辅臣部将' },
-  { id: 'causal', label: '因果时序', line: 'solid', note: '前因后果 · 背景影响' },
-  { id: 'rival', label: '对立', line: 'dashed', note: '政敌党争 · 弹劾构陷' },
-  { id: 'ally', label: '师友同侪', line: 'solid', note: '同僚师承 · 并称挙荐' },
-  { id: 'cultural', label: '文化典籍', line: 'solid', note: '典籍修撰 · 思想渊源' },
-  { id: 'analogy', label: '历史类比', line: 'dotted', note: '相似事件 · 史鉴对照' },
-  { id: 'institut', label: '制度政制', line: 'solid', note: '制度变法 · 赋役选官' },
-  { id: 'kindred', label: '亲缘', line: 'solid', note: '父子帝系 · 婚姻册封' },
-  { id: 'martial', label: '军事外交', line: 'solid', note: '战役讨伐 · 会盟和议' },
-  { id: 'connect', label: '关涉', line: 'solid', note: '参与关联 · 综合牵涉' }
+  { id: 'liege', label: '君臣', line: 'solid', hue: '#a8705e', hueNight: '#cf8a70', note: '君臣知遇 · 辅臣部将' },
+  { id: 'causal', label: '因果时序', line: 'solid', hue: '#9a9288', hueNight: '#c0b8ab', note: '前因后果 · 背景影响' },
+  { id: 'rival', label: '对立', line: 'dashed', hue: '#b4634f', hueNight: '#e08066', note: '政敌党争 · 弹劾构陷' },
+  { id: 'ally', label: '师友同侪', line: 'solid', hue: '#6f8496', hueNight: '#93b0c6', note: '同僚师承 · 并称举荐' },
+  { id: 'cultural', label: '文化典籍', line: 'solid', hue: '#7d9282', hueNight: '#a0c2ac', note: '典籍修撰 · 思想渊源' },
+  { id: 'analogy', label: '历史类比', line: 'dotted', hue: '#a08c66', hueNight: '#c9b184', note: '相似事件 · 史鉴对照' },
+  { id: 'institut', label: '制度政制', line: 'solid', hue: '#968468', hueNight: '#bda684', note: '制度变法 · 赋役选官' },
+  { id: 'kindred', label: '亲缘', line: 'solid', hue: '#a8705e', hueNight: '#cf8a70', note: '父子帝系 · 婚姻册封' },
+  { id: 'martial', label: '军事外交', line: 'solid', hue: '#96705c', hueNight: '#bd917a', note: '战役讨伐 · 会盟和议' },
+  { id: 'connect', label: '关涉', line: 'solid', hue: '#a8a092', hueNight: '#c6bdae', note: '参与关联 · 综合牵涉' }
 ]
+
+/** 关系族日读色速查（渲染层用） */
+export const RELATION_HUE: Record<RelationFamily, string> = Object.fromEntries(
+  RELATION_FAMILIES.map(f => [f.id, f.hue])
+) as Record<RelationFamily, string>
+
+/** 关系族夜读色速查（渲染层用） */
+export const RELATION_HUE_NIGHT: Record<RelationFamily, string> = Object.fromEntries(
+  RELATION_FAMILIES.map(f => [f.id, f.hueNight])
+) as Record<RelationFamily, string>
 
 /** 有序规则表（先匹配先归类） */
 const RULES: Array<[RelationFamily, RegExp]> = [

@@ -36,7 +36,7 @@ export function useThreeScene(container: Ref<HTMLElement | undefined>, opts: Use
   let camera: THREE.PerspectiveCamera | null = null
   let resizeObserver: ResizeObserver | null = null
   let frameCbs: Array<(dt: number, elapsed: number) => void> = []
-  let clock: THREE.Clock | null = null
+  let timer: THREE.Timer | null = null
 
   function resize() {
     if (!renderer || !camera || !container.value) return
@@ -61,12 +61,14 @@ export function useThreeScene(container: Ref<HTMLElement | undefined>, opts: Use
     scene = new THREE.Scene()
     camera = new THREE.PerspectiveCamera(opts.fov ?? 45, el.clientWidth / el.clientHeight, opts.near ?? 0.1, opts.far ?? 400)
 
-    clock = new THREE.Clock()
+    timer = new THREE.Timer()
+    timer.connect(document) // Page Visibility：隐藏时暂停计时，切回不产生大跳变
     renderer.setAnimationLoop(() => {
-      const clk = clock
-      if (!renderer || !scene || !camera || !clk || document.hidden) return
-      const dt = Math.min(clk.getDelta(), 0.05)
-      const elapsed = clk.elapsedTime
+      const tmr = timer
+      if (!renderer || !scene || !camera || !tmr || document.hidden) return
+      tmr.update()
+      const dt = Math.min(tmr.getDelta(), 0.05)
+      const elapsed = tmr.getElapsed()
       for (const cb of frameCbs) cb(dt, elapsed)
       renderer.render(scene, camera)
     })
@@ -82,6 +84,8 @@ export function useThreeScene(container: Ref<HTMLElement | undefined>, opts: Use
     resizeObserver?.disconnect()
     resizeObserver = null
     renderer?.setAnimationLoop(null)
+    timer?.disconnect()
+    timer = null
     if (scene) {
       scene.traverse(obj => {
         const mesh = obj as THREE.Mesh

@@ -11,19 +11,23 @@ import { ArrowRight, X, Route as RouteIcon, Undo2 } from 'lucide-vue-next'
 import TextbookHeader from '../components/common/TextbookHeader.vue'
 import Masthead from '../components/common/Masthead.vue'
 import SealStamp from '../components/common/SealStamp.vue'
-import { graphData, findPath, PATH_DEMOS, GRAPH_VIEWS, GRAPH_STORIES, type GraphNode, type GraphView, type PathStep, type GraphStory } from '../data/graph'
+import { graphData, findPath, nodeTypeLabel, TYPE_META, PATH_DEMOS, GRAPH_VIEWS, GRAPH_STORIES, type GraphNode, type GraphView, type PathStep, type GraphStory } from '../data/graph'
 import { RELATION_FAMILIES, RELATION_FAMILY_META, type RelationFamily } from '../data/relationTaxonomy'
 import { defaultDynasty, getDynastyTheme } from '../data/dynastyThemes'
+import { useUiStore } from '../stores/ui'
 import { useTypewriter } from '../composables/useTypewriter'
 
 const StarGraph = defineAsyncComponent(() => import('../components/three/StarGraph.vue'))
 const Graph2D = defineAsyncComponent(() => import('../components/two/Graph2D.vue'))
 
 const route = useRoute()
+const ui = useUiStore()
 const show3d = ref(true)
 const focused = ref<GraphNode | null>(null)
 const hovered = ref<GraphNode | null>(null)
 const starReady = ref(false)
+const showLoadHint = ref(false)
+let loadHintTimer = 0
 /** StarGraph 暴露的方法（defineAsyncComponent 泛型推断不完整，手写契约） */
 interface StarGraphApi {
   focusNodeById(id: string): boolean
@@ -90,6 +94,20 @@ const focusRelations = computed(() => {
   return rows.slice(0, 18)
 })
 
+/** 聚焦朝代锚点：本朝概览（词条数 / 度数最高词条 / 年号跨度） */
+const dynastyFocus = computed(() => {
+  const node = focused.value
+  if (!node || node.kind !== 'dynasty' || !node.theme) return null
+  const members = graphData.nodes
+    .filter(n => n.kind === 'entry' && n.dynastyId === node.dynastyId)
+    .sort((a, b) => b.degree - a.degree)
+  return {
+    theme: node.theme,
+    count: members.length,
+    top: members.slice(0, 6)
+  }
+})
+
 /** 聚焦节点的连边数（含入向与出向） */
 const focusLinkCount = computed(() => {
   const node = focused.value
@@ -120,15 +138,37 @@ const stat = computed(() => {
   return { entries: entries.length, relations: relations.length }
 })
 
-const typeLabel = (t: string) =>
-  t === 'emperor' ? '帝王篇' : t === 'figure' ? '人物篇' : t === 'event' ? '重大事件' : t === 'classic' ? '传世典籍' : t === 'system' ? '典章制度' : t
+const typeLabel = (t: string) => nodeTypeLabel(t)
+
+/** 星体图例用色（与星图同源；夜读提亮） */
+const typeColor = (t: string) => {
+  const m = TYPE_META[t]
+  if (!m) return 'var(--ink-soft)'
+  return ui.mode === 'night' ? m.night : m.day
+}
 
 const familyLine = (f: RelationFamily) => RELATION_FAMILY_META[f]?.line ?? 'solid'
+const familyHue = (f: RelationFamily) => RELATION_FAMILY_META[f]?.hue ?? 'var(--ink-soft)'
+/** 图例线色：夜读换提亮色（与星图边色同步） */
+const familyHueLive = (f: RelationFamily) =>
+  ui.mode === 'night' ? RELATION_FAMILY_META[f]?.hueNight ?? 'var(--ink-soft)' : familyHue(f)
 
 function onFocus(node: GraphNode | null) {
+  // 导览巡游：程序性飞行不弹侧栏（浮签承担旁白）；用户点击则接管、退出导览
+  if (tour.value) {
+    if (tourFly) return
+    endTour()
+    if (!node) return
+  }
   focused.value = node
-  // 寻脉待终点模式：点击即作为终点连线
-  if (routeMode.value === 'pick-destination' && node && routeFrom.value && node.id !== routeFrom.value) {
+  // 寻脉待终点模式：点击词条星辰即作为终点连线（朝代锚点不可作终点）
+  if (
+    routeMode.value === 'pick-destination' &&
+    node &&
+    node.kind === 'entry' &&
+    routeFrom.value &&
+    node.id !== routeFrom.value
+  ) {
     finishRoute(node.id)
   }
 }
@@ -201,11 +241,22 @@ const causalFlows = computed(() => {
 
 function onStarReady() {
   starReady.value = true
+  showLoadHint.value = false
+  window.clearTimeout(loadHintTimer)
 }
+onMounted(() => {
+  // 3D 场景初始化超过 1.2s 仍无 ready：显示"星图凝结中"（窄设备/慢加载）
+  loadHintTimer = window.setTimeout(() => {
+    if (!starReady.value) showLoadHint.value = true
+  }, 1200)
+})
+onBeforeUnmount(() => window.clearTimeout(loadHintTimer))
 
 /* ── 导览故事线（P2）：预置分镜自动巡游 ── */
 const tour = ref<{ story: GraphStory; step: number } | null>(null)
 let tourTimer = 0
+/** 导览程序性飞行中（flyToNode 的 focus 事件同步触发，用标志区分用户点击） */
+let tourFly = false
 const TOUR_STEP_MS = 4600
 
 function startTour(story: GraphStory) {
@@ -218,7 +269,9 @@ function playTourStep() {
   const t = tour.value
   if (!t) return
   const step = t.story.steps[t.step]
+  tourFly = true
   star.value?.flyToNode(step.id)
+  tourFly = false
   window.clearTimeout(tourTimer)
   tourTimer = window.setTimeout(() => {
     if (!tour.value) return
@@ -332,85 +385,121 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
           class="relative w-full overflow-hidden border border-border/70 bg-background/40"
           :style="{ height: 'clamp(620px, 78vh, 920px)' }"
         >
-          <template v-if="show3d">
-            <StarGraph ref="starRef" @focus="onFocus" @hover="onHover" @fallback="show3d = false" @ready="onStarReady" />
-            <!-- 导览浮签（画布顶部中央，优先于寻脉提示） -->
-            <Transition name="guide-fade">
-              <div
-                v-if="tour"
-                class="absolute top-3 left-1/2 -translate-x-1/2 z-20 px-5 py-2 bg-card/95 border border-border/80 text-[13px] font-serif flex items-center gap-4 max-w-[92%]"
-              >
-                <span class="dynasty-accent-text font-bold shrink-0">导览 · {{ tour.story.title }}</span>
-                <span class="text-muted-foreground truncate">{{ tour.story.steps[tour.step].note }}</span>
-                <span class="index-meta shrink-0">{{ tour.step + 1 }} / {{ tour.story.steps.length }}</span>
-                <button type="button" class="text-muted-foreground hover:text-foreground cursor-pointer shrink-0" @click="endTour">跳过</button>
-              </div>
-            </Transition>
+          <StarGraph v-if="show3d" ref="starRef" @focus="onFocus" @hover="onHover" @fallback="show3d = false" @ready="onStarReady" />
+          <!-- 2D 降级版（窄屏 / WebGL 不可用）：共享同一布局的简化星图 -->
+          <Graph2D v-else ref="graph2dRef" @focus="onFocus" @ready="onStarReady" />
 
-            <!-- 寻脉状态浮签（画布顶部中央） -->
-            <Transition name="guide-fade">
-              <div
-                v-if="routeMode === 'pick-destination'"
-                class="absolute top-3 left-1/2 -translate-x-1/2 z-10 px-4 py-1.5 bg-card/95 border border-border/80 text-[13px] font-serif text-foreground flex items-center gap-3"
-              >
-                <span class="dynasty-accent-text font-bold">寻脉</span>
-                <span>自「{{ routeFromName }}」出发 · 请点击终点星辰</span>
-                <button type="button" class="text-muted-foreground hover:text-foreground cursor-pointer" @click="cancelRoute">取消</button>
-              </div>
-            </Transition>
-
-            <!-- 操作提示（底部细条） -->
-            <div class="absolute bottom-0 inset-x-0 px-4 py-2 flex flex-wrap items-center gap-x-5 gap-y-1 text-[12px] text-muted-foreground bg-gradient-to-t from-[color:var(--paper-base)] to-transparent pointer-events-none">
-              <span>拖动环视</span>
-              <span>滚轮推近</span>
-              <span>点击星辰聚焦</span>
-              <span>空白处取消</span>
+          <!-- 加载提示（场景初始化超时的兜底，ready 后消失） -->
+          <Transition name="guide-fade">
+            <div
+              v-if="showLoadHint && !starReady"
+              class="absolute inset-0 z-10 flex items-center justify-center pointer-events-none"
+            >
+              <span class="px-5 py-2 bg-card/95 border border-border/70 text-[13px] font-serif text-muted-foreground">星图凝结中……</span>
             </div>
+          </Transition>
 
-            <!-- 悬停题名（左上角即时反馈） -->
-            <Transition name="fade-swap">
-              <div
-                v-if="hovered && (!focused || hovered.id !== focused.id)"
-                class="absolute top-3 left-3 px-3 py-1.5 bg-card/90 border border-border/70 text-[13px] font-serif pointer-events-none"
-              >
-                {{ hovered.name }}
-                <span class="text-muted-foreground/80 ml-2">{{ hovered.dynasty }}</span>
-              </div>
-            </Transition>
+          <!-- 画角题签（右下角）：画布注记，与画框咬合（窄屏隐藏，避让操作提示） -->
+          <div class="absolute bottom-2 right-3 z-10 text-[11px] tracking-[0.22em] text-muted-foreground/70 font-sans pointer-events-none select-none hidden sm:block">
+            万卷星图 · 全站关系网络
+          </div>
 
-            <!-- 聚焦侧栏 -->
-            <Transition name="guide-fade">
-              <aside
-                v-if="focused"
-                class="absolute top-0 right-0 h-full w-full sm:w-[340px] bg-card/95 backdrop-blur-sm border-l border-border/70 overflow-y-auto"
-              >
-                <div class="p-5 space-y-5">
-                  <div class="flex items-start justify-between gap-3">
-                    <div class="flex items-center gap-2.5 min-w-0">
-                      <span
-                        class="w-2.5 h-2.5 shrink-0"
-                        :style="{ backgroundColor: focusedTheme?.accent }"
-                      ></span>
-                      <span class="index-meta truncate">{{ focused.dynasty }}{{ focused.entry?.era ? ' · ' + focused.entry.era : '' }}</span>
-                    </div>
-                    <button
-                      type="button"
-                      class="text-muted-foreground hover:text-foreground cursor-pointer shrink-0"
-                      aria-label="收起侧栏"
-                      @click="closeFocus"
-                    >
-                      <X class="w-4 h-4" />
-                    </button>
+          <!-- 导览浮签（画布顶部中央，优先于寻脉提示） -->
+          <Transition name="guide-fade">
+            <div
+              v-if="tour"
+              class="absolute top-3 left-1/2 -translate-x-1/2 z-30 px-5 py-2 bg-card/95 border border-border/80 text-[13px] font-serif flex items-center gap-4 max-w-[92%]"
+            >
+              <span class="dynasty-accent-text font-bold shrink-0">导览 · {{ tour.story.title }}</span>
+              <span class="text-muted-foreground truncate">{{ tour.story.steps[tour.step].note }}</span>
+              <span class="index-meta shrink-0">{{ tour.step + 1 }} / {{ tour.story.steps.length }}</span>
+              <button type="button" class="text-muted-foreground hover:text-foreground cursor-pointer shrink-0" @click="endTour">跳过</button>
+            </div>
+          </Transition>
+
+          <!-- 寻脉状态浮签（画布顶部中央） -->
+          <Transition name="guide-fade">
+            <div
+              v-if="routeMode === 'pick-destination'"
+              class="absolute top-3 left-1/2 -translate-x-1/2 z-20 px-4 py-1.5 bg-card/95 border border-border/80 text-[13px] font-serif text-foreground flex items-center gap-3"
+            >
+              <span class="dynasty-accent-text font-bold">寻脉</span>
+              <span>自「{{ routeFromName }}」出发 · 请点击终点星辰</span>
+              <button type="button" class="text-muted-foreground hover:text-foreground cursor-pointer" @click="cancelRoute">取消</button>
+            </div>
+          </Transition>
+
+          <!-- 操作提示（底部细条） -->
+          <div class="absolute bottom-0 inset-x-0 px-4 py-2 pb-3 sm:pb-2 flex flex-wrap items-center gap-x-5 gap-y-1 text-[12px] text-muted-foreground bg-gradient-to-t from-[color:var(--paper-base)] to-transparent pointer-events-none z-10">
+            <span>{{ show3d ? '拖动环视' : '拖动平移' }}</span>
+            <span>{{ show3d ? '滚轮推近' : '滚轮 / 双指缩放' }}</span>
+            <span>点击星辰聚焦</span>
+            <span>空白处取消</span>
+          </div>
+
+          <!-- 悬停题名（左上角即时反馈） -->
+          <Transition name="fade-swap">
+            <div
+              v-if="hovered && (!focused || hovered.id !== focused.id) && !tour"
+              class="absolute top-3 left-3 z-10 px-3 py-1.5 bg-card/90 border border-border/70 text-[13px] font-serif pointer-events-none"
+            >
+              {{ hovered.name }}
+              <span class="text-muted-foreground/80 ml-2">{{ hovered.dynasty }}</span>
+            </div>
+          </Transition>
+
+          <!-- 聚焦侧栏（窄屏为底部抽屉式横栏） -->
+          <Transition name="guide-fade">
+            <aside
+              v-if="focused"
+              class="absolute z-40 bg-card/95 backdrop-blur-sm border-l border-border/70 overflow-y-auto bottom-0 inset-x-0 max-h-[62%] border-t sm:border-t-0 sm:bottom-auto sm:inset-x-auto sm:top-0 sm:right-0 sm:h-full sm:w-[340px] sm:max-h-none"
+            >
+              <div class="p-5 space-y-5">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex items-center gap-2.5 min-w-0">
+                    <span
+                      class="w-2.5 h-2.5 shrink-0"
+                      :style="{ backgroundColor: focusedTheme?.accent }"
+                    ></span>
+                    <span class="index-meta truncate">{{ focused.dynasty }}{{ focused.entry?.era ? ' · ' + focused.entry.era : '' }}</span>
                   </div>
+                  <button
+                    type="button"
+                    class="text-muted-foreground hover:text-foreground cursor-pointer shrink-0"
+                    aria-label="收起侧栏"
+                    @click="closeFocus"
+                  >
+                    <X class="w-4 h-4" />
+                  </button>
+                </div>
 
-                  <div class="space-y-2">
-                    <div class="flex flex-wrap items-baseline gap-x-3 gap-y-2">
-                      <h2 class="display-heading !text-[1.6rem]">{{ focused.name }}</h2>
-                      <span class="index-meta">{{ typeLabel(focused.type) }}</span>
-                    </div>
+                <div class="space-y-2">
+                  <div class="flex flex-wrap items-baseline gap-x-3 gap-y-2">
+                    <h2 class="display-heading !text-[1.6rem]">{{ focused.name }}</h2>
+                    <span class="index-meta">{{ typeLabel(focused.type) }}</span>
+                  </div>
+                  <!-- 朝代锚点：本朝概览 -->
+                  <template v-if="dynastyFocus">
+                    <p class="text-[13px] font-serif text-muted-foreground">
+                      {{ dynastyFocus.theme.span }} · 收录 {{ dynastyFocus.count }} 条词条
+                    </p>
+                    <ul class="space-y-1.5 pt-1">
+                      <li v-for="t in dynastyFocus.top" :key="t.id" class="flex items-center gap-2 text-[13px] font-serif">
+                        <RouterLink :to="`/entry/${t.id}`" class="text-foreground/90 hover:text-[var(--dynasty-accent)] transition-colors shrink-0">
+                          {{ t.name }}
+                        </RouterLink>
+                        <span class="text-muted-foreground/70 truncate">{{ typeLabel(t.type) }}</span>
+                      </li>
+                    </ul>
+                    <p class="text-[12px] text-muted-foreground/70 font-serif pt-1">本朝星群已点亮，可继续点击其他星辰漫游</p>
+                  </template>
+                  <!-- 词条：度数 + 流式摘要 -->
+                  <template v-else>
                     <p class="text-[13px] font-serif text-muted-foreground">星度 {{ focused.degree }} 途 · {{ focusLinkCount }} 缕星光相连</p>
-                  </div>
+                  </template>
+                </div>
 
+                <template v-if="focused.kind === 'entry'">
                   <p v-if="focusSummary" class="text-[13px] font-serif text-foreground/85 leading-relaxed min-h-[4.5em]">
                     {{ focusSummary }}<span v-if="isTyping" class="ink-cursor"></span>
                   </p>
@@ -420,7 +509,6 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
                   <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
                     <RouterLink
-                      v-if="focused.kind === 'entry'"
                       :to="`/entry/${focused.id}`"
                       class="inline-flex items-center gap-1.5 text-[13px] font-serif text-[var(--dynasty-accent)] hover:opacity-80 transition-opacity"
                     >
@@ -428,7 +516,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
                       <ArrowRight class="w-3.5 h-3.5" />
                     </RouterLink>
                     <button
-                      v-if="focused.kind === 'entry' && focused.id !== routeFrom"
+                      v-if="focused.id !== routeFrom"
                       type="button"
                       class="inline-flex items-center gap-1.5 text-[13px] font-serif text-muted-foreground hover:text-[var(--dynasty-accent)] transition-colors cursor-pointer"
                       @click="startRouteFrom(focused.id)"
@@ -437,75 +525,67 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
                       <span>自此星寻脉</span>
                     </button>
                   </div>
+                </template>
 
-                  <!-- 因果流变（承前 / 启后） -->
-                  <template v-if="causalFlows">
-                    <div class="rule"></div>
-                    <div>
-                      <div class="eyebrow mb-2.5">因果流变 · 时序之链</div>
-                      <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-[13px] font-serif">
-                        <div>
-                          <div class="index-meta mb-1.5">承前 <span class="text-muted-foreground/60">{{ causalFlows.inCount }}</span></div>
-                          <ul class="space-y-1.5">
-                            <li v-for="(c, i) in causalFlows.incoming" :key="'in' + i">
-                              <RouterLink :to="`/entry/${c.id}`" class="text-foreground/85 hover:text-[var(--dynasty-accent)] transition-colors">{{ c.name }}</RouterLink>
-                              <span class="text-muted-foreground/60 block text-[12px]">{{ c.raw }}</span>
-                            </li>
-                            <li v-if="!causalFlows.incoming.length" class="text-muted-foreground/50">—</li>
-                          </ul>
-                        </div>
-                        <div>
-                          <div class="index-meta mb-1.5">启后 <span class="text-muted-foreground/60">{{ causalFlows.outCount }}</span></div>
-                          <ul class="space-y-1.5">
-                            <li v-for="(c, i) in causalFlows.outgoing" :key="'out' + i">
-                              <RouterLink :to="`/entry/${c.id}`" class="text-foreground/85 hover:text-[var(--dynasty-accent)] transition-colors">{{ c.name }}</RouterLink>
-                              <span class="text-muted-foreground/60 block text-[12px]">{{ c.raw }}</span>
-                            </li>
-                            <li v-if="!causalFlows.outgoing.length" class="text-muted-foreground/50">—</li>
-                          </ul>
-                        </div>
+                <!-- 因果流变（承前 / 启后） -->
+                <template v-if="causalFlows">
+                  <div class="rule"></div>
+                  <div>
+                    <div class="eyebrow mb-2.5">因果流变 · 时序之链</div>
+                    <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-[13px] font-serif">
+                      <div>
+                        <div class="index-meta mb-1.5">承前 <span class="text-muted-foreground/60">{{ causalFlows.inCount }}</span></div>
+                        <ul class="space-y-1.5">
+                          <li v-for="(c, i) in causalFlows.incoming" :key="'in' + i">
+                            <RouterLink :to="`/entry/${c.id}`" class="text-foreground/85 hover:text-[var(--dynasty-accent)] transition-colors">{{ c.name }}</RouterLink>
+                            <span class="text-muted-foreground/60 block text-[12px]">{{ c.raw }}</span>
+                          </li>
+                          <li v-if="!causalFlows.incoming.length" class="text-muted-foreground/50">—</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <div class="index-meta mb-1.5">启后 <span class="text-muted-foreground/60">{{ causalFlows.outCount }}</span></div>
+                        <ul class="space-y-1.5">
+                          <li v-for="(c, i) in causalFlows.outgoing" :key="'out' + i">
+                            <RouterLink :to="`/entry/${c.id}`" class="text-foreground/85 hover:text-[var(--dynasty-accent)] transition-colors">{{ c.name }}</RouterLink>
+                            <span class="text-muted-foreground/60 block text-[12px]">{{ c.raw }}</span>
+                          </li>
+                          <li v-if="!causalFlows.outgoing.length" class="text-muted-foreground/50">—</li>
+                        </ul>
                       </div>
                     </div>
-                  </template>
+                  </div>
+                </template>
 
-                  <template v-if="focusRelations.length">
-                    <div class="rule"></div>
-                    <div>
-                      <div class="eyebrow mb-2.5">关联谱系 · 星光所至</div>
-                      <ul class="space-y-2">
-                        <li
-                          v-for="(r, i) in focusRelations"
-                          :key="i"
-                          class="flex items-center gap-2 text-[13px] font-serif leading-snug"
-                        >
-                          <span
-                            class="w-4 shrink-0 border-t"
-                            :style="{
-                              borderColor: focusedTheme?.accent,
-                              borderTopStyle: familyLine(r.family) === 'dashed' ? 'dashed' : familyLine(r.family) === 'dotted' ? 'dotted' : 'solid',
-                              opacity: 0.8
-                            }"
-                          ></span>
-                          <RouterLink :to="`/entry/${r.otherId}`" class="text-foreground/90 hover:text-[var(--dynasty-accent)] transition-colors shrink-0">
-                            {{ r.other }}
-                          </RouterLink>
-                          <span class="text-muted-foreground/80 truncate">{{ r.raw }}<template v-if="r.dir === '入'"> ←</template></span>
-                        </li>
-                      </ul>
-                    </div>
-                  </template>
-                </div>
-              </aside>
-            </Transition>
-          </template>
-
-          <!-- 2D 降级版（窄屏 / WebGL 不可用）：共享同一布局的简化星图 -->
-          <Graph2D
-            v-else
-            ref="graph2dRef"
-            @focus="onFocus"
-            @ready="onStarReady"
-          />
+                <template v-if="focusRelations.length">
+                  <div class="rule"></div>
+                  <div>
+                    <div class="eyebrow mb-2.5">关联谱系 · 星光所至</div>
+                    <ul class="space-y-2">
+                      <li
+                        v-for="(r, i) in focusRelations"
+                        :key="i"
+                        class="flex items-center gap-2 text-[13px] font-serif leading-snug"
+                      >
+                        <span
+                          class="w-4 shrink-0 border-t"
+                          :style="{
+                            borderColor: focusedTheme?.accent,
+                            borderTopStyle: familyLine(r.family) === 'dashed' ? 'dashed' : familyLine(r.family) === 'dotted' ? 'dotted' : 'solid',
+                            opacity: 0.8
+                          }"
+                        ></span>
+                        <RouterLink :to="`/entry/${r.otherId}`" class="text-foreground/90 hover:text-[var(--dynasty-accent)] transition-colors shrink-0">
+                          {{ r.other }}
+                        </RouterLink>
+                        <span class="text-muted-foreground/80 truncate">{{ r.raw }}<template v-if="r.dir === '入'"> ←</template></span>
+                      </li>
+                    </ul>
+                  </div>
+                </template>
+              </div>
+            </aside>
+          </Transition>
         </div>
 
         <!-- 寻脉卷：BFS 最短关系链（像一页从星图上拓下的笺） -->
@@ -546,7 +626,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
               <li v-for="f in RELATION_FAMILIES" :key="f.id" class="flex items-center gap-2.5 text-[13px] font-serif">
                 <span
                   class="w-6 shrink-0 border-t-2"
-                  :style="{ borderColor: 'var(--ink-soft)', borderTopStyle: f.line === 'dashed' ? 'dashed' : f.line === 'dotted' ? 'dotted' : 'solid' }"
+                  :style="{ borderColor: familyHueLive(f.id), borderTopStyle: f.line === 'dashed' ? 'dashed' : f.line === 'dotted' ? 'dotted' : 'solid' }"
                 ></span>
                 <span class="text-foreground/90">{{ f.label }}</span>
               </li>
@@ -555,10 +635,18 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
           <div>
             <div class="eyebrow mb-3.5">星体图例 · 五种形态</div>
             <ul class="space-y-2.5 text-[13px] font-serif">
-              <li class="flex items-center gap-3"><span class="w-2.5 h-2.5 rounded-full bg-[var(--ink-soft)]"></span>人物 · 圆</li>
-              <li class="flex items-center gap-3"><span class="w-2.5 h-2.5 bg-[var(--ink-soft)]"></span>帝王 · 方</li>
-              <li class="flex items-center gap-3"><span class="w-2.5 h-2.5 bg-[var(--ink-soft)] rotate-45"></span>事件 · 菱形</li>
-              <li class="flex items-center gap-3"><span class="w-2.5 h-2.5 bg-[var(--ink-soft)]" style="clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0% 50%)"></span>典籍 / 制度 · 六边形</li>
+              <li class="flex items-center gap-3">
+                <span class="w-2.5 h-2.5 rounded-full" :style="{ backgroundColor: typeColor('figure') }"></span>人物 · 圆
+              </li>
+              <li class="flex items-center gap-3">
+                <span class="w-2.5 h-2.5" :style="{ backgroundColor: typeColor('emperor') }"></span>帝王 · 方
+              </li>
+              <li class="flex items-center gap-3">
+                <span class="w-2.5 h-2.5 rotate-45" :style="{ backgroundColor: typeColor('event') }"></span>事件 · 菱形
+              </li>
+              <li class="flex items-center gap-3">
+                <span class="w-2.5 h-2.5" :style="{ backgroundColor: typeColor('classic'), clipPath: 'polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0% 50%)' }"></span>典籍 / 制度 · 六边形
+              </li>
             </ul>
           </div>
           <div>

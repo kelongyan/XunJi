@@ -11,7 +11,7 @@
  * 从而既有编年骨架感、又有有机星群感（方案 §3.2）。
  */
 import { allHistoryEntries } from './index'
-import { dynastyThemes, type DynastyTheme } from './dynastyThemes'
+import { dynastyThemes, dynastyIdFromHanzi, type DynastyTheme } from './dynastyThemes'
 import { classifyRelation, type RelationFamily } from './relationTaxonomy'
 import type { HistoryEntry } from '../types/history'
 
@@ -136,15 +136,24 @@ function build(): GraphData {
   return { nodes, edges, degreeStats }
 }
 
-/** 朝代字段（'明' / '明朝' 等）→ 主题 id（与 dynastyThemes 同规则，避免循环依赖此处内联） */
+/** 朝代字段（'明' / '明朝' 等）→ 主题 id（复用 dynastyThemes 同规则） */
 function dynastyIdOf(hanzi: string | undefined): string {
-  if (!hanzi) return 'ming'
-  if (hanzi.startsWith('汉')) return 'han'
-  if (hanzi.startsWith('唐')) return 'tang'
-  if (hanzi.startsWith('宋')) return 'song'
-  if (hanzi.startsWith('明')) return 'ming'
-  if (hanzi.startsWith('清')) return 'qing'
-  return 'ming'
+  return dynastyIdFromHanzi(hanzi)
+}
+
+/** 词条类型 → 星体元数据（形状 / 日读色 / 夜读色），2D 与 3D 渲染共用唯一来源 */
+export const TYPE_META: Record<string, { label: string; shape: number; day: string; night: string }> = {
+  emperor: { label: '帝王篇', shape: 1, day: '#9c4a3c', night: '#e8846b' },
+  figure: { label: '人物篇', shape: 0, day: '#4a6478', night: '#8fb4d4' },
+  event: { label: '重大事件', shape: 2, day: '#8a7550', night: '#dcc08a' },
+  classic: { label: '传世典籍', shape: 3, day: '#5a7263', night: '#9dc2ac' },
+  system: { label: '典章制度', shape: 3, day: '#6b6459', night: '#bdb4a4' },
+  dynasty: { label: '朝代', shape: 0, day: '#8c8378', night: '#bdb4a4' }
+}
+
+/** 类型显示名（侧栏 / 悬停复用） */
+export function nodeTypeLabel(type: string): string {
+  return TYPE_META[type]?.label ?? type
 }
 
 export const graphData: GraphData = build()

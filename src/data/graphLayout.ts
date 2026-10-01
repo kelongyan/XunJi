@@ -5,7 +5,7 @@
  * 纯数据模块（无 three 依赖）——3D 场景与 2D 降级画布共用同一空间结构，
  * 保证窄屏降级时星辰相对位置与桌面端一致（空间记忆不丢失）。
  */
-import { graphData, dynastyAnchorPosition, type GraphNode } from './graph'
+import { graphData, dynastyAnchorPosition, TYPE_META, type GraphNode } from './graph'
 
 export interface LayoutNode {
   node: GraphNode
@@ -20,28 +20,13 @@ export interface LayoutNode {
   colorNight: string
   /** 索引邻接（高亮/寻路用） */
   neighbors: Set<number>
+  /** 仅朝代锚点：本朝词条索引集合（锚点聚焦时高亮本朝） */
+  members?: Set<number>
 }
 
 export interface GraphLayout {
   nodes: LayoutNode[]
   indexOfId: Map<string, number>
-}
-
-/** 类型基色（日读低饱和 / 夜读提亮）——形状为主编码、色彩为辅 */
-const TYPE_COLORS: Record<string, [string, string]> = {
-  emperor: ['#9c4a3c', '#e8846b'],
-  figure: ['#4a6478', '#8fb4d4'],
-  event: ['#8a7550', '#dcc08a'],
-  classic: ['#5a7263', '#9dc2ac'],
-  system: ['#6b6459', '#bdb4a4']
-}
-/** 节点形状：0=圆 1=方 2=菱形 3=六边形 */
-const TYPE_SHAPE: Record<string, number> = {
-  figure: 0,
-  emperor: 1,
-  event: 2,
-  classic: 3,
-  system: 3
 }
 
 /** 确定性 hash（同一词条永远同一扰动，布局可复现） */
@@ -61,7 +46,7 @@ export function getGraphLayout(): GraphLayout {
   if (cached) return cached
 
   const nodes: LayoutNode[] = graphData.nodes.map(n => {
-    const [day, night] = TYPE_COLORS[n.type] ?? TYPE_COLORS.system
+    const meta = TYPE_META[n.type] ?? TYPE_META.figure
     // 朝代锚点用本朝主题色（一朝一色的"定盘星"）
     const anchorColor: [string, string] | null =
       n.kind === 'dynasty' && n.theme ? [n.theme.accent, n.theme.accentNight] : null
@@ -72,9 +57,9 @@ export function getGraphLayout(): GraphLayout {
       y: anchor ? anchor[1] : 0,
       z: anchor ? anchor[2] : 0,
       size: 0,
-      shape: n.kind === 'dynasty' ? 0 : (TYPE_SHAPE[n.type] ?? 0),
-      colorDay: anchorColor ? anchorColor[0] : day,
-      colorNight: anchorColor ? anchorColor[1] : night,
+      shape: n.kind === 'dynasty' ? 0 : meta.shape,
+      colorDay: anchorColor ? anchorColor[0] : meta.day,
+      colorNight: anchorColor ? anchorColor[1] : meta.night,
       neighbors: new Set<number>()
     }
   })
@@ -106,6 +91,19 @@ export function getGraphLayout(): GraphLayout {
     nodes[a].neighbors.add(b)
     nodes[b].neighbors.add(a)
   }
+  // 朝代锚点：成员集合 + 与成员的归属邻接（点击锚点高亮本朝全部词条）
+  nodes.forEach((p, i) => {
+    if (p.node.kind !== 'dynasty') return
+    const members = new Set<number>()
+    nodes.forEach((q, j) => {
+      if (q.node.kind === 'entry' && q.node.dynastyId === p.node.dynastyId) {
+        members.add(j)
+        q.neighbors.add(i)
+        p.neighbors.add(j)
+      }
+    })
+    p.members = members
+  })
 
   // ── 初始化：词条以本朝锚点为心做螺旋星群（确定性） ──
   const byDyn = new Map<string, number[]>()
@@ -139,13 +137,20 @@ export function getGraphLayout(): GraphLayout {
   const CENTER_PULL = 0.0004
   const DAMP = 0.82
 
-  // 弹簧边对（去重：每条无向边只算一次）
+  // 弹簧边对（仅词条关系边；无向去重，与邻接集合的锚点归属互不干扰）
+  const seenPair = new Set<number>()
   const edgePairs: Array<[number, number]> = []
-  for (const p of nodes) {
-    const pi = nodes.indexOf(p)
-    for (const nb of p.neighbors) {
-      if (nb > pi) edgePairs.push([pi, nb])
-    }
+  for (const e of graphData.edges) {
+    if (e.kind !== 'relation') continue
+    const a = indexOfId.get(e.source)
+    const b = indexOfId.get(e.target)
+    if (a === undefined || b === undefined) continue
+    const lo = Math.min(a, b)
+    const hi = Math.max(a, b)
+    const key = lo * nodes.length + hi
+    if (seenPair.has(key)) continue
+    seenPair.add(key)
+    edgePairs.push([lo, hi])
   }
 
   const vel = nodes.map(() => ({ x: 0, y: 0, z: 0 }))

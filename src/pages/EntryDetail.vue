@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, watch } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
-import { ArrowLeft } from 'lucide-vue-next'
+import { ArrowLeft, ArrowRight } from 'lucide-vue-next'
 import TextbookHeader from '../components/common/TextbookHeader.vue'
 import SealStamp from '../components/common/SealStamp.vue'
 import { getEntryById, allHistoryEntries } from '../data'

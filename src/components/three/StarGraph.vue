@@ -14,6 +14,7 @@ import { useUiStore } from '../../stores/ui'
 import { graphData, dynastyAnchorPosition, type GraphNode, type GraphView, type PathStep } from '../../data/graph'
 import { getGraphLayout } from '../../data/graphLayout'
 import { dynastyThemes } from '../../data/dynastyThemes'
+import { RELATION_HUE, RELATION_HUE_NIGHT, type RelationFamily } from '../../data/relationTaxonomy'
 
 const emit = defineEmits<{
   focus: [node: GraphNode | null]
@@ -25,7 +26,9 @@ const emit = defineEmits<{
 const container = ref<HTMLElement | undefined>()
 const labelLayer = ref<HTMLDivElement | undefined>()
 const ui = useUiStore()
-const { supported, getHandle } = useThreeScene(container, { fov: 42, near: 0.5, far: 400 })
+/** 视野角（相机 / 取景 / 点尺寸标定共用唯一值） */
+const FOV_DEG = 42
+const { supported, getHandle } = useThreeScene(container, { fov: FOV_DEG, near: 0.5, far: 400 })
 
 const reducedMotion =
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -56,7 +59,11 @@ function updateLabelContent() {
   if (pathNodeSet) {
     idxs.push(...pathNodeSet)
   } else if (focusIdx >= 0) {
-    idxs.push(focusIdx, ...packed[focusIdx].neighbors)
+    // 聚焦邻域：先焦点、后按度数降序的邻接（朝代锚点成员多时优先显示重要词条）
+    const nbrs = [...packed[focusIdx].neighbors].sort(
+      (a, b) => packed[b].node.degree - packed[a].node.degree
+    )
+    idxs.push(focusIdx, ...nbrs)
   } else if (hoverIdx >= 0) {
     idxs.push(hoverIdx)
   }
@@ -95,14 +102,16 @@ function updateLabelPositions() {
 /* ── 色板（与 style.css token / dynastyThemes 对应）── */
 const DAY = {
   ink: new THREE.Color('#3D372F'),
-  edge: new THREE.Color('#8C8378'),
   bg: new THREE.Color('#F7F3E8')
 }
 const NIGHT = {
   ink: new THREE.Color('#EFE9DC'),
-  edge: new THREE.Color('#8B8070'),
   bg: new THREE.Color('#1A1611')
 }
+
+/* 关系族日/夜色速查（唯一来源：relationTaxonomy） */
+const hueDay = (family: string) => RELATION_HUE[family as RelationFamily] ?? RELATION_HUE.connect
+const hueNight = (family: string) => RELATION_HUE_NIGHT[family as RelationFamily] ?? RELATION_HUE_NIGHT.connect
 
 interface PackedNode {
   node: GraphNode
@@ -162,6 +171,15 @@ let hoverIdx = -1
 let focusIdx = -1
 /** 最近一次用户交互时间（梦境巡游用） */
 let lastInteraction = performance.now()
+/** 入场揭示进度 0→1（点亮星辰 + 相机缓推） */
+let revealT = 0
+/** 用户是否手动推拉过（手动后 resize 不强行重取景） */
+let userZoomed = false
+/** 边基准透明度（揭示动画在其上做乘法淡入） */
+let edgeBaseOpacity = 0.38
+/** 容器尺寸缓存（变化时重取景） */
+let lastW = 0
+let lastH = 0
 
 /* ── 确定性布局 ── */
 function hash01(seed: string, salt = 0): number {
@@ -201,16 +219,24 @@ function frameLayout() {
   }
   box.getCenter(camTarget)
   const size = box.getSize(new THREE.Vector3())
-  const fov = (42 * Math.PI) / 180
+  const fov = (FOV_DEG * Math.PI) / 180
   const aspect = Math.max(0.6, (container.value?.clientWidth ?? 1200) / (container.value?.clientHeight ?? 700))
   // 环绕视角下，水平约束取 x/z 较大者
   const halfY = size.y / 2
   const halfX = Math.max(size.x, size.z) / 2
   const dV = halfY / Math.tan(fov / 2)
   const dH = halfX / (Math.tan(fov / 2) * aspect)
-  const dist = Math.max(dV, dH) * 1.12
-  camState.radius = dist * 1.02
-  camState.radiusT = dist * 0.94
+  const dist = Math.max(dV, dH) * 1.06
+  camState.radiusT = dist
+  if (revealT === 0) {
+    // 入场：自远而近缓推，兼作"揭幕"（reducedMotion 时直接落位）
+    if (reducedMotion) {
+      camState.radius = dist
+    } else {
+      camState.radius = dist * 1.34
+      camState.phi = Math.min(Math.PI - 0.3, camState.phi + 0.1)
+    }
+  }
   homeTarget.copy(camTarget)
   camTargetT.copy(camTarget)
   homeRadius = camState.radiusT
@@ -225,21 +251,25 @@ attribute float aPhase;
 attribute vec3 aColorDay;
 attribute vec3 aColorNight;
 uniform float uNight;
+uniform float uReveal;
 uniform float uPixelRatio;
 uniform float uHeight;
 varying float vShape;
 varying float vHighlight;
 varying float vPhase;
+varying float vReveal;
 varying vec3 vColor;
 void main() {
   vShape = aShape;
   vHighlight = aHighlight;
   vPhase = aPhase;
+  // 入场渐显：按星辉相位错落点亮（同一颗星每次进入顺序一致）
+  vReveal = clamp(uReveal * 1.45 - aPhase * 0.45, 0.0, 1.0);
   vColor = mix(aColorDay, aColorNight, uNight);
   vec4 mv = modelViewMatrix * vec4(position, 1.0);
   gl_Position = projectionMatrix * mv;
   float worldSize = aSize * (1.0 + aHighlight * 0.3);
-  gl_PointSize = worldSize * (uHeight / (2.0 * tan(0.3665))) * uPixelRatio / max(1.0, -mv.z);
+  gl_PointSize = min(worldSize * (uHeight / (2.0 * tan(0.3665))) * uPixelRatio / max(1.0, -mv.z), 220.0);
 }
 `
 const NODE_FRAG = /* glsl */ `
@@ -247,11 +277,11 @@ precision highp float;
 varying float vShape;
 varying float vHighlight;
 varying float vPhase;
+varying float vReveal;
 varying vec3 vColor;
 uniform vec3 uInkDay;
 uniform vec3 uInkNight;
 uniform float uNight;
-uniform float uHover;
 uniform float uTime;
 void main() {
   vec2 uv = gl_PointCoord * 2.0 - 1.0;
@@ -273,10 +303,11 @@ void main() {
   float halo = 1.0 - smoothstep(0.1, 1.0, d);
   // 星辉闪烁：每颗星独立相位（夜读更明显），像呼吸的灯火
   float twinkle = 0.86 + 0.14 * sin(uTime * 0.9 + vPhase * 6.2832) * (0.35 + 0.65 * uNight);
-  float alpha = (core * 0.98 + halo * halo * 0.34) * twinkle;
+  if (vReveal <= 0.001) discard;
+  float alpha = (core * 0.98 + halo * halo * 0.34) * twinkle * vReveal;
   if (alpha < 0.012) discard;
   vec3 ink = mix(uInkDay, uInkNight, uNight);
-  float hl = clamp(vHighlight + uHover, 0.0, 1.4);
+  float hl = clamp(vHighlight, 0.0, 1.4);
   // 核心：类型色通透发光；暗态向墨色收敛但保底可见
   vec3 col = mix(mix(ink, vColor, 0.35), vColor, clamp(hl * 0.92, 0.0, 1.0));
   col += vColor * halo * halo * 0.55 * hl;
@@ -297,6 +328,8 @@ function buildScene() {
   computeLayout()
   frameLayout()
   buildLabelPool()
+  // 减少动态偏好：跳过揭示动画与闪烁
+  if (reducedMotion) revealT = 1
 
   const n = packed.length
   const posArr = new Float32Array(n * 3)
@@ -336,11 +369,11 @@ function buildScene() {
     fragmentShader: NODE_FRAG,
     uniforms: {
       uNight: { value: ui.mode === 'night' ? 1 : 0 },
+      uReveal: { value: 0 },
       uPixelRatio: { value: Math.min(window.devicePixelRatio || 1, 1.75) },
       uHeight: { value: container.value?.clientHeight ?? 600 },
       uInkDay: { value: DAY.ink.clone() },
       uInkNight: { value: NIGHT.ink.clone() },
-      uHover: { value: 0 },
       uTime: { value: 0 }
     },
     transparent: true,
@@ -466,7 +499,7 @@ function buildEdges(scene: THREE.Scene) {
     new THREE.LineBasicMaterial({
       vertexColors: true,
       transparent: true,
-      opacity: 0.3,
+      opacity: 0.38,
       depthWrite: false,
       blending: THREE.NormalBlending
     })
@@ -484,28 +517,20 @@ function quadBezier(a: THREE.Vector3, c: THREE.Vector3, b: THREE.Vector3, t: num
   )
 }
 
-/** 关系族基础色（日读 / 夜读统一用色相，夜读整体提亮）——整体偏淡，星图以星光为主 */
-const FAMILY_HUE: Record<string, number> = {
-  causal: 0x9a9288,
-  connect: 0xa8a092,
-  liege: 0xa8705e,
-  ally: 0x6f8496,
-  cultural: 0x7d9282,
-  analogy: 0xa08c66,
-  institut: 0x968468,
-  rival: 0xb4634f,
-  kindred: 0xa8705e,
-  martial: 0x96705c
-}
-
 function updateEdgeColors() {
   if (!edgeGeo) return
   const colAttr = edgeGeo.getAttribute('color') as THREE.BufferAttribute
   if (!colAttr) return
   const arr = colAttr.array as Float32Array
-  const night = ui.mode === 'night' ? 1 : 0
+  const night = ui.mode === 'night'
   const c = new THREE.Color()
   const viewFam = VIEW_FAMILIES[viewMode]
+  // 全局线透明度：寻脉时拉满（路径朱砂须醒目），夜读略压（防蛛网感）
+  edgeBaseOpacity = pathEdgeSet ? 0.95 : night ? 0.3 : 0.38
+  if (edgeMesh) {
+    const mat = edgeMesh.material as THREE.LineBasicMaterial
+    mat.opacity = edgeBaseOpacity
+  }
   edgeMeta.forEach((meta, ei) => {
     let r: number, g: number, b: number
     if (pathEdgeSet) {
@@ -513,19 +538,21 @@ function updateEdgeColors() {
       if (pathEdgeSet.has(ei)) {
         r = PATH_COLOR.r; g = PATH_COLOR.g; b = PATH_COLOR.b
       } else {
-        r = c.set(FAMILY_HUE[meta.family] ?? 0x8c8378).r * 0.1
+        r = c.set(hueDay(meta.family)).r * 0.1
         g = c.g * 0.1
         b = c.b * 0.1
       }
     } else {
-      const highlighted = focusIdx >= 0 && (meta.a === focusIdx || meta.b === focusIdx)
-      const dimmed = focusIdx >= 0 && !highlighted
-      c.set(FAMILY_HUE[meta.family] ?? 0x8c8378)
-      if (night) c.lerp(new THREE.Color(0xffffff), 0.35)
+      // 焦点优先，其次悬停（hover 时边轻压，不掩盖全局）
+      const activeIdx = focusIdx >= 0 ? focusIdx : hoverIdx
+      const isFocus = focusIdx >= 0
+      const highlighted = activeIdx >= 0 && (meta.a === activeIdx || meta.b === activeIdx)
+      const dimmed = activeIdx >= 0 && !highlighted
+      c.set(night ? hueNight(meta.family) : hueDay(meta.family))
       // 视图预设：非本族关系大幅降权；泛关系（关涉）常态即降权
       const inView = !viewFam || viewFam.has(meta.family)
       const familyWeight = (meta.family === 'connect' ? 0.55 : 1) * (inView ? 1 : 0.1)
-      const mul = (highlighted ? 1.0 : dimmed ? 0.28 : 0.62) * familyWeight
+      const mul = (highlighted ? 1.0 : dimmed ? (isFocus ? 0.28 : 0.6) : 0.62) * familyWeight
       r = c.r * mul
       g = c.g * mul
       b = c.b * mul
@@ -544,6 +571,8 @@ function updateEdgeColors() {
 /* 朝代锚点标签：canvas 白字纹理 + material.color 染色（白×色=任意色，昼夜切换零重建） */
 const ANCHOR_INK_DAY = new THREE.Color('#2B2620')
 const ANCHOR_INK_NIGHT = new THREE.Color('#F4EBDC')
+/** 与 anchorLabels 平行：每个标签对应的节点索引（聚焦联动压暗用） */
+let anchorLabelIdx: number[] = []
 function buildAnchorLabels(scene: THREE.Scene) {
   for (const theme of dynastyThemes) {
     const canvas = document.createElement('canvas')
@@ -563,14 +592,17 @@ function buildAnchorLabels(scene: THREE.Scene) {
     mat.color.copy(ui.mode === 'night' ? ANCHOR_INK_NIGHT : ANCHOR_INK_DAY)
     const sprite = new THREE.Sprite(mat)
     const anchor = dynastyAnchorPosition(theme.id)
-    sprite.position.set(anchor[0], anchor[1] + 6.8, anchor[2])
-    sprite.scale.set(9.5, 4.75, 1)
+    sprite.position.set(anchor[0], anchor[1] + 7.6, anchor[2])
+    sprite.scale.set(8.4, 4.2, 1)
     scene.add(sprite)
     anchorLabels.push(sprite)
+    anchorLabelIdx.push(indexOfId.get(`dynasty:${theme.id}`) ?? -1)
   }
 }
 
-/* 星尘：极淡的漂浮微点，夜读增强 */
+/* 星尘：极淡的漂浮微点，夜读增强（色随日/夜平滑过渡） */
+const DUST_DAY = new THREE.Color('#8C8378')
+const DUST_NIGHT = new THREE.Color('#8B8070')
 function buildStarDust(scene: THREE.Scene) {
   const COUNT = reducedMotion ? 0 : 420
   if (!COUNT) return
@@ -584,13 +616,26 @@ function buildStarDust(scene: THREE.Scene) {
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3))
   starDust = new THREE.Points(
     geo,
-    new THREE.PointsMaterial({ size: 0.22, color: DAY.edge.clone(), transparent: true, opacity: 0.32, depthWrite: false })
+    new THREE.PointsMaterial({ size: 0.22, color: DUST_DAY.clone(), transparent: true, opacity: 0.32, depthWrite: false })
   )
   scene.add(starDust)
 }
 
 /* ── 主循环 ── */
 function update(dt: number, t: number, camera: THREE.PerspectiveCamera) {
+  // 容器尺寸剧变（窗口缩放 / 侧栏挤压）：重新取景（入场完成后才响应，避免打断揭幕）
+  const w = container.value?.clientWidth ?? 0
+  const h = container.value?.clientHeight ?? 0
+  if (w > 0 && h > 0 && (w !== lastW || h !== lastH)) {
+    const first = lastW === 0
+    lastW = w
+    lastH = h
+    // 入场完成后、未聚焦/寻脉/手动缩放时，尺寸变化重取景
+    if (!first && revealT >= 1 && focusIdx < 0 && !pathNodeSet && !userZoomed) {
+      frameLayout()
+    }
+  }
+
   // 相机轨道（拖拽环绕 + 滚轮缩放）
   camState.theta += (camState.thetaT - camState.theta) * Math.min(1, dt * 5)
   camState.phi += (camState.phiT - camState.phi) * Math.min(1, dt * 5)
@@ -606,16 +651,29 @@ function update(dt: number, t: number, camera: THREE.PerspectiveCamera) {
   )
   camera.lookAt(camTarget)
 
+  // 入场揭示：星辰自上而下渐次点亮，星尘随之浮现
+  if (revealT < 1) {
+    revealT = Math.min(1, revealT + dt / 1.5)
+  }
+
   // 夜读过渡 + 星尘配色
   const nightTarget = ui.mode === 'night' ? 1 : 0
   if (material) {
     const u = material.uniforms
     u.uNight.value += (nightTarget - u.uNight.value) * Math.min(1, dt * 2)
     u.uTime.value = t
+    // 入场平滑步进（先慢后快再收）
+    const e = revealT * revealT * (3 - 2 * revealT)
+    u.uReveal.value = e
+    // 边随揭示渐显（迟于星辰半步，先见星后有网）
+    if (edgeMesh) {
+      const mat = edgeMesh.material as THREE.LineBasicMaterial
+      mat.opacity = edgeBaseOpacity * Math.min(1, Math.max(0, (revealT - 0.35) / 0.65))
+    }
     // 容器高度变化时同步点大小标定
-    const h = container.value?.clientHeight ?? 0
-    if (h > 0 && Math.abs((u.uHeight.value as number) - h) > 1) {
-      u.uHeight.value = h
+    const ch = container.value?.clientHeight ?? 0
+    if (ch > 0 && Math.abs((u.uHeight.value as number) - ch) > 1) {
+      u.uHeight.value = ch
     }
   }
   // 梦境巡游：空闲 8 秒后（无聚焦/无寻脉/未拖拽）相机极缓自转，如观星入梦
@@ -629,13 +687,19 @@ function update(dt: number, t: number, camera: THREE.PerspectiveCamera) {
   }
   if (starDust) {
     const m = starDust.material as THREE.PointsMaterial
-    m.color.lerp(ui.mode === 'night' ? NIGHT.edge : DAY.edge, Math.min(1, dt * 2))
+    m.color.lerp(ui.mode === 'night' ? DUST_NIGHT : DUST_DAY, Math.min(1, dt * 2))
     m.opacity = ui.mode === 'night' ? 0.5 : 0.32
   }
-  // 锚点标签：颜色向目标墨色（昼夜）过渡
-  for (const lbl of anchorLabels) {
-    const m = lbl.material as THREE.SpriteMaterial
+  // 锚点标签：颜色向目标墨色（昼夜）过渡 + 聚焦联动压暗
+  for (let li = 0; li < anchorLabels.length; li++) {
+    const m = anchorLabels[li].material as THREE.SpriteMaterial
     m.color.lerp(nightTarget ? ANCHOR_INK_NIGHT : ANCHOR_INK_DAY, Math.min(1, dt * 2))
+    const idx = anchorLabelIdx[li]
+    const inFocus = focusIdx >= 0 || !!pathNodeSet
+    const isActive = idx >= 0 && (idx === focusIdx || idx === hoverIdx || pathNodeSet?.has(idx))
+    // focus/寻脉：重压（4 倍收敛）；hover：轻压；常态：0.9
+    const targetOp = isActive ? 0.95 : inFocus ? 0.3 : hoverIdx >= 0 ? 0.62 : 0.9
+    m.opacity += (targetOp - m.opacity) * Math.min(1, dt * (inFocus ? 4 : 3))
   }
 
   // P1：寻脉粒子流动 + 中文标签跟随投影
@@ -724,6 +788,27 @@ function setPath(steps: PathStep[] | null) {
 function restoreHome() {
   camTargetT.copy(homeTarget)
   camState.radiusT = homeRadius
+  userZoomed = false
+}
+
+/** 圆形柔光点纹理（寻脉粒子用；模块级懒建一次） */
+let dotTexture: THREE.CanvasTexture | null = null
+function getDotTexture(): THREE.CanvasTexture {
+  if (dotTexture) return dotTexture
+  const size = 64
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')!
+  const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32)
+  g.addColorStop(0, 'rgba(255,255,255,1)')
+  g.addColorStop(0.32, 'rgba(255,255,255,0.95)')
+  g.addColorStop(1, 'rgba(255,255,255,0)')
+  ctx.fillStyle = g
+  ctx.fillRect(0, 0, size, size)
+  dotTexture = new THREE.CanvasTexture(canvas)
+  dotTexture.colorSpace = THREE.SRGBColorSpace
+  return dotTexture
 }
 
 function buildPathParticles(edgeIndices: number[]) {
@@ -748,7 +833,8 @@ function buildPathParticles(edgeIndices: number[]) {
     pathParticleGeo,
     new THREE.PointsMaterial({
       color: PATH_COLOR.clone(),
-      size: 1.1,
+      map: getDotTexture(),
+      size: 1.5,
       sizeAttenuation: true,
       transparent: true,
       opacity: 0.95,
@@ -808,10 +894,12 @@ function refreshHighlight() {
       for (let i = 0; i < packed.length; i++) arr[i] = 1
     } else {
       const nbrs = packed[activeIdx].neighbors
+      const isFocus = focusIdx >= 0
       for (let i = 0; i < packed.length; i++) {
         if (i === activeIdx) arr[i] = 1.35
         else if (nbrs.has(i)) arr[i] = 1.0
-        else arr[i] = 0.16
+        // hover 轻压（保持全图可读，仅示意关联）／focus 重压（聚焦叙事）
+        else arr[i] = isFocus ? 0.16 : 0.55
       }
     }
   }
@@ -854,11 +942,22 @@ function onPointerDown(e: PointerEvent) {
   dragging = true
   dragMoved = 0
   dragStart = { x: e.clientX, y: e.clientY }
+  // 指针捕获：拖拽移出画布仍持续环绕
+  try {
+    ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+  } catch {
+    /* 某些环境不支持捕获时静默降级 */
+  }
 }
 
 function onPointerUp(e: PointerEvent) {
   if (!dragging) return
   dragging = false
+  try {
+    ;(e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId)
+  } catch {
+    /* 忽略 */
+  }
   if (dragMoved < 6) {
     const cam = currentCamera()
     if (!cam) return
@@ -879,6 +978,7 @@ function onPointerUp(e: PointerEvent) {
 function onWheel(e: WheelEvent) {
   e.preventDefault()
   lastInteraction = performance.now()
+  userZoomed = true
   camState.radiusT = Math.min(110, Math.max(16, camState.radiusT + e.deltaY * 0.04))
 }
 
@@ -945,7 +1045,8 @@ watch(
   inset: 0;
   pointer-events: none;
   overflow: hidden;
-  z-index: 5;
+  /* 层序基线：画布之上、页面浮层（侧栏/浮签）之下 */
+  z-index: 2;
 }
 .sg-label {
   position: absolute;

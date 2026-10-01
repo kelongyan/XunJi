@@ -7,8 +7,9 @@
  */
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useUiStore } from '../../stores/ui'
-import { graphData, type GraphNode } from '../../data/graph'
+import { graphData, nodeTypeLabel, type GraphNode } from '../../data/graph'
 import { getGraphLayout } from '../../data/graphLayout'
+import { RELATION_HUE, RELATION_HUE_NIGHT, type RelationFamily } from '../../data/relationTaxonomy'
 
 const emit = defineEmits<{
   focus: [node: GraphNode | null]
@@ -26,8 +27,11 @@ interface P2DNode {
   y: number
   size: number
   shape: number
-  color: string
+  colorDay: string
+  colorNight: string
   neighbors: Set<number>
+  /** 仅朝代锚点：本朝成员 */
+  members?: Set<number>
 }
 
 let nodes: P2DNode[] = []
@@ -39,21 +43,21 @@ let dragging = false
 let dragMoved = 0
 let lastPointer = { x: 0, y: 0 }
 let focusId: string | null = null
+let hoverIdx = -1
 let ctx: CanvasRenderingContext2D | null = null
-
-/* 与 3D 同族的边基色（浅化） */
-const FAMILY_HUE: Record<string, string> = {
-  causal: '#9a9288',
-  connect: '#a8a092',
-  liege: '#a8705e',
-  ally: '#6f8496',
-  cultural: '#7d9282',
-  analogy: '#a08c66',
-  institut: '#968468',
-  rival: '#b4634f',
-  kindred: '#a8705e',
-  martial: '#96705c'
+/** rAF 节流：拖拽/缩放/悬停统一走帧驱动 */
+let raf = 0
+function requestDraw() {
+  if (raf) return
+  raf = requestAnimationFrame(() => {
+    raf = 0
+    draw()
+  })
 }
+
+/** 关系族日/夜色速查（与 3D / 图例同源） */
+const hueDay = (family: string) => RELATION_HUE[family as RelationFamily] ?? RELATION_HUE.connect
+const hueNight = (family: string) => RELATION_HUE_NIGHT[family as RelationFamily] ?? RELATION_HUE_NIGHT.connect
 
 function initNodes() {
   const layout = getGraphLayout()
@@ -65,9 +69,10 @@ function initNodes() {
     y: ln.z,
     size: ln.size,
     shape: ln.shape,
-    // 2D 布局取 x/z 平面（俯瞰星图），锚点高低压平
-    color: ln.node.kind === 'dynasty' ? ln.colorDay : ln.colorDay,
-    neighbors: ln.neighbors
+    colorDay: ln.colorDay,
+    colorNight: ln.colorNight,
+    neighbors: ln.neighbors,
+    members: ln.members
   }))
   indexOfId = layout.indexOfId
   edges = []
@@ -107,6 +112,19 @@ function toScreen(x: number, z: number): [number, number] {
 /* ── 绘制 ── */
 const night = () => ui.mode === 'night'
 
+/** 高亮集合：焦点（或悬停）邻域；无 active 时返回 null */
+function activeSetOf(): { set: Set<number>; focus: boolean } | null {
+  const activeId = focusId ?? (hoverIdx >= 0 ? nodes[hoverIdx].id : null)
+  if (!activeId) return null
+  const fi = indexOfId.get(activeId)
+  if (fi === undefined) return null
+  const s = new Set<number>([fi])
+  // 朝代锚点：高亮本朝全部成员（与 3D 锚点行为一致）
+  const scope = nodes[fi].members ?? nodes[fi].neighbors
+  scope.forEach(n => s.add(n))
+  return { set: s, focus: focusId !== null }
+}
+
 function draw() {
   const cv = canvasRef.value
   const el = container.value
@@ -124,30 +142,21 @@ function draw() {
   ctx.clearRect(0, 0, w, h)
 
   const isNight = night()
-  // 高亮集合：focus 邻域 / 无 focus 时空
-  const activeSet: Set<number> | null = focusId
-    ? (() => {
-        const s = new Set<number>()
-        const fi = indexOfId.get(focusId!)
-        if (fi !== undefined) {
-          s.add(fi)
-          nodes[fi].neighbors.forEach(n => s.add(n))
-        }
-        return s
-      })()
-    : null
+  const active = activeSetOf()
+  const activeSet = active?.set ?? null
 
-  // 边
+  // 边（族色；聚焦时非邻域隐没）
   ctx.lineWidth = 1
   for (const e of edges) {
     const na = nodes[e.a]
     const nb = nodes[e.b]
     const [x1, y1] = toScreen(na.x, na.y)
     const [x2, y2] = toScreen(nb.x, nb.y)
-    let alpha = 0.22
-    if (activeSet) alpha = activeSet.has(e.a) && activeSet.has(e.b) ? 0.75 : 0.05
+    let alpha = isNight ? 0.3 : 0.22
+    if (activeSet) alpha = activeSet.has(e.a) && activeSet.has(e.b) ? 0.8 : active?.focus ? 0.05 : 0.1
     if (e.family === 'connect') alpha *= 0.55
-    ctx.strokeStyle = isNight ? `rgba(210, 200, 180, ${alpha})` : hexAlpha(FAMILY_HUE[e.family] ?? '#8c8378', alpha)
+    const base = isNight ? hueNight(e.family) : hueDay(e.family)
+    ctx.strokeStyle = hexAlpha(base, alpha)
     ctx.beginPath()
     ctx.moveTo(x1, y1)
     ctx.lineTo(x2, y2)
@@ -159,7 +168,7 @@ function draw() {
     const n = nodes[i]
     const [sx, sy] = toScreen(n.x, n.y)
     const r = Math.max(2, n.size * view.scale * 0.8)
-    let color = isNight ? nightColor(n.color) : n.color
+    const color = isNight ? n.colorNight : n.colorDay
     let alpha = 1
     if (activeSet && !activeSet.has(i)) alpha = 0.16
     ctx.globalAlpha = alpha
@@ -167,23 +176,51 @@ function draw() {
     ctx.beginPath()
     drawShape(ctx, sx, sy, r, n.shape)
     ctx.fill()
-    // 夜读微光晕
+    // 夜读微光晕：聚焦节点加亮
     if (isNight && alpha === 1) {
-      ctx.globalAlpha = 0.25
+      ctx.globalAlpha = activeSet?.has(i) ? 0.4 : 0.22
       ctx.beginPath()
       ctx.arc(sx, sy, r * 1.9, 0, Math.PI * 2)
       ctx.fill()
     }
-    // 朝代锚点汉字
-    if (n.node.kind === 'dynasty') {
-      ctx.globalAlpha = alpha * 0.95
-      ctx.fillStyle = isNight ? '#F4EBDC' : '#2B2620'
-      ctx.font = `700 ${Math.max(14, r * 2.2)}px "Songti SC","STSong","SimSun",serif`
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.fillText(n.node.name, sx, sy - r - Math.max(10, r * 1.4))
-    }
     ctx.globalAlpha = 1
+  }
+
+  // 朝代锚点汉字（先节点后字，保证所有字盖在点上）
+  for (let i = 0; i < nodes.length; i++) {
+    const n = nodes[i]
+    if (n.node.kind !== 'dynasty') continue
+    const [sx, sy] = toScreen(n.x, n.y)
+    const r = Math.max(2, n.size * view.scale * 0.8)
+    ctx.globalAlpha = activeSet && !activeSet.has(i) ? 0.3 : 0.95
+    ctx.fillStyle = isNight ? '#F4EBDC' : '#2B2620'
+    ctx.font = `700 ${Math.max(14, r * 2.2)}px "Songti SC","STSong","SimSun",serif`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(n.node.name, sx, sy - r - Math.max(10, r * 1.4))
+    ctx.globalAlpha = 1
+  }
+
+  // 聚焦 / 悬停主题名（跟随节点，便于缩放后辨认）
+  const labelIdx = focusId ? indexOfId.get(focusId) : hoverIdx >= 0 ? hoverIdx : undefined
+  if (labelIdx !== undefined) {
+    const n = nodes[labelIdx]
+    const [sx, sy] = toScreen(n.x, n.y)
+    const r = Math.max(2, n.size * view.scale * 0.8)
+    const label = n.node.name + (n.node.kind === 'entry' ? ' · ' + nodeTypeLabel(n.node.type) : '')
+    ctx.font = '600 12px "Source Han Serif SC","Noto Serif SC","Songti SC","SimSun",serif'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'bottom'
+    const tw = ctx.measureText(label).width
+    const lx = sx
+    const ly = sy - r - 6
+    // 纸底衬垫（保证叠在任何线上都可读）
+    ctx.globalAlpha = 0.9
+    ctx.fillStyle = isNight ? 'rgba(26, 22, 17, 0.85)' : 'rgba(247, 243, 232, 0.88)'
+    ctx.fillRect(lx - tw / 2 - 5, ly - 15, tw + 10, 18)
+    ctx.globalAlpha = 1
+    ctx.fillStyle = isNight ? '#EFE9DC' : '#1F1B16'
+    ctx.fillText(label, lx, ly)
   }
 }
 
@@ -217,15 +254,6 @@ function hexAlpha(hex: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
-/** 夜读节点色：向暖白提亮 */
-function nightColor(dayHex: string): string {
-  const r = parseInt(dayHex.slice(1, 3), 16)
-  const g = parseInt(dayHex.slice(3, 5), 16)
-  const b = parseInt(dayHex.slice(5, 7), 16)
-  const lift = (v: number) => Math.min(255, Math.round(v * 0.55 + 200 * 0.45))
-  return `rgb(${lift(r)}, ${lift(g)}, ${lift(b)})`
-}
-
 /* ── 交互 ── */
 function pick(clientX: number, clientY: number): number {
   const el = container.value
@@ -247,24 +275,72 @@ function pick(clientX: number, clientY: number): number {
   return best
 }
 
+/** 双指捏合缩放（移动端降级版的主要缩放手段） */
+const touches = new Map<number, { x: number; y: number }>()
+let pinchDist = 0
+
 function onPointerDown(e: PointerEvent) {
   dragging = true
   dragMoved = 0
   lastPointer = { x: e.clientX, y: e.clientY }
+  if (e.pointerType === 'touch') {
+    touches.set(e.pointerId, { x: e.clientX, y: e.clientY })
+    if (touches.size === 2) {
+      const [a, b] = [...touches.values()]
+      pinchDist = Math.hypot(a.x - b.x, a.y - b.y)
+    }
+  }
+  try {
+    ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+  } catch {
+    /* 忽略 */
+  }
 }
 
 function onPointerMove(e: PointerEvent) {
-  if (!dragging) return
+  if (e.pointerType === 'touch' && touches.has(e.pointerId)) {
+    touches.set(e.pointerId, { x: e.clientX, y: e.clientY })
+  }
+  if (!dragging) {
+    // 悬停拾取（桌面端）：变更时重绘
+    if (e.pointerType !== 'touch') {
+      const idx = pick(e.clientX, e.clientY)
+      if (idx !== hoverIdx) {
+        hoverIdx = idx
+        const el = container.value
+        if (el) el.style.cursor = idx >= 0 ? 'pointer' : 'grab'
+        requestDraw()
+      }
+    }
+    return
+  }
+  // 双指捏合
+  if (e.pointerType === 'touch' && touches.size === 2) {
+    const [a, b] = [...touches.values()]
+    const d = Math.hypot(a.x - b.x, a.y - b.y)
+    if (pinchDist > 0) zoomAt((a.x + b.x) / 2, (a.y + b.y) / 2, d / pinchDist)
+    pinchDist = d
+    dragMoved += 10
+    requestDraw()
+    return
+  }
   const dx = e.clientX - lastPointer.x
   const dy = e.clientY - lastPointer.y
   dragMoved += Math.abs(dx) + Math.abs(dy)
   view.ox += dx
   view.oy += dy
   lastPointer = { x: e.clientX, y: e.clientY }
-  draw()
+  requestDraw()
 }
 
 function onPointerUp(e: PointerEvent) {
+  touches.delete(e.pointerId)
+  if (touches.size < 2) pinchDist = 0
+  try {
+    ;(e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId)
+  } catch {
+    /* 忽略 */
+  }
   if (!dragging) return
   dragging = false
   if (dragMoved < 8) {
@@ -276,28 +352,31 @@ function onPointerUp(e: PointerEvent) {
       focusId = null
       emit('focus', null)
     }
-    draw()
+    requestDraw()
   }
+}
+
+/** 以屏幕点 (px, py) 为锚缩放 */
+function zoomAt(px: number, py: number, factor: number) {
+  const el = container.value
+  if (!el) return
+  const rect = el.getBoundingClientRect()
+  const ax = px - rect.left
+  const ay = py - rect.top
+  const newScale = Math.min(4, Math.max(0.3, view.scale * factor))
+  const k = newScale / view.scale
+  view.ox = ax - (ax - view.ox) * k
+  view.oy = ay - (ay - view.oy) * k
+  view.scale = newScale
 }
 
 function onWheel(e: WheelEvent) {
   e.preventDefault()
-  const el = container.value
-  if (!el) return
-  const rect = el.getBoundingClientRect()
-  const px = e.clientX - rect.left
-  const py = e.clientY - rect.top
-  // 以指针为锚点缩放
-  const factor = e.deltaY > 0 ? 0.9 : 1.1
-  const newScale = Math.min(4, Math.max(0.3, view.scale * factor))
-  const k = newScale / view.scale
-  view.ox = px - (px - view.ox) * k
-  view.oy = py - (py - view.oy) * k
-  view.scale = newScale
-  draw()
+  zoomAt(e.clientX, e.clientY, e.deltaY > 0 ? 0.9 : 1.1)
+  requestDraw()
 }
 
-/* 外部聚焦（导览/深链）→ 2D 同步高亮 */
+/* 外部聚焦（导览/深链）→ 2D 同步高亮 + 通知侧栏（与 3D 同协议） */
 function focusNodeById(id: string): boolean {
   if (!indexOfId.has(id)) return false
   focusId = id
@@ -311,7 +390,8 @@ function focusNodeById(id: string): boolean {
       view.oy += el.clientHeight / 2 - sy
     }
   }
-  draw()
+  requestDraw()
+  emit('focus', n.node)
   return true
 }
 
@@ -329,18 +409,22 @@ onMounted(() => {
   ctx = cv.getContext('2d')
   fitView()
   draw()
+  el.style.cursor = 'grab'
   ro = new ResizeObserver(resize)
   ro.observe(el)
   emit('ready')
 })
 
 onBeforeUnmount(() => {
+  if (raf) cancelAnimationFrame(raf)
+  raf = 0
   ro?.disconnect()
   ro = null
   ctx = null
   nodes = []
   indexOfId = new Map()
   edges = []
+  touches.clear()
 })
 
 watch(
@@ -364,7 +448,7 @@ defineExpose({
   },
   clearFocus: () => {
     focusId = null
-    draw()
+    requestDraw()
   }
 })
 </script>
