@@ -389,9 +389,10 @@ body {
   border: 1px solid color-mix(in srgb, var(--dynasty-accent) 55%, transparent);
   padding: 7px;
   background-color: var(--card);
+  /* 装裱内衬降轻（2026-10-01 UI 精修）：细线化，避免"盒子感" */
   box-shadow:
-    inset 0 0 0 1px var(--border),
-    0 1px 4px rgba(31, 27, 22, 0.08);
+    inset 0 0 0 1px var(--hairline),
+    0 1px 3px rgba(31, 27, 22, 0.05);
 }
 
 /* 页边朱批：竖排楷体批注位（静态史家评点 / 后续 AI 批语共用此样式） */
