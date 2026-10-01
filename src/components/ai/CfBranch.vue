@@ -43,7 +43,18 @@ async function continueInk() {
         parentPath: props.ancestry ?? []
       }),
       // 结构化输出走快速档（非推理模型），JSON 小预算不会被思考链烧穿
-      { model: MODEL_FAST, maxTokens: 900, temperature: 0.9 }
+      {
+        model: MODEL_FAST,
+        maxTokens: 900,
+        temperature: 0.9,
+        // 演示回放：预录一层推演（录制/断网兜底；真模型时忽略）
+        replayText: JSON.stringify({
+          branch: '兵制既改 · 边患未已',
+          narrative:
+            '开元末，朝廷革府兵之弊，尽收藩镇兵权于中枢。安禄山虽为节帅，然无兵可调，遽难为乱。然塞外吐蕃、契丹犹在，边镇戍卒由京官遥领，战守机宜每失于迟。边备既弛，胡骑得窥虚实，其患岂减于内乱乎？此当为史臣所深问。',
+          children: [{ hint: '边镇空虚之变' }, { hint: '中枢遥制之弊' }]
+        })
+      }
     )
     if (seq !== genSeq) return // 已被重置/切换
     const idBase = `cf-ai-${Date.now()}-${seq}`

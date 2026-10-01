@@ -80,18 +80,21 @@ function sleep(ms: number, signal?: AbortSignal): Promise<void> {
   })
 }
 
-/** 预录文本逐字回放（每 tick 吐 2-4 字，模拟流式节奏；reduced 节奏约 24ms/tick） */
+/** 预录文本逐字回放（每 tick 吐 2-4 字，模拟流式节奏）。
+ *  ~100ms/tick（≈30 字/秒）是"史官现书"的观赏节奏：长文（B1 解读 358 字）
+ *  ≈12 秒写完，短批（朱批 48 字）≈1.6 秒——既能看清书写过程，又不拖节奏。 */
 async function replayStream(
   text: string,
   onDelta: (s: string) => void,
   opts: StreamOptions
 ): Promise<string> {
+  const tick = 100
   let i = 0
   while (i < text.length) {
     const step = 2 + Math.floor(Math.random() * 3)
     onDelta(text.slice(i, i + step))
     i += step
-    await sleep(24, opts.signal)
+    await sleep(tick, opts.signal)
   }
   return text
 }

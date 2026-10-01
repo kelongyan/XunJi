@@ -7,6 +7,7 @@
  * 答题正确时盖小朱印（复用 stamp-pressing 动效），放榜走 v-reveal 错落。
  */
 import { computed, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import TextbookHeader from '../components/common/TextbookHeader.vue'
 import SealStamp from '../components/common/SealStamp.vue'
 import Masthead from '../components/common/Masthead.vue'
@@ -22,8 +23,15 @@ import { playStampSound } from '../composables/useSound'
 
 type Phase = 'answer' | 'reveal' | 'result'
 
+const route = useRoute()
+/** 可选 ?seed= 固定题卷（演示录制 / 回归测试用；缺省按时间随机） */
+function seedFromRoute(): number {
+  const raw = Number(route.query.seed)
+  return Number.isFinite(raw) && raw > 0 ? raw : Date.now()
+}
+
 /** 每次入卷换题（"再考一卷"也走这里） */
-const paper = ref(generateExamPaper())
+const paper = ref(generateExamPaper(seedFromRoute()))
 const idx = ref(0)
 const phase = ref<Phase>('answer')
 /** 本卷每题的选择（-1 未答） */

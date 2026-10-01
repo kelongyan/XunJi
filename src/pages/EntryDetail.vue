@@ -150,9 +150,15 @@ async function runLive() {
         liveBuffer += delta
         displayedText.value = liveBuffer
       },
-      // 预算须覆盖思考链 + 正文（Atria 的 reasoning:false 只减不消，个别词条
-      // 思考链会超长——实测郑和条约 2000 被烧穿，留足 4000）
-      { signal: liveAbort.signal, maxTokens: 4000 }
+      {
+        signal: liveAbort.signal,
+        // 预算须覆盖思考链 + 正文（Atria 的 reasoning:false 只减不消，个别词条
+        // 思考链会超长——实测郑和条约 2000 被烧穿，留足 4000）
+        maxTokens: 4000,
+        // 演示回放（VITE_LLM_REPLAY=1）：以词条自带的深度解读逐字回放，
+        // 与真流式 UI 同观感，零网络依赖（录制 / 断网演示兜底）
+        replayText: entry.value.interpretation
+      }
     )
     isTypingManual.value = false
   } catch (e) {
@@ -212,7 +218,12 @@ async function genComment() {
         aiComment.value = buf
       },
       // 短文本走快速档（非推理模型，秒回；主力 reasoning 模型思考链会烧穿小预算——实测 §0.3）
-      { model: MODEL_FAST, maxTokens: 400 }
+      {
+        model: MODEL_FAST,
+        maxTokens: 400,
+        // 演示回放：预录一条张居正批语（录制/断网兜底；真模型时忽略）
+        replayText: entry.value.comment ?? '史臣曰：功冠一时，而祸发身后；威震九重，而名毁于酷。刚愎之失，惜哉。'
+      }
     )
     commentState.value = 'done'
   } catch (err) {
@@ -294,7 +305,14 @@ async function studyPlate() {
       // 图版必须走 vision 模型（主力 Atria 不支持图像——"未获入目"实测踩坑）。
       // intern-s2 视觉稳（kimi-k2.6 思考链烧穿任何预算，弃用）；
       // 但其推理链较长（实测 ~600-1400 tokens），预算须 ≥2500，耗时约 60-90s
-      { model: MODEL_VISION, maxTokens: 2600, signal: studyAbort.signal }
+      {
+        model: MODEL_VISION,
+        maxTokens: 2600,
+        signal: studyAbort.signal,
+        // 演示回放：预录一段考据（录制/断网兜底；真模型时忽略）
+        replayText:
+          '所给惟画像一帧。其人朱袍玉带，冠展脚幞头，胸缀仙鹤云纹，执简而立，背衬殿阁松峦。按旧制，仙鹤为文官一品补子；然幞头展脚之式，近于宋制。此或后世追绘前贤之图，未可知也。\n\n然站内所止此丹青，不见姓名、爵里、行状、出处。无征不信，阙疑为上。其人谁氏、历官何如、功过安在，卷中未载，不敢妄拟。\n\n史臣曰：丹青可传衣冠之神，而不可考信。史官之法，必待简书；徒见云鹤补子、朱衣执简，不足以立传。宁阙毋滥，其此之谓。'
+      }
     )
     relicStudy.value.state = 'done'
     relicStudy.value.loading = false

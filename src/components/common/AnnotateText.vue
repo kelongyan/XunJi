@@ -163,7 +163,13 @@ async function askFollowup() {
         turn.a += d
         followupHistory.value = [...followupHistory.value] // 触发响应
       },
-      { model: MODEL_FAST, maxTokens: 500, signal: followupAbort.signal }
+      {
+        model: MODEL_FAST,
+        maxTokens: 500,
+        signal: followupAbort.signal,
+        // 演示回放：预录一条（录制/断网演示兜底；真模型时忽略）
+        replayText: '史臣曰：一条鞭法并赋役、征银两，开后世摊丁入亩之先声，然其弊在胥吏为奸，万历后渐失初意。'
+      }
     )
     followupLoading.value = false
     nextTick(positionCard)
