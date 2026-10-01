@@ -85,13 +85,19 @@ function select(id: string) {
           <p class="text-[15px] font-serif text-muted-foreground mt-3">{{ current.theme }}<span class="mx-2.5 text-border">·</span><span class="dynasty-accent-text">{{ current.dimension }}</span></p>
         </div>
 
-        <!-- 双栏对照 -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12" v-if="entryA && entryB">
+        <!-- 双栏对照（切组时甲/乙卷相向合拢，中缝线缝合、骑缝印落定） -->
+        <div v-if="entryA && entryB" :key="currentId" class="relative grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+          <!-- 中缝缝合线（合拢后自上而下画出；仅桌面） -->
+          <div class="hidden md:block absolute left-1/2 top-0 bottom-0 w-px -ml-px pointer-events-none duo-seam" aria-hidden="true"></div>
+          <!-- 骑缝印（两卷接缝处的压印，合拢后落下；仅桌面） -->
+          <div class="hidden md:flex absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 pointer-events-none duo-seal" aria-hidden="true">
+            <SealStamp text="骑缝" class="seal-stamp-sm" />
+          </div>
           <article
             v-for="(entry, i) in [entryA, entryB]"
             :key="entry.id"
-            v-reveal="i * 120"
-            class="relative pt-5"
+            class="relative pt-5 duo-join"
+            :class="i === 0 ? 'duo-join-left' : 'duo-join-right'"
             :style="{ borderTop: `2px solid ${accentOf(entry.dynasty)}` }"
           >
             <div class="flex items-center gap-2.5 mb-5">
