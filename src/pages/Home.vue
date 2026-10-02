@@ -11,6 +11,7 @@ import SearchSuggest from '../components/search/SearchSuggest.vue'
 import GuideOverlay from '../components/common/GuideOverlay.vue'
 import { getEntryById, getEntriesByType, allHistoryEntries } from '../data'
 import { siteStats } from '../data/siteStats'
+import { FEATURED_ENTRY_ID, DEFAULT_SEARCH_KEYWORD, FEATURED_BLURB } from '../data/featured'
 import { dynastyThemes, type DynastyTheme } from '../data/dynastyThemes'
 import type { ChronicleItem, CatalogExtRecord } from '../types/history'
 import { useUiStore } from '../stores/ui'
@@ -23,7 +24,7 @@ const ui = useUiStore()
 const { footprints, collections } = useFootprint()
 
 const searchKeyword = ref('')
-const todayEntry = getEntryById('zhang-juzheng')
+const todayEntry = getEntryById(FEATURED_ENTRY_ID)
 
 /** 首屏 3D 时空长河（窄屏 / WebGL 不可用时自动降级为静态封面） */
 const show3d = ref(true)
@@ -209,7 +210,7 @@ function onSearchSelect(entry: { id: string }) {
 function handleSearch() {
   router.push({
     path: '/search',
-    query: { q: searchKeyword.value || '张居正' }
+    query: { q: searchKeyword.value || DEFAULT_SEARCH_KEYWORD }
   })
 }
 
@@ -412,7 +413,7 @@ onBeforeUnmount(() => {
                     <span class="index-meta">{{ todayEntry.lifespan?.birth }}—{{ todayEntry.lifespan?.death }}</span>
                   </div>
                   <p class="text-[15px] font-serif text-muted-foreground mt-3">
-                    字叔大，号太岳，湖广江陵人。万历朝内阁首辅、明代杰出改革家。
+                    {{ FEATURED_BLURB }}
                   </p>
 
                   <div class="font-serif text-[15px] leading-loose text-foreground/90 mt-7">

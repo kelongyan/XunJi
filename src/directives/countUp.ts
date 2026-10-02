@@ -1,4 +1,5 @@
 import type { Directive } from 'vue'
+import { prefersReducedMotion } from '../utils/motion'
 
 /**
  * v-count-up：数字滚入视口后从 0 计数到目标值（编目数据的"落笔"动效）。
@@ -14,9 +15,7 @@ import type { Directive } from 'vue'
  *
  * prefers-reduced-motion 下直落终值。
  */
-const reduced =
-  typeof window !== 'undefined' &&
-  window.matchMedia('(prefers-reduced-motion: reduce)').matches
+const reduced = prefersReducedMotion()
 
 type CountUpValue = number | { to: number; duration?: number } | undefined
 

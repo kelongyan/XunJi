@@ -1,8 +1,10 @@
 /**
  * 盖印音效（WebAudio 现场合成，无音频素材依赖）。
- * 默认关闭；localStorage `xunji-sound` = '1' 时启用（页眉音量开关控制）。
+ * 默认关闭；localStorage key 统一本模块导出（stores/ui 共用，防双处漂移）。
  * 必须在用户手势后首次触发（浏览器自动播放策略），否则 ctx.resume()。
  */
+export const SOUND_KEY = 'xunji-sound'
+
 let ctx: AudioContext | null = null
 
 function ensureCtx(): AudioContext | null {
@@ -21,7 +23,7 @@ function ensureCtx(): AudioContext | null {
 
 export function isSoundEnabled(): boolean {
   try {
-    return localStorage.getItem('xunji-sound') === '1'
+    return localStorage.getItem(SOUND_KEY) === '1'
   } catch {
     return false
   }

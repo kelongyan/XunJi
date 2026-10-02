@@ -1,10 +1,9 @@
 import { defineStore } from 'pinia'
 
 const MODE_KEY = 'xunji-reading-mode'
-const SOUND_KEY = 'xunji-sound'
 export type ReadingMode = 'day' | 'night'
 
-import { playStampSound } from '../composables/useSound'
+import { playStampSound, SOUND_KEY } from '../composables/useSound'
 
 /** 隐私模式 / 配额满时 localStorage 会抛错：读失败给默认值，写失败静默降级 */
 function readLocal(key: string): string | null {

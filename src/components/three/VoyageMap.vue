@@ -12,6 +12,8 @@
 import { onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
 import { useThreeScene } from '../../composables/useThreeScene'
+import { makeCanvas, toTexture } from './canvasTexture'
+import { prefersReducedMotion } from '../../utils/motion'
 import { useUiStore } from '../../stores/ui'
 import { getVoyage, type VoyageChart, type VoyagePort } from '../../data/voyages'
 
@@ -21,8 +23,7 @@ const container = ref<HTMLElement>()
 const ui = useUiStore()
 const { supported, getHandle } = useThreeScene(container, { fov: 50, near: 0.1, far: 200 })
 
-const reducedMotion =
-  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+const reducedMotion = prefersReducedMotion()
 
 const CHART_TINT_DAY = new THREE.Color('#FFFFFF')
 const CHART_TINT_NIGHT = new THREE.Color('#5E584C')
@@ -42,20 +43,6 @@ const focus = (() => {
 const cam = { yaw: 0, pitch: 0.62, yawT: 0, pitchT: 0.62, dist: 22, distT: 22 }
 let dragging = false
 let last = { x: 0, y: 0 }
-
-function makeCanvas(w: number, h: number): [HTMLCanvasElement, CanvasRenderingContext2D] {
-  const c = document.createElement('canvas')
-  c.width = w
-  c.height = h
-  return [c, c.getContext('2d')!]
-}
-
-function toTexture(c: HTMLCanvasElement): THREE.CanvasTexture {
-  const tex = new THREE.CanvasTexture(c)
-  tex.colorSpace = THREE.SRGBColorSpace
-  tex.anisotropy = 4
-  return tex
-}
 
 /** 古地图底图：纸底 + 针路网格 + 罗盘 + 西洋水域晕染（无边框，四边渐隐） */
 function makeChartTexture(): THREE.CanvasTexture {

@@ -88,9 +88,10 @@ export const dynastyThemes: DynastyTheme[] = [
 
 export const defaultDynasty = dynastyThemes.find(d => d.id === 'ming')!
 
-/** 数据文件的 dynasty 字段（'明' / '明朝' 等）→ 主题 id */
+/** 数据文件的 dynasty 字段（'明' / '明朝' 等）或朝代 id（'ming'）→ 主题 id */
 export function dynastyIdFromHanzi(hanzi: string | undefined): string {
   if (!hanzi) return defaultDynasty.id
+  if (dynastyThemes.some(d => d.id === hanzi)) return hanzi
   const hit = dynastyThemes.find(d => hanzi.startsWith(d.hanzi))
   return hit ? hit.id : defaultDynasty.id
 }

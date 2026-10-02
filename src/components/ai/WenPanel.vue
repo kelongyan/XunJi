@@ -9,19 +9,13 @@ import { RouterLink } from 'vue-router'
 import { Search as SearchIcon, PenLine } from 'lucide-vue-next'
 import InkOut from '../common/InkOut.vue'
 import { askWen, retrieve, wenAvailable, extractCitations, type WenPassage } from '../../services/wen'
+import { WEN_EXAMPLES as EXAMPLES, REPLAY_WEN_ANSWER } from '../../services/replayFixtures'
 
 const question = ref('')
 const answer = ref('')
 const citations = ref<WenPassage[]>([])
 const state = ref<'idle' | 'loading' | 'done' | 'inkout'>('idle')
 let abort: AbortController | null = null
-
-/** 预置示例问（引导首次使用） */
-const EXAMPLES = [
-  '张居正改革为什么最终失败？',
-  '科举制度是怎么演变的？',
-  '宋朝为什么重文轻武？'
-]
 
 async function ask(q?: string) {
   const query = (q ?? question.value).trim()
@@ -39,7 +33,7 @@ async function ask(q?: string) {
       {
         // 演示回放：预录一段完整史官答（接入层 REPLAY_MODE=1 时 replayText 生效；
         // 结尾「——据《…》」供引用卡解析，名称须为站内词条名）
-        replayText: '史臣曰：张居正之败，非败于法，实败于势。观其当国十年，考成清丈、一条鞭法，太仓粟支十年，太仆银至四百余万，可谓起衰振隳。然威权过盛，独秉国政，倚太后与司礼监冯保之势，已伏怨府。神宗幼年受制，积憾于内；及居正病逝，帝亲政，即行清算，籍没抄家，祸延子孙。新政虽遭摧折，然一条鞭法与清丈成果多沿用不废，是法未尽亡，而人亡政息。其后神宗怠政近三十年，矿税病民，立储之争不休，朝局日坏，改革之基遂颓。故曰：张相之败，半在己之专擅，半在君心之翻覆。\n\n——据《张居正》《万历新政》《朱翊钧》',
+        replayText: REPLAY_WEN_ANSWER,
         signal: abort.signal
       }
     )

@@ -13,6 +13,7 @@
 import { allHistoryEntries } from './index'
 import { dynastyThemes, dynastyIdFromHanzi, type DynastyTheme } from './dynastyThemes'
 import { classifyRelation, type RelationFamily } from './relationTaxonomy'
+import { ENTRY_TYPES } from './entryMeta'
 import type { HistoryEntryCatalog } from '../types/history'
 
 export interface GraphNode {
@@ -141,13 +142,13 @@ function dynastyIdOf(hanzi: string | undefined): string {
   return dynastyIdFromHanzi(hanzi)
 }
 
-/** 词条类型 → 星体元数据（形状 / 日读色 / 夜读色），2D 与 3D 渲染共用唯一来源 */
+/** 词条类型 → 星体元数据（形状 / 日读色 / 夜读色）；label 与全站类型名同源（entryMeta） */
 export const TYPE_META: Record<string, { label: string; shape: number; day: string; night: string }> = {
-  emperor: { label: '帝王篇', shape: 1, day: '#9c4a3c', night: '#e8846b' },
-  figure: { label: '人物篇', shape: 0, day: '#4a6478', night: '#8fb4d4' },
-  event: { label: '重大事件', shape: 2, day: '#8a7550', night: '#dcc08a' },
-  classic: { label: '传世典籍', shape: 3, day: '#5a7263', night: '#9dc2ac' },
-  system: { label: '典章制度', shape: 3, day: '#6b6459', night: '#bdb4a4' },
+  emperor: { label: ENTRY_TYPES.emperor.graphLabel, shape: 1, day: '#9c4a3c', night: '#e8846b' },
+  figure: { label: ENTRY_TYPES.figure.graphLabel, shape: 0, day: '#4a6478', night: '#8fb4d4' },
+  event: { label: ENTRY_TYPES.event.graphLabel, shape: 2, day: '#8a7550', night: '#dcc08a' },
+  classic: { label: ENTRY_TYPES.classic.graphLabel, shape: 3, day: '#5a7263', night: '#9dc2ac' },
+  system: { label: ENTRY_TYPES.system.graphLabel, shape: 3, day: '#6b6459', night: '#bdb4a4' },
   dynasty: { label: '朝代', shape: 0, day: '#8c8378', night: '#bdb4a4' }
 }
 

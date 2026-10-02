@@ -7,6 +7,9 @@ import { onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
 import { useThreeScene } from '../../composables/useThreeScene'
 import { useUiStore } from '../../stores/ui'
+import { makeCanvas, toTexture } from './canvasTexture'
+import { prefersReducedMotion } from '../../utils/motion'
+import { SCENE_INK_DARK } from '../../data/sceneTheme'
 
 export interface RelicKind {
   kind: 'vase' | 'codex' | 'armillary' | 'ship' | 'typecase'
@@ -20,8 +23,7 @@ const container = ref<HTMLElement>()
 const ui = useUiStore()
 const { supported, getHandle } = useThreeScene(container, { fov: 42, near: 0.1, far: 60 })
 
-const reducedMotion =
-  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+const reducedMotion = prefersReducedMotion()
 
 let spinVel = 0.35
 let dragging = false
@@ -34,20 +36,6 @@ let ambientLight: THREE.AmbientLight | null = null
 let appearT = 0
 /** 夜读灯光过渡值（0=日读 1=夜读） */
 let nightValue = 0
-
-function makeCanvas(w: number, h: number): [HTMLCanvasElement, CanvasRenderingContext2D] {
-  const c = document.createElement('canvas')
-  c.width = w
-  c.height = h
-  return [c, c.getContext('2d')!]
-}
-
-function toTexture(c: HTMLCanvasElement): THREE.CanvasTexture {
-  const tex = new THREE.CanvasTexture(c)
-  tex.colorSpace = THREE.SRGBColorSpace
-  tex.anisotropy = 4
-  return tex
-}
 
 /** 青花缠枝纹（环绕瓶身） */
 function makePorcelainTexture(): THREE.CanvasTexture {
@@ -114,7 +102,7 @@ function makeLabelTexture(text: string): THREE.CanvasTexture {
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   text.split('').forEach((ch, i) => {
-    ctx.fillStyle = '#2B2620'
+    ctx.fillStyle = SCENE_INK_DARK
     ctx.fillText(ch, 32, 32 + i * 32)
   })
   return toTexture(c)
@@ -132,7 +120,7 @@ function makeTypeFaceTexture(ch: string): THREE.CanvasTexture {
   ctx.font = '700 34px "Songti SC", "STSong", "SimSun", serif'
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.fillStyle = '#2B2620'
+  ctx.fillStyle = SCENE_INK_DARK
   ctx.fillText(ch, 32, 34)
   return toTexture(c)
 }

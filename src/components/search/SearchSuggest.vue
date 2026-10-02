@@ -10,6 +10,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Search as SearchIcon } from 'lucide-vue-next'
 import { allHistoryEntries } from '../../data'
+import { entryTypeLabel } from '../../data/entryMeta'
 import type { HistoryEntryCatalog } from '../../types/history'
 import { splitHighlight } from '../../utils/highlight'
 
@@ -128,10 +129,6 @@ function doSelect(entry: HistoryEntryCatalog) {
   activeIndex.value = -1
   emit('select', entry)
 }
-
-function typeLabel(entry: HistoryEntryCatalog): string {
-  return entry.type === 'emperor' ? '帝王' : entry.type === 'figure' ? '人物' : entry.type === 'event' ? '事件' : entry.type === 'classic' ? '典籍' : '制度'
-}
 </script>
 
 <template>
@@ -177,7 +174,7 @@ function typeLabel(entry: HistoryEntryCatalog): string {
             </span>
             <span class="text-[13px] font-serif text-muted-foreground shrink-0">
               <span class="dynasty-accent-text">{{ entry.dynasty }}</span>
-              <span class="mx-1 text-border">/</span>{{ typeLabel(entry) }}<template v-if="entry.era"> · {{ entry.era }}</template>
+              <span class="mx-1 text-border">/</span>{{ entryTypeLabel(entry.type) }}<template v-if="entry.era"> · {{ entry.era }}</template>
             </span>
           </li>
           <li class="px-4 py-1.5 text-[12px] font-serif text-muted-foreground/70 border-t border-border/60 bg-background/60">

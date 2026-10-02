@@ -15,6 +15,7 @@ import { RouterLink } from 'vue-router'
 import { GLOSSARY, type GlossaryTerm } from '../../data/glossary'
 import { createChatStream, llmEnabled, MODEL_FAST } from '../../services/llm'
 import { PERSONA } from '../../services/prompts'
+import { REPLAY_FOLLOWUP } from '../../services/replayFixtures'
 
 const props = defineProps<{
   text: string
@@ -169,7 +170,7 @@ async function askFollowup() {
         maxTokens: 500,
         signal: followupAbort.signal,
         // 演示回放：预录一条（录制/断网演示兜底；真模型时忽略）
-        replayText: '史臣曰：一条鞭法并赋役、征银两，开后世摊丁入亩之先声，然其弊在胥吏为奸，万历后渐失初意。'
+        replayText: REPLAY_FOLLOWUP
       }
     )
     followupLoading.value = false

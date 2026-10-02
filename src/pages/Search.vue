@@ -9,6 +9,7 @@ import SearchSuggest from '../components/search/SearchSuggest.vue'
 import WenPanel from '../components/ai/WenPanel.vue'
 import { useSearch } from '../composables/useSearch'
 import { useTypewriter } from '../composables/useTypewriter'
+import { entryTypeLabel } from '../data/entryMeta'
 import { splitHighlight } from '../utils/highlight'
 import { allHistoryEntries } from '../data'
 import type { HistoryEntryCatalog } from '../types/history'
@@ -253,7 +254,7 @@ watch(() => route.query, () => {
                 <div class="space-y-2.5 flex-1 min-w-0">
                   <div class="flex flex-wrap items-baseline gap-x-4 gap-y-2">
                     <span class="text-[13px] tracking-[0.2em] text-[var(--dynasty-accent)]">
-                      {{ entry.type === 'emperor' ? '帝王' : entry.type === 'figure' ? '人物' : entry.type === 'event' ? '事件' : entry.type === 'classic' ? '典籍' : '制度' }}
+                      {{ entryTypeLabel(entry.type) }}
                     </span>
                     <h2 class="text-2xl md:text-3xl text-foreground" style="font-family: var(--font-serif)">
                       <RouterLink :to="`/entry/${entry.id}`" class="hover:text-[var(--dynasty-accent)] transition-colors inline-flex items-center gap-2">

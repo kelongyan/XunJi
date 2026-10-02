@@ -5,11 +5,12 @@
  * B2：叶子节点可「请史官续推」——LLM 活生成一层分支，挂到本地树；
  * 生成失败出墨尽态可重试；活生成内容同样带「非史实」标注。
  */
-import { ref } from 'vue'
+import { onBeforeUnmount, ref } from 'vue'
 import { Plus, PenLine } from 'lucide-vue-next'
 import type { CfNode } from '../../data/counterfactuals'
 import { chatJson, llmEnabled, MODEL_FAST } from '../../services/llm'
 import { counterfactualPrompt } from '../../services/prompts'
+import { REPLAY_CF_BRANCH } from '../../services/replayFixtures'
 import InkOut from '../common/InkOut.vue'
 
 const props = defineProps<{
@@ -26,11 +27,14 @@ const genState = ref<'idle' | 'loading' | 'done' | 'inkout'>('idle')
 /** 活生成的一层分支（独立于静态 children，同构渲染） */
 const aiChildren = ref<CfNode[]>([])
 let genSeq = 0
+let abort: AbortController | undefined
 
 async function continueInk() {
   if (genState.value === 'loading' || !llmEnabled()) return
   genState.value = 'loading'
   const seq = ++genSeq
+  abort?.abort()
+  abort = new AbortController()
   try {
     const out = await chatJson<{
       branch: string
@@ -48,12 +52,8 @@ async function continueInk() {
         maxTokens: 900,
         temperature: 0.9,
         // 演示回放：预录一层推演（录制/断网兜底；真模型时忽略）
-        replayText: JSON.stringify({
-          branch: '兵制既改 · 边患未已',
-          narrative:
-            '开元末，朝廷革府兵之弊，尽收藩镇兵权于中枢。安禄山虽为节帅，然无兵可调，遽难为乱。然塞外吐蕃、契丹犹在，边镇戍卒由京官遥领，战守机宜每失于迟。边备既弛，胡骑得窥虚实，其患岂减于内乱乎？此当为史臣所深问。',
-          children: [{ hint: '边镇空虚之变' }, { hint: '中枢遥制之弊' }]
-        })
+        replayText: REPLAY_CF_BRANCH,
+        signal: abort.signal
       }
     )
     if (seq !== genSeq) return // 已被重置/切换
@@ -77,6 +77,10 @@ async function continueInk() {
     genState.value = 'inkout'
   }
 }
+
+onBeforeUnmount(() => {
+  abort?.abort()
+})
 
 function resetGen() {
   genSeq++

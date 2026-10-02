@@ -1,13 +1,12 @@
 import type { Directive } from 'vue'
+import { prefersReducedMotion } from '../utils/motion'
 
 /**
  * v-reveal：滚动进入视口时渐显上浮（配合 style.css 的 .reveal-init / .reveal-in）。
  * 用法：v-reveal 或 v-reveal="120"（错落延迟毫秒）。
  * prefers-reduced-motion 下直接显示，不注册观察器。
  */
-const reduced =
-  typeof window !== 'undefined' &&
-  window.matchMedia('(prefers-reduced-motion: reduce)').matches
+const reduced = prefersReducedMotion()
 
 interface RevealEl extends HTMLElement {
   _revealObserver?: IntersectionObserver

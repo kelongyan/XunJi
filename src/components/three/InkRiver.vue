@@ -9,6 +9,9 @@ import * as THREE from 'three'
 import { useThreeScene } from '../../composables/useThreeScene'
 import { dynastyThemes, type DynastyTheme } from '../../data/dynastyThemes'
 import { useUiStore } from '../../stores/ui'
+import { makeCanvas, toTexture } from './canvasTexture'
+import { prefersReducedMotion } from '../../utils/motion'
+import { SCENE_INK, SCENE_INK_DARK, SCENE_MUTED } from '../../data/sceneTheme'
 
 const emit = defineEmits<{
   select: [theme: DynastyTheme]
@@ -23,8 +26,7 @@ const container = ref<HTMLElement>()
 const ui = useUiStore()
 const { supported, getHandle } = useThreeScene(container, { fov: 45, near: 0.1, far: 420 })
 
-const reducedMotion =
-  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+const reducedMotion = prefersReducedMotion()
 
 /* 河面灯火（夜读灯影，昼夜统一暖金色） */
 const LAMP = new THREE.Color('#E8B96A')
@@ -32,14 +34,14 @@ const LAMP = new THREE.Color('#E8B96A')
 /* ── 色板（与 style.css token 对应）── */
 const DAY = {
   paper: new THREE.Color('#F2EDDC'),
-  ink: new THREE.Color('#3D372F'),
+  ink: new THREE.Color(SCENE_INK),
   mountain: new THREE.Color('#5A5147'),
   /** 卷轴纸面日读原色（不染色） */
   scrollTint: new THREE.Color('#FFFFFF'),
   /** 漂浮墨点日读色 */
-  dust: new THREE.Color('#3D372F'),
+  dust: new THREE.Color(SCENE_INK),
   /** 聚字开场墨色 */
-  intro: new THREE.Color('#2B2620')
+  intro: new THREE.Color(SCENE_INK_DARK)
 }
 const NIGHT = {
   paper: new THREE.Color('#1A1611'),
@@ -59,21 +61,7 @@ let nightValue = nightTarget
 let introFinished = false
 const _tmpColor = new THREE.Color()
 
-/* ── canvas 纹理工具 ── */
-function makeCanvas(w: number, h: number): [HTMLCanvasElement, CanvasRenderingContext2D] {
-  const c = document.createElement('canvas')
-  c.width = w
-  c.height = h
-  const ctx = c.getContext('2d')!
-  return [c, ctx]
-}
-
-function toTexture(c: HTMLCanvasElement): THREE.CanvasTexture {
-  const tex = new THREE.CanvasTexture(c)
-  tex.colorSpace = THREE.SRGBColorSpace
-  tex.anisotropy = 4
-  return tex
-}
+/* ── canvas 纹理工具（makeCanvas/toTexture 共享于 ./canvasTexture）── */
 
 /** 山形纹理：只烘白色 + 透明度（颜色交给 material 染色，日/夜可过渡） */
 function makeMountainTexture(seed: number, alphaTop: number): THREE.CanvasTexture {
@@ -103,7 +91,7 @@ function makeScrollTexture(theme: DynastyTheme): THREE.CanvasTexture {
   const W = 640
   const H = 960
   const [c, ctx] = makeCanvas(W, H)
-  const INK = '#2B2620'
+  const INK = SCENE_INK_DARK
 
   const paperX = 34
   const paperY = 36
@@ -535,7 +523,7 @@ function buildScene() {
       // 悬停描框：可入卷的点亮朱砂，修典中的用灰墨弱描
       const ringTarget = isHover ? (isl.theme.live ? 0.55 : 0.22) : 0
       isl.ringMat.opacity += (ringTarget - isl.ringMat.opacity) * Math.min(1, dt * 6)
-      isl.ringMat.color.set(isl.theme.live ? isl.theme.accent : '#8c8378')
+      isl.ringMat.color.set(isl.theme.live ? isl.theme.accent : SCENE_MUTED)
       // 倒影：日读淡、夜读浓（灯影落水），悬停再亮一档
       const reflTarget = (0.14 + nightValue * 0.24) * (isHover ? 1.6 : 1)
       isl.reflectMat.opacity += (reflTarget - isl.reflectMat.opacity) * Math.min(1, dt * 3)

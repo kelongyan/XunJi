@@ -12,9 +12,11 @@ import * as THREE from 'three'
 import { useThreeScene } from '../../composables/useThreeScene'
 import { useUiStore } from '../../stores/ui'
 import { graphData, dynastyAnchorPosition, type GraphNode, type GraphView, type PathStep } from '../../data/graph'
-import { getGraphLayout } from '../../data/graphLayout'
+import { getGraphLayout, hash01 } from '../../data/graphLayout'
 import { dynastyThemes } from '../../data/dynastyThemes'
 import { RELATION_HUE, RELATION_HUE_NIGHT, type RelationFamily } from '../../data/relationTaxonomy'
+import { prefersReducedMotion } from '../../utils/motion'
+import { SCENE_INK, SCENE_INK_DARK, SCENE_MUTED, SCENE_PAPER_NIGHT, SCENE_PAPER_DAY, SCENE_PAPER_SOFT } from '../../data/sceneTheme'
 
 const emit = defineEmits<{
   focus: [node: GraphNode | null]
@@ -30,8 +32,7 @@ const ui = useUiStore()
 const FOV_DEG = 42
 const { supported, getHandle } = useThreeScene(container, { fov: FOV_DEG, near: 0.5, far: 400 })
 
-const reducedMotion =
-  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+const reducedMotion = prefersReducedMotion()
 
 /* ── 中文标签层（P1）：焦点邻域 DOM 投影，池化 ≤48 个 ── */
 let labelPool: HTMLDivElement[] = []
@@ -101,12 +102,12 @@ function updateLabelPositions() {
 
 /* ── 色板（与 style.css token / dynastyThemes 对应）── */
 const DAY = {
-  ink: new THREE.Color('#3D372F'),
+  ink: new THREE.Color(SCENE_INK),
   bg: new THREE.Color('#F7F3E8')
 }
 const NIGHT = {
-  ink: new THREE.Color('#EFE9DC'),
-  bg: new THREE.Color('#1A1611')
+  ink: new THREE.Color(SCENE_PAPER_SOFT),
+  bg: new THREE.Color(SCENE_PAPER_NIGHT)
 }
 
 /* 关系族日/夜色速查（唯一来源：relationTaxonomy） */
@@ -182,14 +183,7 @@ let lastW = 0
 let lastH = 0
 
 /* ── 确定性布局 ── */
-function hash01(seed: string, salt = 0): number {
-  let h = 2166136261 ^ salt
-  for (let i = 0; i < seed.length; i++) {
-    h ^= seed.charCodeAt(i)
-    h = Math.imul(h, 16777619)
-  }
-  return ((h >>> 0) % 100000) / 100000
-}
+/* hash01 与 quadBezierInto：graphLayout / 本组件共用，不再各自维护副本 */
 
 /* ── 消费共享布局（graphLayout.ts：2D/3D 同一空间结构）── */
 function computeLayout() {
@@ -508,12 +502,7 @@ function buildEdges(scene: THREE.Scene) {
 }
 
 function quadBezier(a: THREE.Vector3, c: THREE.Vector3, b: THREE.Vector3, t: number): THREE.Vector3 {
-  const u = 1 - t
-  return new THREE.Vector3(
-    u * u * a.x + 2 * u * t * c.x + t * t * b.x,
-    u * u * a.y + 2 * u * t * c.y + t * t * b.y,
-    u * u * a.z + 2 * u * t * c.z + t * t * b.z
-  )
+  return quadBezierInto(a, c, b, t, new THREE.Vector3())
 }
 
 function updateEdgeColors() {
@@ -568,8 +557,8 @@ function updateEdgeColors() {
 }
 
 /* 朝代锚点标签：canvas 白字纹理 + material.color 染色（白×色=任意色，昼夜切换零重建） */
-const ANCHOR_INK_DAY = new THREE.Color('#2B2620')
-const ANCHOR_INK_NIGHT = new THREE.Color('#F4EBDC')
+const ANCHOR_INK_DAY = new THREE.Color(SCENE_INK_DARK)
+const ANCHOR_INK_NIGHT = new THREE.Color(SCENE_PAPER_DAY)
 /** 与 anchorLabels 平行：每个标签对应的节点索引（聚焦联动压暗用） */
 let anchorLabelIdx: number[] = []
 function buildAnchorLabels(scene: THREE.Scene) {
@@ -600,7 +589,7 @@ function buildAnchorLabels(scene: THREE.Scene) {
 }
 
 /* 星尘：极淡的漂浮微点，夜读增强（色随日/夜平滑过渡） */
-const DUST_DAY = new THREE.Color('#8C8378')
+const DUST_DAY = new THREE.Color(SCENE_MUTED)
 const DUST_NIGHT = new THREE.Color('#8B8070')
 function buildStarDust(scene: THREE.Scene) {
   const COUNT = reducedMotion ? 0 : 420

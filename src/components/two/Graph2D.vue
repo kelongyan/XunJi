@@ -10,6 +10,7 @@ import { useUiStore } from '../../stores/ui'
 import { graphData, nodeTypeLabel, type GraphNode } from '../../data/graph'
 import { getGraphLayout } from '../../data/graphLayout'
 import { RELATION_HUE, RELATION_HUE_NIGHT, type RelationFamily } from '../../data/relationTaxonomy'
+import { SCENE_INK_DARK, SCENE_PAPER_NIGHT, SCENE_PAPER_DAY, SCENE_PAPER_SOFT } from '../../data/sceneTheme'
 
 const emit = defineEmits<{
   focus: [node: GraphNode | null]
@@ -193,7 +194,7 @@ function draw() {
     const [sx, sy] = toScreen(n.x, n.y)
     const r = Math.max(2, n.size * view.scale * 0.8)
     ctx.globalAlpha = activeSet && !activeSet.has(i) ? 0.3 : 0.95
-    ctx.fillStyle = isNight ? '#F4EBDC' : '#2B2620'
+    ctx.fillStyle = isNight ? SCENE_PAPER_DAY : SCENE_INK_DARK
     ctx.font = `700 ${Math.max(14, r * 2.2)}px "Songti SC","STSong","SimSun",serif`
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
@@ -219,7 +220,7 @@ function draw() {
     ctx.fillStyle = isNight ? 'rgba(26, 22, 17, 0.85)' : 'rgba(247, 243, 232, 0.88)'
     ctx.fillRect(lx - tw / 2 - 5, ly - 15, tw + 10, 18)
     ctx.globalAlpha = 1
-    ctx.fillStyle = isNight ? '#EFE9DC' : '#1F1B16'
+    ctx.fillStyle = isNight ? SCENE_PAPER_SOFT : SCENE_PAPER_NIGHT
     ctx.fillText(label, lx, ly)
   }
 }

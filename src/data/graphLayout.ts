@@ -29,8 +29,8 @@ export interface GraphLayout {
   indexOfId: Map<string, number>
 }
 
-/** 确定性 hash（同一词条永远同一扰动，布局可复现） */
-function hash01(seed: string, salt = 0): number {
+/** 确定性 hash（同一词条永远同一扰动，布局可复现；StarGraph 共用此实现） */
+export function hash01(seed: string, salt = 0): number {
   let h = 2166136261 ^ salt
   for (let i = 0; i < seed.length; i++) {
     h ^= seed.charCodeAt(i)

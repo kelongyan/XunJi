@@ -14,6 +14,7 @@ import SealStamp from '../components/common/SealStamp.vue'
 import { graphData, findPath, nodeTypeLabel, TYPE_META, PATH_DEMOS, GRAPH_VIEWS, GRAPH_STORIES, type GraphNode, type GraphView, type PathStep, type GraphStory } from '../data/graph'
 import { RELATION_FAMILIES, RELATION_FAMILY_META, type RelationFamily } from '../data/relationTaxonomy'
 import { defaultDynasty, getDynastyTheme } from '../data/dynastyThemes'
+import { useDynastyTint } from '../composables/useDynastyTint'
 import { useUiStore } from '../stores/ui'
 import { useTypewriter } from '../composables/useTypewriter'
 
@@ -56,16 +57,7 @@ watch(activeView, v => {
 })
 
 /* 页面进入即复位朝代染色（星图以全朝视角呈现，页面主题取明并为默认） */
-watch(
-  () => true,
-  () => {
-    document.documentElement.dataset.dynasty = defaultDynasty.id
-  },
-  { immediate: true }
-)
-onBeforeUnmount(() => {
-  document.documentElement.dataset.dynasty = defaultDynasty.id
-})
+useDynastyTint(() => defaultDynasty.id)
 
 /* ── 深链：/graph?focus=<id> → 图就绪后自动聚焦 ── */
 watch(

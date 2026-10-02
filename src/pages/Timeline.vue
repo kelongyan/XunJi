@@ -8,7 +8,9 @@ import Masthead from '../components/common/Masthead.vue'
 import CounterfactualPanel from '../components/ai/CounterfactualPanel.vue'
 import AnnotateText from '../components/common/AnnotateText.vue'
 import { dynastyTimelines } from '../data/timelines'
-import { dynastyThemes, getDynastyTheme, defaultDynasty } from '../data/dynastyThemes'
+import { dynastyThemes, getDynastyTheme } from '../data/dynastyThemes'
+import { useDynastyTint } from '../composables/useDynastyTint'
+import { prefersReducedMotion } from '../utils/motion'
 
 const route = useRoute()
 const router = useRouter()
@@ -30,16 +32,7 @@ const summaries: Record<string, string> = {
   qing: '清朝入关定鼎至宣统退位凡二百六十八年，上承康乾盛世之极盛，下历三千年未有之变局。从十全武功的拓疆到鸦片战争的屈辱，从洋务自强到辛亥鼎革，中国古代社会的终章在此写就。'
 }
 
-watch(
-  () => currentId.value,
-  id => {
-    document.documentElement.dataset.dynasty = id
-  },
-  { immediate: true }
-)
-onBeforeUnmount(() => {
-  document.documentElement.dataset.dynasty = defaultDynasty.id
-})
+useDynastyTint(() => currentId.value)
 
 function selectDynasty(id: string) {
   if (!availableIds.includes(id)) return
@@ -49,8 +42,7 @@ function selectDynasty(id: string) {
 /* ── 长卷「描线生长」：中轴墨线随滚动自上而下生长 ── */
 const axisRef = ref<HTMLElement | null>(null)
 const axisProgress = ref(0)
-const reducedMotion =
-  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+const reducedMotion = prefersReducedMotion()
 let scrollRaf = 0
 
 function updateAxis() {

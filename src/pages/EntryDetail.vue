@@ -6,13 +6,17 @@ import TextbookHeader from '../components/common/TextbookHeader.vue'
 import SealStamp from '../components/common/SealStamp.vue'
 import { allHistoryEntries, getEntryById as getCatalogEntryById, getIncomingRelatedEntries } from '../data'
 import { getEntryById } from '../data/details'
-import { dynastyIdFromHanzi, defaultDynasty } from '../data/dynastyThemes'
+import { FEATURED_ENTRY_ID } from '../data/featured'
+import { entryTypeGraphLabel, entryTypeSeal } from '../data/entryMeta'
 import { useTypewriter } from '../composables/useTypewriter'
 import { useFootprint } from '../composables/useFootprint'
 import { playStampSound } from '../composables/useSound'
+import { useDynastyTint } from '../composables/useDynastyTint'
+import { prefersReducedMotion } from '../utils/motion'
 import { downloadExLibris } from '../data/exlibris'
 import { createChatStream, userWithImage, llmEnabled, REPLAY_MODE, MODEL_VISION, MODEL_FAST } from '../services/llm'
 import { interpretPrompt, commentPrompt, relicPrompt } from '../services/prompts'
+import { REPLAY_COMMENT, REPLAY_PLATE_STUDY } from '../services/replayFixtures'
 import InkOut from '../components/common/InkOut.vue'
 import AnnotateText from '../components/common/AnnotateText.vue'
 import type { HistoryEntry, HistoryEntryCatalog } from '../types/history'
@@ -29,7 +33,7 @@ const VOYAGE_MOUNT: Record<string, { chartId: string; title: string }> = {
 const voyage = computed(() => VOYAGE_MOUNT[entry.value.id] ?? null)
 
 const route = useRoute()
-const entryId = computed(() => (route.params.id as string) || 'zhang-juzheng')
+const entryId = computed(() => (route.params.id as string) || FEATURED_ENTRY_ID)
 const entry = computed(() => getEntryById(entryId.value)!)
 
 /* 足迹：到访即留痕 */
@@ -95,21 +99,8 @@ const related = computed(() => {
     .map(x => x.entry)
 })
 
-function typeSeal(type: string): string {
-  return type === 'emperor' ? '帝' : type === 'figure' ? '人' : type === 'event' ? '事' : type === 'classic' ? '典' : '制'
-}
-
-/* 一朝一色：进入词条即染上该朝代的颜色 */
-watch(
-  () => entry.value.dynasty,
-  d => {
-    document.documentElement.dataset.dynasty = dynastyIdFromHanzi(d)
-  },
-  { immediate: true }
-)
-onBeforeUnmount(() => {
-  document.documentElement.dataset.dynasty = defaultDynasty.id
-})
+/* 一朝一色：进入词条即染上该朝代的颜色（composable 统一处理卸载复位） */
+useDynastyTint(() => entry.value.dynasty)
 
 const { displayedText, isTyping, start: startInterp, skip: skipInterp, stop: stopInterp } = useTypewriter({
   baseSpeed: 30,
@@ -205,7 +196,7 @@ const interpTyping = computed(() => (interpMode.value === 'live' ? isTypingManua
 
 function runFlow() {
   // reduced-motion：直落静态完整呈现，不出 AI（尊重系统动效偏好）
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  if (prefersReducedMotion()) {
     runStatic()
     if (entry.value?.interpretation) skipInterp(entry.value.interpretation)
     return
@@ -256,8 +247,8 @@ async function genComment() {
         model: MODEL_FAST,
         maxTokens: 400,
         signal: commentAbort.signal,
-        // 演示回放：预录一条张居正批语（录制/断网兜底；真模型时忽略）
-        replayText: entry.value.comment ?? '史臣曰：功冠一时，而祸发身后；威震九重，而名毁于酷。刚愎之失，惜哉。'
+        // 演示回放：预录一条批语（录制/断网兜底；真模型时忽略）
+        replayText: entry.value.comment ?? REPLAY_COMMENT
       }
     )
     if (entry.value.id !== requestEntryId) return
@@ -347,8 +338,7 @@ async function studyPlate() {
         timeoutMs: 150_000,
         signal: studyAbort.signal,
         // 演示回放：预录一段考据（录制/断网兜底；真模型时忽略）
-        replayText:
-          '所给惟画像一帧。其人朱袍玉带，冠展脚幞头，胸缀仙鹤云纹，执简而立，背衬殿阁松峦。按旧制，仙鹤为文官一品补子；然幞头展脚之式，近于宋制。此或后世追绘前贤之图，未可知也。\n\n然站内所止此丹青，不见姓名、爵里、行状、出处。无征不信，阙疑为上。其人谁氏、历官何如、功过安在，卷中未载，不敢妄拟。\n\n史臣曰：丹青可传衣冠之神，而不可考信。史官之法，必待简书；徒见云鹤补子、朱衣执简，不足以立传。宁阙毋滥，其此之谓。'
+        replayText: REPLAY_PLATE_STUDY
       }
     )
     relicStudy.value.state = 'done'
@@ -446,7 +436,7 @@ onBeforeUnmount(() => {
             <div class="space-y-5 flex-1 min-w-0">
               <div v-reveal="80" class="flex flex-wrap items-center gap-2.5 text-[13px] font-serif text-muted-foreground">
                 <span class="dynasty-chip px-2.5 py-0.5 tracking-wider">
-                  {{ entry.type === 'emperor' ? '帝王篇' : entry.type === 'figure' ? '人物篇' : entry.type === 'event' ? '重大事件' : '典章制度' }}
+                  {{ entryTypeGraphLabel(entry.type) }}
                 </span>
                 <span class="index-meta">正史核心词条</span>
               </div>
@@ -756,7 +746,7 @@ onBeforeUnmount(() => {
             >
               <div class="flex items-center justify-between mb-2">
                 <span class="text-[13px] font-serif text-muted-foreground">{{ rel.dynasty }}<template v-if="rel.era"> · {{ rel.era }}</template></span>
-                <span class="seal-stamp seal-stamp-sm">{{ typeSeal(rel.type) }}</span>
+                <span class="seal-stamp seal-stamp-sm">{{ entryTypeSeal(rel.type) }}</span>
               </div>
               <h4 class="text-base font-serif font-black text-foreground group-hover:text-primary transition-colors">{{ rel.name }}</h4>
               <p class="text-[15px] font-serif text-muted-foreground leading-relaxed mt-1.5 line-clamp-2">{{ rel.summary }}</p>
