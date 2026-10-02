@@ -3,7 +3,7 @@
  * 文物 3D 展台：程序化低模器物（青花瓶 / 书函 / 浑天仪 / 宝船），可拖转缩放。
  * 暖光展台 + 墨晕底座，器物 idle 缓慢自转，拖转带惯性。
  */
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
 import { useThreeScene } from '../../composables/useThreeScene'
 import { useUiStore } from '../../stores/ui'
@@ -386,10 +386,6 @@ onMounted(() => {
     },
     { immediate: true }
   )
-})
-
-onBeforeUnmount(() => {
-  document.body.style.cursor = ''
 })
 </script>
 

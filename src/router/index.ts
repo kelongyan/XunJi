@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import type { RouteLocationNormalized } from 'vue-router'
 
 const routes = [
   { path: '/', name: 'Home', component: () => import('../pages/Home.vue') },
@@ -8,18 +7,7 @@ const routes = [
     path: '/entry/:id',
     name: 'EntryDetail',
     component: () => import('../pages/EntryDetail.vue'),
-    props: true,
-    beforeEnter: async (to: RouteLocationNormalized) => {
-      const id = String(to.params.id)
-      try {
-        const { getEntryById, preloadEntryById } = await import('../data/details')
-        await preloadEntryById(id)
-        return getEntryById(id) ? true : { name: 'Search', query: { q: id } }
-      } catch {
-        // 详情 chunk 加载失败（弱网 / 发版后旧 hash 404）：落检索页而非中断导航
-        return { name: 'Search', query: { q: id } }
-      }
-    }
+    props: true
   },
   { path: '/timeline', name: 'Timeline', component: () => import('../pages/Timeline.vue') },
   { path: '/compare', name: 'Compare', component: () => import('../pages/Compare.vue') },
@@ -37,7 +25,8 @@ export const router = createRouter({
   }
 })
 
-// 同一路由仅切换 :id 时组件可能复用，统一在导航阶段预加载新的完整词条。
+// 详情页预加载统一收口在全局 beforeEach：beforeEnter 在仅 :id 变化、组件复用的
+// 导航中不会重跑（vue-router 4 只对 enteringRecords 执行），单独守它必漏参数切换。
 router.beforeEach(async to => {
   if (to.name !== 'EntryDetail') return true
   const id = String(to.params.id)

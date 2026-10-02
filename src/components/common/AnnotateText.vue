@@ -262,7 +262,6 @@ watch(active, t => {
               class="text-[12px] font-serif text-[var(--dynasty-accent)] hover:opacity-80 transition-opacity"
               @click="close"
             >直达此卷 →</RouterLink>
-            <span v-else-if="active.see" class="text-[12px] font-serif text-muted-foreground/60">参见「{{ active.see }}」</span>
             <span v-else class="text-[12px] font-serif text-muted-foreground/50">夹注</span>
             <button type="button" class="text-[12px] text-muted-foreground/60 hover:text-foreground transition-colors cursor-pointer" @click.stop="close">收</button>
           </div>

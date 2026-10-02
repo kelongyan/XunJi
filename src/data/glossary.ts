@@ -7,7 +7,6 @@
  *
  * 约定：
  * - `entryId` 指向站内词条时，夹注卡显示「直达此卷」；
- * - `see` 为交叉引用术语（无对应词条时用）；
  * - AnnotateText 自动标注最长匹配、不嵌套（见组件注释）。
  */
 
@@ -18,8 +17,6 @@ export interface GlossaryTerm {
   note: string
   /** 关联词条 id（站内直达） */
   entryId?: string
-  /** 交叉引用（见站内其他夹注） */
-  see?: string
   /** 类别（夹注卡角标） */
   kind: 'institution' | 'office' | 'event' | 'concept' | 'text'
 }

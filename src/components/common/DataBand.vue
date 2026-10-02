@@ -1,25 +1,11 @@
 <script setup lang="ts">
-withDefaults(
-  defineProps<{
-    items: { value: string | number; label: string }[]
-    /** 窄屏两列 / 桌面四列 */
-    columns?: 2 | 3 | 4
-  }>(),
-  { columns: 4 }
-)
+defineProps<{
+  items: { value: string | number; label: string }[]
+}>()
 </script>
 
 <template>
-  <div
-    class="grid"
-    :class="
-      columns === 3
-        ? 'grid-cols-3'
-        : columns === 2
-          ? 'grid-cols-2'
-          : 'grid-cols-2 sm:grid-cols-4'
-    "
-  >
+  <div class="grid grid-cols-2 sm:grid-cols-4">
     <div
       v-for="(item, i) in items"
       :key="item.label"

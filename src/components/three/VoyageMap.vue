@@ -9,7 +9,7 @@
  * 保持地图内容居中、四周只余"无边海面"。
  * 航线数据外置：voyages.ts（郑和下西洋 / 玄奘西行等），新图加数据即可挂载。
  */
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
 import { useThreeScene } from '../../composables/useThreeScene'
 import { useUiStore } from '../../stores/ui'
@@ -359,10 +359,6 @@ onMounted(() => {
     },
     { immediate: true }
   )
-})
-
-onBeforeUnmount(() => {
-  document.body.style.cursor = ''
 })
 </script>
 

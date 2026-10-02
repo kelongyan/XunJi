@@ -18,12 +18,10 @@ const props = withDefaults(
     modelValue: string
     placeholder?: string
     inputClass?: string
-    autoFocus?: boolean
   }>(),
   {
     placeholder: '检索历代人物、重大事件、传世典籍、官制兵制…',
-    inputClass: '',
-    autoFocus: false
+    inputClass: ''
   }
 )
 
@@ -134,10 +132,6 @@ function doSelect(entry: HistoryEntryCatalog) {
 function typeLabel(entry: HistoryEntryCatalog): string {
   return entry.type === 'emperor' ? '帝王' : entry.type === 'figure' ? '人物' : entry.type === 'event' ? '事件' : entry.type === 'classic' ? '典籍' : '制度'
 }
-
-defineExpose({
-  focus: () => inputRef.value?.focus()
-})
 </script>
 
 <template>
@@ -150,7 +144,6 @@ defineExpose({
       type="text"
       :value="modelValue"
       :placeholder="placeholder"
-      :autofocus="autoFocus"
       class="w-full pl-12 pr-4 py-3.5 bg-background/90 border-2 border-border focus:border-primary focus:outline-none text-foreground text-[15px] font-serif placeholder:font-serif placeholder:text-muted-foreground/70 transition-colors shadow-inner"
       :class="inputClass"
       @input="onInput"

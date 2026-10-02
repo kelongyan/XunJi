@@ -29,7 +29,7 @@ export interface GraphNode {
   theme?: DynastyTheme
 }
 
-export interface GraphEdge {
+interface GraphEdge {
   source: string
   target: string
   /** 归一化关系族（视觉编码） */
@@ -40,7 +40,7 @@ export interface GraphEdge {
   kind: 'relation' | 'dynasty'
 }
 
-export interface GraphData {
+interface GraphData {
   nodes: GraphNode[]
   edges: GraphEdge[]
   /** 度数统计（尺寸映射标尺） */

@@ -24,10 +24,11 @@ let mini: MiniSearch | null = null
 function ensureIndex(): MiniSearch {
   if (mini) return mini
   mini = new MiniSearch({
-    fields: ['name', 'summary', 'background', 'interpretation', 'aliases', 'tags'],
+    // background 是幽灵字段（目录不含 background，写了也不生效）——勿再加回
+    fields: ['name', 'summary', 'interpretation', 'aliases', 'tags'],
     storeFields: ['id', 'name', 'dynasty', 'summary'],
     searchOptions: {
-      boost: { name: 3, aliases: 2, tags: 2, summary: 1, background: 0.5 },
+      boost: { name: 3, aliases: 2, tags: 2, summary: 1 },
       prefix: true,
       fuzzy: 0.2
     }
@@ -106,8 +107,4 @@ export function extractCitations(answer: string, passages: WenPassage[]): WenPas
   if (!m) return passages.slice(0, 3)
   const cited = passages.filter(p => m[1].includes(p.name))
   return cited.length ? cited : passages.slice(0, 3)
-}
-/** 测试辅助：不触发网络的结构化生成（回放文本） */
-export async function askWenReplay(question: string, replayText: string, onDelta: (s: string) => void): Promise<void> {
-  await askWen(question, onDelta, { replayText })
 }

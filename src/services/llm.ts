@@ -19,7 +19,7 @@
 const BASE = import.meta.env.VITE_LLM_BASE ?? ''
 const KEY = import.meta.env.VITE_LLM_KEY ?? ''
 /** 主力（深度文本） */
-export const MODEL_MAIN = import.meta.env.VITE_LLM_MODEL ?? ''
+const MODEL_MAIN = import.meta.env.VITE_LLM_MODEL ?? ''
 /** 多模态（看图） */
 export const MODEL_VISION = import.meta.env.VITE_LLM_VISION_MODEL ?? ''
 /** 快速档（交互问答，响应优先） */
@@ -40,13 +40,12 @@ export interface ChatMessage {
 }
 
 /** 多模态消息内容块（图片走 base64 data URL） */
-export interface ImageBlock {
+interface ImageBlock {
   type: 'image_url'
   image_url: { url: string }
 }
-export type UserContent = string | Array<{ type: 'text'; text: string } | ImageBlock>
 /** "墨尽"错误：接入层所有失败统一抛此型，界面层据此渲染风格化报错 */
-export class InkOutError extends Error {
+class InkOutError extends Error {
   constructor(reason: 'network' | 'http' | 'empty' | 'nokey' | 'timeout') {
     super(`llm:${reason}`)
     this.name = 'InkOutError'

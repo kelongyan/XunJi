@@ -449,7 +449,6 @@ defineExpose({
 interface EdgeMetaItem {
   a: number
   b: number
-  kind: string
   family: string
   /** 贝塞尔控制点（粒子沿边飞行用） */
   pa: THREE.Vector3
@@ -477,7 +476,7 @@ function buildEdges(scene: THREE.Scene) {
     const mid = pa.clone().add(pb).multiplyScalar(0.5)
     const out = mid.clone().normalize().multiplyScalar(mid.length() * 0.035 + 0.5)
     const ctrl = mid.add(out)
-    edgeMeta.push({ a, b, kind: e.kind, family: e.family, pa: pa.clone(), ctrl, pb: pb.clone() })
+    edgeMeta.push({ a, b, family: e.family, pa: pa.clone(), ctrl, pb: pb.clone() })
     const base = written * SEG
     written++
     for (let s = 0; s < SEG; s++) {

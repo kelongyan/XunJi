@@ -293,8 +293,7 @@ watch(
     resetStudy()
     aiComment.value = ''
     commentState.value = 'idle'
-    if (entry.value.comment) {
-    } else if (llmEnabled() && !commentRequested.has(entry.value.id)) {
+    if (!entry.value.comment && llmEnabled() && !commentRequested.has(entry.value.id)) {
       commentRequested.add(entry.value.id)
       aiComment.value = ''
       genComment()

@@ -62,8 +62,6 @@ export interface HistoryEntry {
   quotes?: Quote[]
   sources: string[]
   tags: string[]
-  location?: string
-  impact?: string
   image?: HistoryImage
   /** 器物 3D 展台 */
   relic?: RelicInfo
@@ -91,8 +89,6 @@ export type HistoryEntryCatalog = Pick<
   | 'quotes'
   | 'sources'
   | 'tags'
-  | 'location'
-  | 'impact'
   | 'image'
   | 'relic'
   | 'comment'
