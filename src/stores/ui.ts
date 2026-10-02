@@ -6,6 +6,23 @@ export type ReadingMode = 'day' | 'night'
 
 import { playStampSound } from '../composables/useSound'
 
+/** 隐私模式 / 配额满时 localStorage 会抛错：读失败给默认值，写失败静默降级 */
+function readLocal(key: string): string | null {
+  try {
+    return localStorage.getItem(key)
+  } catch {
+    return null
+  }
+}
+
+function writeLocal(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value)
+  } catch {
+    /* 仅本会话生效 */
+  }
+}
+
 /**
  * 全站 UI 状态：日读 / 夜读模式 + 沉浸模式 + 音效开关 + 水墨晕开转场。
  * 夜读通过 html.dark class 切换（token 已在 style.css 预留），
@@ -13,11 +30,11 @@ import { playStampSound } from '../composables/useSound'
  */
 export const useUiStore = defineStore('ui', {
   state: () => ({
-    mode: (localStorage.getItem(MODE_KEY) === 'night' ? 'night' : 'day') as ReadingMode,
+    mode: (readLocal(MODE_KEY) === 'night' ? 'night' : 'day') as ReadingMode,
     /** 首页沉浸模式：隐藏全部 UI，纯长河漫游（H 进入 / Esc 退出） */
     immersive: false,
     /** 盖印等音效开关（默认关） */
-    soundOn: localStorage.getItem(SOUND_KEY) === '1',
+    soundOn: readLocal(SOUND_KEY) === '1',
     inkFlashActive: false,
     inkFlashText: '寻迹'
   }),
@@ -27,7 +44,7 @@ export const useUiStore = defineStore('ui', {
     },
     toggleMode() {
       this.mode = this.mode === 'day' ? 'night' : 'day'
-      localStorage.setItem(MODE_KEY, this.mode)
+      writeLocal(MODE_KEY, this.mode)
       this.applyModeClass()
     },
     applyModeClass() {
@@ -43,7 +60,7 @@ export const useUiStore = defineStore('ui', {
     },
     toggleSound() {
       this.soundOn = !this.soundOn
-      localStorage.setItem(SOUND_KEY, this.soundOn ? '1' : '0')
+      writeLocal(SOUND_KEY, this.soundOn ? '1' : '0')
     },
     /** 墨滴晕开转场：短暂遮罩后执行回调（常用于路由跳转），落印时带盖印音 */
     inkFlash(text = '寻迹', then?: () => void) {

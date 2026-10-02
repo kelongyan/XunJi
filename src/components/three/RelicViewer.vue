@@ -348,6 +348,12 @@ function buildFloat(t: number) {
 function onPointerDown(e: PointerEvent) {
   dragging = true
   last = { x: e.clientX }
+  try {
+    // 捕获指针：拖出画布松手时 pointerup 仍派发到容器，dragging 不会卡死
+    ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+  } catch {
+    /* 不可捕获时维持旧行为 */
+  }
 }
 function onPointerMove(e: PointerEvent) {
   if (!dragging || !relicGroup) return
@@ -356,8 +362,13 @@ function onPointerMove(e: PointerEvent) {
   relicGroup.rotation.y += dx * 0.012
   spinVel = dx * 0.9
 }
-function onPointerUp() {
+function onPointerUp(e: PointerEvent) {
   dragging = false
+  try {
+    ;(e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId)
+  } catch {
+    /* 未捕获或已释放：忽略 */
+  }
 }
 function onWheel(e: WheelEvent) {
   e.preventDefault()

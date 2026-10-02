@@ -47,7 +47,7 @@ export interface ImageBlock {
 export type UserContent = string | Array<{ type: 'text'; text: string } | ImageBlock>
 /** "墨尽"错误：接入层所有失败统一抛此型，界面层据此渲染风格化报错 */
 export class InkOutError extends Error {
-  constructor(reason: 'network' | 'http' | 'empty' | 'nokey') {
+  constructor(reason: 'network' | 'http' | 'empty' | 'nokey' | 'timeout') {
     super(`llm:${reason}`)
     this.name = 'InkOutError'
   }
@@ -157,10 +157,15 @@ export async function createChatStream(
 
   const requestController = new AbortController()
   let timeoutId: number | undefined
+  /** 区分超时中止与用户取消：前者须走「墨尽」态，不能以 AbortError 形态被消费端吞掉 */
+  let timedOut = false
   const abortRequest = () => requestController.abort()
   if (signal?.aborted) throw new DOMException('Aborted', 'AbortError')
   signal?.addEventListener('abort', abortRequest, { once: true })
-  timeoutId = window.setTimeout(() => requestController.abort(), timeoutMs)
+  timeoutId = window.setTimeout(() => {
+    timedOut = true
+    requestController.abort()
+  }, timeoutMs)
 
   let res: Response
   try {
@@ -184,7 +189,10 @@ export async function createChatStream(
         })
       })
     } catch (e) {
-      if ((e as Error).name === 'AbortError') throw e
+      if ((e as Error).name === 'AbortError') {
+        if (timedOut) throw new InkOutError('timeout')
+        throw e
+      }
       throw new InkOutError('network')
     }
 
@@ -204,7 +212,10 @@ export async function createChatStream(
         done = r.done
         chunk = r.value ?? new Uint8Array()
       } catch (e) {
-        if ((e as Error).name === 'AbortError') throw e
+        if ((e as Error).name === 'AbortError') {
+          if (timedOut) throw new InkOutError('timeout')
+          throw e
+        }
         throw new InkOutError('network')
       }
       if (done) break
@@ -233,7 +244,13 @@ export async function chatJson<T>(messages: ChatMessage[], opts: StreamOptions =
   } catch {
     // 容忍模型在 JSON 外包了 markdown 代码栏
     const m = text.match(/\{[\s\S]*\}/)
-    if (m) return JSON.parse(m[0]) as T
+    if (m) {
+      try {
+        return JSON.parse(m[0]) as T
+      } catch {
+        /* 截断的残缺 JSON：统一落「墨尽」契约 */
+      }
+    }
     throw new InkOutError('empty')
   }
 }

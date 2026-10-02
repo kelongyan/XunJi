@@ -32,6 +32,9 @@ async function loadSource(source: DetailSource): Promise<void> {
   if (loadingSources.has(source)) return loadingSources.get(source)!
   const promise = loaders[source]().then(module => {
     for (const entry of module[exportNames[source]] ?? []) loadedEntries.set(entry.id, entry)
+  }).catch(err => {
+    loadingSources.delete(source) // 失败不缓存 rejected promise，允许下次导航重试
+    throw err
   })
   loadingSources.set(source, promise)
   return promise

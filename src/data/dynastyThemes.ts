@@ -31,7 +31,7 @@ export const dynastyThemes: DynastyTheme[] = [
     span: '前202 — 220',
     accent: '#2B2B31',
     accentSoft: '#4A4A55',
-    accentNight: '#8E8EA0',
+    accentNight: '#9E9EB2',
     tagline: '凿空西域 · 独尊儒术',
     live: true
   },
@@ -43,7 +43,7 @@ export const dynastyThemes: DynastyTheme[] = [
     span: '618 — 907',
     accent: '#9A7226',
     accentSoft: '#B98F45',
-    accentNight: '#D4AC5B',
+    accentNight: '#E0B968',
     tagline: '万国衣冠 · 鎏金盛世',
     live: true
   },
@@ -55,7 +55,7 @@ export const dynastyThemes: DynastyTheme[] = [
     span: '960 — 1279',
     accent: '#4E7D93',
     accentSoft: '#6E9CB0',
-    accentNight: '#8FB8CA',
+    accentNight: '#9CC4D6',
     tagline: '雨过天青 · 文治风华',
     live: true
   },
@@ -67,7 +67,8 @@ export const dynastyThemes: DynastyTheme[] = [
     span: '1368 — 1644',
     accent: '#A8352A',
     accentSoft: '#C75B4A',
-    accentNight: '#C9564A',
+    // 与 style.css `html.dark[data-dynasty]` token 对齐（两侧曾经五个朝代全部漂移）
+    accentNight: '#DE5A42',
     tagline: '洪武开基 · 甲申国变',
     live: true
   },
@@ -79,7 +80,7 @@ export const dynastyThemes: DynastyTheme[] = [
     span: '1636 — 1912',
     accent: '#2F4E6E',
     accentSoft: '#4A6E8E',
-    accentNight: '#7FA3C4',
+    accentNight: '#8FB2D2',
     tagline: '康乾鼎盛 · 三千年变局',
     live: true
   }

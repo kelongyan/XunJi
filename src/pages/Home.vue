@@ -145,9 +145,16 @@ function onKeydown(e: KeyboardEvent) {
   }
 }
 
-/** 首访引导：每台设备一次，聚字开场结束后浮现 */
+/** 首访引导：每台设备一次，聚字开场结束后浮现（隐私模式读取抛错 → 视为未读过） */
+function hasGuideSeen(): boolean {
+  try {
+    return !!localStorage.getItem('xunji-guide-seen')
+  } catch {
+    return false
+  }
+}
 const guideOpen = ref(false)
-const guidePending = ref(!localStorage.getItem('xunji-guide-seen'))
+const guidePending = ref(!hasGuideSeen())
 watch(introDone, done => {
   if (done && guidePending.value && show3d.value) guideOpen.value = true
 })
@@ -204,6 +211,8 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKeydown)
   window.clearTimeout(probeTimer)
+  // 沉浸态离开首页（点卷轴跳转 / 后退）必须复位，否则回首页直接全屏无 UI
+  ui.exitImmersive()
 })
 </script>
 

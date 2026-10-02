@@ -293,14 +293,7 @@ body {
     0 4px 8px rgba(168, 53, 42, 0.24);
 }
 
-/* 印章尺寸变体 */
-.seal-stamp-sm {
-  font-size: var(--type-label);
-  padding: 5px 3.5px;
-  letter-spacing: 0.18em;
-  border-radius: 2px 4px 3px 5px;
-}
-
+/* 印章尺寸变体（sm 声明在最后：组件默认挂 md，外挂 sm 类须能覆盖它） */
 .seal-stamp-md {
   font-size: 0.75rem;
   padding: 7px 5px;
@@ -310,6 +303,13 @@ body {
   font-size: 0.875rem;
   padding: 10px 7px;
   letter-spacing: 0.24em;
+}
+
+.seal-stamp-sm {
+  font-size: var(--type-label);
+  padding: 5px 3.5px;
+  letter-spacing: 0.18em;
+  border-radius: 2px 4px 3px 5px;
 }
 
 /* 横排印章（用于页眉徽标等横向空间） */

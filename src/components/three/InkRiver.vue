@@ -579,8 +579,14 @@ function buildScene() {
     })
   }
 
-  /* 墨滴聚字开场（每次会话只播一次） */
-  if (!reducedMotion && !sessionStorage.getItem('xunji-intro-seen')) {
+  /* 墨滴聚字开场（每次会话只播一次；隐私模式读取抛错 → 视为未看过） */
+  let introSeen = false
+  try {
+    introSeen = !!sessionStorage.getItem('xunji-intro-seen')
+  } catch {
+    /* 隐私模式 */
+  }
+  if (!reducedMotion && !introSeen) {
     intro = buildIntro(scene)
     onFrame((_dt, t) => updateIntro(t))
   } else {
@@ -733,7 +739,11 @@ function updateIntro(t: number) {
 function finishIntro() {
   if (introFinished) return
   introFinished = true
-  sessionStorage.setItem('xunji-intro-seen', '1')
+  try {
+    sessionStorage.setItem('xunji-intro-seen', '1')
+  } catch {
+    /* 隐私模式：每次会话都播开场 */
+  }
   if (intro) {
     intro.mat.visible = false
     intro.points.visible = false
@@ -759,6 +769,8 @@ function onPointerMove(e: PointerEvent) {
 
 function onPointerLeave() {
   pointerNdc.set(-10, -10)
+  // 拖拽中划出画布：就地结束拖拽（pointer capture 已兜底，此处防 capture 不可用场景）
+  dragging = false
   if (hoverIsland) {
     hoverIsland = null
     emit('hover', null)
@@ -770,12 +782,23 @@ function onPointerDown(e: PointerEvent) {
   dragging = true
   dragMoved = 0
   dragStart = { x: e.clientX, y: e.clientY }
+  try {
+    // 捕获指针：拖出画布松手时 pointerup 仍派发到容器，dragging 不会卡死
+    ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+  } catch {
+    /* 不可捕获时由 onPointerLeave 兜底 */
+  }
   if (!introFinished) finishIntro()
 }
 
 function onPointerUp(e: PointerEvent) {
   if (!dragging) return
   dragging = false
+  try {
+    ;(e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId)
+  } catch {
+    /* 未捕获或已释放：忽略 */
+  }
   if (dragMoved < 6 && hoverIsland) {
     const isl = hoverIsland
     if (isl.theme.live) {

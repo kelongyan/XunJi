@@ -48,6 +48,11 @@ function doSearch() {
 }
 
 function handleSearchSubmit() {
+  // 与现址相同则 replace 不触发 query watch（重复导航被吞），兜底直接检索
+  if ((route.query.q ?? '') === query.value && (route.query.type ?? 'all') === currentType.value) {
+    doSearch()
+    return
+  }
   router.replace({
     query: {
       ...route.query,
@@ -80,7 +85,7 @@ watch(() => route.query, () => {
   query.value = (route.query.q as string) || ''
   currentType.value = (route.query.type as string) || 'all'
   doSearch()
-})
+}, { immediate: true })
 
 </script>
 
@@ -285,10 +290,10 @@ watch(() => route.query, () => {
               <!-- 标签与关联网脉 -->
               <div class="pt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-[13px] font-serif">
                 <span class="eyebrow is-plain">关联网脉</span>
-                <RouterLink 
-                  v-for="tag in entry.tags" 
-                  :key="tag" 
-                  :to="`/search?q=${tag}`" 
+                <RouterLink
+                  v-for="tag in entry.tags"
+                  :key="tag"
+                  :to="{ path: '/search', query: { q: tag } }"
                   class="text-muted-foreground hover:text-[var(--dynasty-accent)] transition-colors"
                 >
                   {{ tag }}

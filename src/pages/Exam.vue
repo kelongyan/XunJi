@@ -185,6 +185,17 @@ const rankTone = computed(() =>
           </Transition>
         </div>
 
+        <!-- 题池不足：可出题少于三问时的兜底（不静默死路） -->
+        <div v-else-if="phase !== 'result'" class="py-16 text-center space-y-5">
+          <p class="font-serif text-base text-foreground/80">此卷题池不足，未构成三问之数</p>
+          <p class="text-[13px] font-serif text-muted-foreground">不妨先去编年长卷多读几卷，再来应考。</p>
+          <button
+            type="button"
+            class="px-7 py-2.5 border border-[var(--dynasty-accent)] text-[var(--dynasty-accent)] text-[15px] font-serif tracking-[0.22em] hover:bg-[color-mix(in_srgb,var(--dynasty-accent)_8%,transparent)] transition-colors cursor-pointer"
+            @click="retake"
+          >再考一卷</button>
+        </div>
+
         <!-- 放榜 -->
         <div v-if="phase === 'result'" class="text-center py-10 space-y-8">
           <!-- 功名大印 -->

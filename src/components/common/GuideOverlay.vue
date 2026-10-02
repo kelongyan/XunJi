@@ -49,8 +49,13 @@ function prev() {
 }
 
 function close() {
-  localStorage.setItem('xunji-guide-seen', '1')
+  // 先关浮层再落存储：隐私模式下 setItem 抛错不能把新访客锁在引导层
   emit('update:modelValue', false)
+  try {
+    localStorage.setItem('xunji-guide-seen', '1')
+  } catch {
+    /* 写入失败则引导仅本会话关闭 */
+  }
 }
 </script>
 

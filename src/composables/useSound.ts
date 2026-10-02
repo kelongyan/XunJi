@@ -20,7 +20,11 @@ function ensureCtx(): AudioContext | null {
 }
 
 export function isSoundEnabled(): boolean {
-  return localStorage.getItem('xunji-sound') === '1'
+  try {
+    return localStorage.getItem('xunji-sound') === '1'
+  } catch {
+    return false
+  }
 }
 
 /** 盖印闷响：低频冲击 + 短噪声瞬态，约 0.2s */

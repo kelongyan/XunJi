@@ -51,6 +51,7 @@ function updateDropPos() {
   }
 }
 function onViewportChange() {
+  if (!showList.value) return
   updateDropPos()
 }
 onMounted(() => {

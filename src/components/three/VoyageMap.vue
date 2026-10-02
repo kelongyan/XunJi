@@ -321,6 +321,12 @@ function buildScene() {
 function onPointerDown(e: PointerEvent) {
   dragging = true
   last = { x: e.clientX, y: e.clientY }
+  try {
+    // 捕获指针：拖出画布松手时 pointerup 仍派发到容器，dragging 不会卡死
+    ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+  } catch {
+    /* 不可捕获时维持旧行为 */
+  }
 }
 function onPointerMove(e: PointerEvent) {
   if (!dragging) return
@@ -330,8 +336,13 @@ function onPointerMove(e: PointerEvent) {
   cam.yawT = THREE.MathUtils.clamp(cam.yawT + dx * 0.004, -1.1, 1.1)
   cam.pitchT = THREE.MathUtils.clamp(cam.pitchT + dy * 0.003, 0.2, 1.15)
 }
-function onPointerUp() {
+function onPointerUp(e: PointerEvent) {
   dragging = false
+  try {
+    ;(e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId)
+  } catch {
+    /* 未捕获或已释放：忽略 */
+  }
 }
 function onWheel(e: WheelEvent) {
   e.preventDefault()

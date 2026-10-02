@@ -164,6 +164,7 @@ async function runLive() {
   stopInterp()
   isTypingManual.value = true
   liveAbort = new AbortController()
+  const requestEntryId = entry.value.id
   try {
     await createChatStream(
       interpretPrompt({
@@ -174,6 +175,7 @@ async function runLive() {
         sources: entry.value.sources ?? []
       }),
       delta => {
+        if (entry.value.id !== requestEntryId) return
         liveBuffer += delta
         displayedText.value = liveBuffer
       },
@@ -190,6 +192,8 @@ async function runLive() {
     isTypingManual.value = false
   } catch (e) {
     if ((e as Error).name === 'AbortError') return
+    // 过期请求的失败不得覆盖新词条会话（仿 genComment 的 requestEntryId 防护）
+    if (entry.value.id !== requestEntryId) return
     // 墨尽：无缝回退静态稿
     runStatic()
   }
@@ -340,6 +344,8 @@ async function studyPlate() {
       {
         model: MODEL_VISION,
         maxTokens: 2600,
+        // vision 推理链长（实测 60-90s），默认 90s 超时贴线，放宽到 150s
+        timeoutMs: 150_000,
         signal: studyAbort.signal,
         // 演示回放：预录一段考据（录制/断网兜底；真模型时忽略）
         replayText:

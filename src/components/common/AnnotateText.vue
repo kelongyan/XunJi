@@ -94,6 +94,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   document.removeEventListener('click', onDocClick)
   document.removeEventListener('keydown', onDocKey)
+  followupAbort?.abort()
 })
 
 const KIND_LABEL: Record<GlossaryTerm['kind'], string> = {
@@ -180,8 +181,10 @@ async function askFollowup() {
   }
 }
 
-/** 打开新术语时同步追问面板状态 */
+/** 打开/关闭/切换术语时同步追问面板：旧流必须中断，loading 必须复位（否则按钮永久禁用） */
 watch(active, t => {
+  followupAbort?.abort()
+  followupLoading.value = false
   followupOpen.value = false
   followupInkout.value = false
   followupHistory.value = t ? followupSessions.get(t.term) ?? [] : []

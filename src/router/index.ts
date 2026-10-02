@@ -11,9 +11,14 @@ const routes = [
     props: true,
     beforeEnter: async (to: RouteLocationNormalized) => {
       const id = String(to.params.id)
-      const { getEntryById, preloadEntryById } = await import('../data/details')
-      await preloadEntryById(id)
-      return getEntryById(id) ? true : { name: 'Search', query: { q: id } }
+      try {
+        const { getEntryById, preloadEntryById } = await import('../data/details')
+        await preloadEntryById(id)
+        return getEntryById(id) ? true : { name: 'Search', query: { q: id } }
+      } catch {
+        // 详情 chunk 加载失败（弱网 / 发版后旧 hash 404）：落检索页而非中断导航
+        return { name: 'Search', query: { q: id } }
+      }
     }
   },
   { path: '/timeline', name: 'Timeline', component: () => import('../pages/Timeline.vue') },
@@ -36,6 +41,10 @@ export const router = createRouter({
 router.beforeEach(async to => {
   if (to.name !== 'EntryDetail') return true
   const id = String(to.params.id)
-  const { preloadEntryById } = await import('../data/details')
-  return (await preloadEntryById(id)) ? true : { name: 'Search', query: { q: id } }
+  try {
+    const { preloadEntryById } = await import('../data/details')
+    return (await preloadEntryById(id)) ? true : { name: 'Search', query: { q: id } }
+  } catch {
+    return { name: 'Search', query: { q: id } }
+  }
 })
