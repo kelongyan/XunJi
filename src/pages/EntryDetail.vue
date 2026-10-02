@@ -152,7 +152,7 @@ async function runLive() {
       },
       {
         signal: liveAbort.signal,
-        // 预算须覆盖思考链 + 正文（Atria 的 reasoning:false 只减不消，个别词条
+        // 预算须覆盖思考链 + 正文（推理模型的 reasoning:false 只减不消，个别词条
         // 思考链会超长——实测郑和条约 2000 被烧穿，留足 4000）
         maxTokens: 4000,
         // 演示回放（VITE_LLM_REPLAY=1）：以词条自带的深度解读逐字回放，
@@ -302,7 +302,7 @@ async function studyPlate() {
       d => {
         relicStudy.value.text += d
       },
-      // 图版必须走 vision 模型（主力 Atria 不支持图像——"未获入目"实测踩坑）。
+      // 图版必须走 vision 模型（主力模型不支持图像——"未获入目"实测踩坑）。
       // intern-s2 视觉稳（kimi-k2.6 思考链烧穿任何预算，弃用）；
       // 但其推理链较长（实测 ~600-1400 tokens），预算须 ≥2500，耗时约 60-90s
       {

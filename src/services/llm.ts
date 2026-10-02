@@ -4,7 +4,7 @@
  * 架构（方案书 §0.4）：
  * - 原生 fetch + SSE 手写解析，OpenAI 兼容协议
  * - 供应商/模型全部读环境变量（.env.local），改一行即切换
- * - 统一封装 reasoning:false（主力 Atria 为推理模型，思考链会先于正文
+ * - 统一封装 reasoning:false（主力模型为推理型，思考链会先于正文
  *   输出并耗尽 max_tokens——实测踩坑，见方案书 §0.3）
  * - 演示回放模式：VITE_LLM_REPLAY=1 时全部端点走预录响应逐字回放，
  *   断网演示与真流式 UI 完全一致
@@ -14,16 +14,16 @@
  * 严禁把 key 写进任何 src/ 文件或提交任何凭据文件。
  */
 
-/* ── 配置（构建期注入，缺省走主办方服务） ── */
+/* ── 配置（构建期注入；未配置时 AI 功能显示"翰墨未启"占位） ── */
 
-const BASE = import.meta.env.VITE_LLM_BASE ?? 'https://discovery-api.intern-ai.org.cn/v1'
+const BASE = import.meta.env.VITE_LLM_BASE ?? ''
 const KEY = import.meta.env.VITE_LLM_KEY ?? ''
 /** 主力（深度文本） */
-export const MODEL_MAIN = import.meta.env.VITE_LLM_MODEL ?? 'Atria-Dawn-Preview'
+export const MODEL_MAIN = import.meta.env.VITE_LLM_MODEL ?? ''
 /** 多模态（看图） */
-export const MODEL_VISION = import.meta.env.VITE_LLM_VISION_MODEL ?? 'kimi-k2.6'
+export const MODEL_VISION = import.meta.env.VITE_LLM_VISION_MODEL ?? ''
 /** 快速档（交互问答，响应优先） */
-export const MODEL_FAST = import.meta.env.VITE_LLM_FAST_MODEL ?? 'deepseek-v4-flash-0731'
+export const MODEL_FAST = import.meta.env.VITE_LLM_FAST_MODEL ?? MODEL_MAIN
 
 /** 演示回放模式（构建期常量；=1 全端点走预录响应） */
 export const REPLAY_MODE = String(import.meta.env.VITE_LLM_REPLAY ?? '') === '1'

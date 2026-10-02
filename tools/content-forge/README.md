@@ -1,6 +1,6 @@
 # 寻迹 · 内容锻造炉（Content Forge）
 
-本项目用于借助具备深度推理能力的通用大模型（默认 Atria-Dawn-Preview，兼容 OpenAI 接口），批量扩充和深化中国历史词条。
+本项目用于借助具备深度推理能力的通用大模型（兼容 OpenAI 接口，模型可自选），批量扩充和深化中国历史词条。
 
 ## 目录结构
 
@@ -19,7 +19,7 @@
 ```bash
 cp tools/content-forge/.env.example tools/content-forge/.env
 ```
-编辑 `tools/content-forge/.env` 填入有效的 `ATRIA_KEY`。
+编辑 `tools/content-forge/.env` 填入有效的 `LLM_KEY`。
 
 ### 2. 方式 A：全自动流水线（推荐）
 ```bash

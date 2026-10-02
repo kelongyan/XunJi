@@ -1,13 +1,13 @@
 /**
  * 寻迹 · 内容锻造炉（content-forge）
  *
- * 读选题清单 → 调 Atria（OpenAI 兼容）按 HistoryEntry schema 生成词条 → 校验 → 落盘 JSON。
+ * 读选题清单 → 调大模型（OpenAI 兼容接口）按 HistoryEntry schema 生成词条 → 校验 → 落盘 JSON。
  * 生成结果需人工复核后再合入 src/data/。
  *
  * 用法：
  *   node tools/content-forge/forge.mjs --topics=tools/content-forge/topics/ming-events.json [--out=dir] [--concurrency=2] [--limit=3]
  *
- * 凭据：优先读环境变量 ATRIA_KEY，其次读 tools/content-forge/.env（该文件不入库）。
+ * 凭据：优先读环境变量 LLM_KEY，其次读 tools/content-forge/.env（该文件不入库）。
  */
 import fs from 'node:fs'
 import path from 'node:path'
@@ -26,12 +26,12 @@ function loadEnvFile() {
 }
 
 const fileEnv = loadEnvFile()
-const BASE = process.env.ATRIA_BASE ?? fileEnv.ATRIA_BASE ?? 'https://discovery-api.intern-ai.org.cn/v1'
-const KEY = process.env.ATRIA_KEY ?? fileEnv.ATRIA_KEY ?? ''
-const MODEL = process.env.ATRIA_MODEL ?? fileEnv.ATRIA_MODEL ?? 'Atria-Dawn-Preview'
+const BASE = process.env.LLM_BASE ?? fileEnv.LLM_BASE ?? ''
+const KEY = process.env.LLM_KEY ?? fileEnv.LLM_KEY ?? ''
+const MODEL = process.env.LLM_MODEL ?? fileEnv.LLM_MODEL ?? 'your-model-name'
 
 if (!KEY) {
-  console.error('✗ 缺少凭据：请设置环境变量 ATRIA_KEY，或创建 tools/content-forge/.env')
+  console.error('✗ 缺少凭据：请设置环境变量 LLM_KEY，或创建 tools/content-forge/.env')
   process.exit(1)
 }
 

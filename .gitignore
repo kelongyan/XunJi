@@ -33,8 +33,8 @@ dist-ssr/
 tools/content-forge/.env
 tools/content-forge/out/
 
-# 生图母版 PNG（每张 3-4MB，仅本地保留；网站统一使用 WebP 版本）
-public/images/entries/**/*.png
+# 图片资源（体积较大，走网盘分发；本地保留供开发调试）
+public/images/
 
 # 系统文件
 Thumbs.db
