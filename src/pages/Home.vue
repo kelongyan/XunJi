@@ -10,7 +10,9 @@ import Masthead from '../components/common/Masthead.vue'
 import SearchSuggest from '../components/search/SearchSuggest.vue'
 import GuideOverlay from '../components/common/GuideOverlay.vue'
 import { getEntryById, getEntriesByType, allHistoryEntries } from '../data'
+import { siteStats } from '../data/siteStats'
 import { dynastyThemes, type DynastyTheme } from '../data/dynastyThemes'
+import type { ChronicleItem, CatalogExtRecord } from '../types/history'
 import { useUiStore } from '../stores/ui'
 import { useFootprint } from '../composables/useFootprint'
 
@@ -36,27 +38,33 @@ const typeCounts = {
   system: getEntriesByType('system').length
 }
 
-/** 史册残页：按当日日期从全部编年节点中翻出"今日一叶" */
-const timelinePool = allHistoryEntries.flatMap(e =>
-  (e.timeline ?? []).map(n => ({ ...n, entryName: e.name, entryId: e.id }))
-)
-const fragment = (() => {
-  if (timelinePool.length === 0) return null
+/** 史册残页与今日词条引文：编年池/quotes/sources 在懒加载扩展包，挂载后取回（不进首屏目录包） */
+const timelinePool = ref<ChronicleItem[]>([])
+const fragment = ref<ChronicleItem | null>(null)
+const todayExt = ref<CatalogExtRecord>({})
+onMounted(async () => {
+  const [{ chroniclePool }, { catalogExt }] = await Promise.all([
+    import('../data/chronicle'),
+    import('../data/catalog-ext')
+  ])
+  timelinePool.value = chroniclePool
   const d = new Date()
   const seed = d.getFullYear() * 372 + (d.getMonth() + 1) * 31 + d.getDate()
-  return timelinePool[seed % timelinePool.length]
-})()
+  fragment.value = chroniclePool[seed % chroniclePool.length] ?? null
+  todayExt.value = catalogExt[todayEntry?.id ?? ''] ?? {}
+})
+const todayQuote = computed(() => todayExt.value.quotes?.[0] ?? null)
+const todaySource = computed(() => todayExt.value.sources?.[0] ?? null)
 
-/** 诚实数据带：跨度 / 朝代 / 词条 / 史料引文 */
+/** 诚实数据带：跨度 / 朝代 / 词条 / 史料引文（引文数取构建期常量，与源数据同源） */
 const stats = computed(() => {
   const years = dynastyThemes.map(d => d.years)
   const span = Math.max(...years.map(y => y[1])) - Math.min(...years.map(y => y[0]))
-  const quotes = allHistoryEntries.reduce((n, e) => n + (e.quotes?.length ?? 0), 0)
   return {
     span,
     dynasties: dynastyThemes.filter(d => d.live).length,
     entries: allHistoryEntries.length,
-    quotes
+    quotes: siteStats.quoteTotal
   }
 })
 
@@ -163,11 +171,11 @@ watch(guideOpen, open => {
 })
 
 /** 点墨捞史：点击长河空白，捞出一叶编年残句 */
-const probe = ref<{ x: number; y: number; item: (typeof timelinePool)[number] } | null>(null)
+const probe = ref<{ x: number; y: number; item: ChronicleItem } | null>(null)
 let probeTimer = 0
 function onProbe(pos: { x: number; y: number }) {
-  if (!timelinePool.length) return
-  const item = timelinePool[Math.floor(Math.random() * timelinePool.length)]
+  if (!timelinePool.value.length) return
+  const item = timelinePool.value[Math.floor(Math.random() * timelinePool.value.length)]
   probe.value = {
     x: Math.min(Math.max(pos.x, 170), window.innerWidth - 190),
     y: Math.min(Math.max(pos.y, 120), window.innerHeight - 160),
@@ -393,7 +401,7 @@ onBeforeUnmount(() => {
             <article v-if="todayEntry" v-reveal>
               <div class="py-4 flex items-baseline justify-between gap-4 border-t border-border/60">
                 <span class="eyebrow">今日一史 · 重点词条</span>
-                <span class="index-meta">{{ todayEntry.sources[0] }}</span>
+                <span v-if="todaySource" class="index-meta">{{ todaySource }}</span>
               </div>
 
               <div class="flex items-start justify-between gap-8 mt-6">
@@ -416,6 +424,8 @@ onBeforeUnmount(() => {
                     <img
                       :src="todayEntry.image.src"
                       :alt="todayEntry.image.caption"
+                      loading="lazy"
+                      decoding="async"
                       class="w-full h-auto object-cover"
                     />
                   </div>
@@ -425,14 +435,14 @@ onBeforeUnmount(() => {
               </div>
 
               <div
-                v-if="todayEntry.quotes?.length"
+                v-if="todayQuote"
                 class="mt-8 pl-5 border-l-2"
                 :style="{ borderColor: 'color-mix(in srgb, var(--dynasty-accent) 45%, transparent)' }"
               >
                 <p class="font-textbook-quote text-[15px] leading-loose text-foreground/95">
-                  「{{ todayEntry.quotes[0].text }}」
+                  「{{ todayQuote.text }}」
                 </p>
-                <p class="index-meta mt-2.5 text-right">—— {{ todayEntry.quotes[0].source }}</p>
+                <p class="index-meta mt-2.5 text-right">—— {{ todayQuote.source }}</p>
               </div>
 
               <div class="mt-7 flex justify-end">
@@ -497,6 +507,7 @@ onBeforeUnmount(() => {
                       :src="item.image?.src"
                       :alt="item.image?.caption"
                       loading="lazy"
+                      decoding="async"
                       class="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-[1.04]"
                     />
                     <!-- 藏印角标：hover 时浮出（观画钤印的暗示，点击即入词条） -->

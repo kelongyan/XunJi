@@ -69,7 +69,8 @@ export interface HistoryEntry {
   comment?: string
 }
 
-/** 首页、检索与图谱使用的轻量词条目录，不含长篇正文。 */
+/** 首页、检索与图谱使用的轻量词条目录：不含长篇正文，也不含
+ *  interpretation/timeline/quotes/sources（这四项在懒加载扩展包，见 generate-catalog.mjs）。 */
 export type HistoryEntryCatalog = Pick<
   HistoryEntry,
   | 'id'
@@ -83,16 +84,28 @@ export type HistoryEntryCatalog = Pick<
   | 'year'
   | 'roles'
   | 'summary'
-  | 'interpretation'
-  | 'timeline'
   | 'relations'
-  | 'quotes'
-  | 'sources'
   | 'tags'
   | 'image'
   | 'relic'
   | 'comment'
 > & { initials: string; detailSource: DetailSource }
+
+/** 目录扩展包记录（catalog-ext.ts，懒加载）：问典 RAG 与今日词条专用 */
+export interface CatalogExtRecord {
+  /** 深度解读（构建期截 420 字；详情页用的是全量词条完整版） */
+  interpretation?: string
+  quotes?: Quote[]
+  sources?: string[]
+}
+
+/** 史册残页池条目（chronicle.ts，懒加载） */
+export interface ChronicleItem {
+  year: number | string
+  event: string
+  entryId: string
+  entryName: string
+}
 
 export type DetailSource =
   | 'emperors'

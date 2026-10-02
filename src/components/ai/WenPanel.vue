@@ -43,7 +43,7 @@ async function ask(q?: string) {
         signal: abort.signal
       }
     )
-    citations.value = extractCitations(answer.value, retrieve(query))
+    citations.value = extractCitations(answer.value, await retrieve(query))
     state.value = 'done'
     void source
   } catch (e) {

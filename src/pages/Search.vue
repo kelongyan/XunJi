@@ -21,7 +21,10 @@ const query = ref((route.query.q as string) || '')
 const currentType = ref((route.query.type as string) || 'all')
 /** 模式页签：考索（传统检索）/ 问典（AI RAG） */
 const mode = ref<'search' | 'wen'>('search')
+/** 渲染上限：空词/宽泛词会命中全量 425 条，卡片与配图按需截断（计数仍展示真实总数） */
+const MAX_RESULTS = 60
 const searchResults = ref<HistoryEntryCatalog[]>([])
+const totalCount = ref(0)
 
 // 第一条重点结果专属的打字机流式呈现
 const { displayedText, isTyping, start: startTypewriter, skip: skipTypewriter } = useTypewriter()
@@ -40,10 +43,11 @@ function handleSelect(entry: HistoryEntryCatalog) {
 }
 
 function doSearch() {
-  searchResults.value = search(query.value, currentType.value)
+  const results = search(query.value, currentType.value)
+  totalCount.value = results.length
+  searchResults.value = results.slice(0, MAX_RESULTS)
   if (searchResults.value.length > 0) {
-    const first = searchResults.value[0]
-    startTypewriter(first.interpretation || first.summary)
+    startTypewriter(searchResults.value[0].summary)
   }
 }
 
@@ -69,15 +73,13 @@ function selectType(type: string) {
 
 function replayStreaming() {
   if (searchResults.value.length > 0) {
-    const first = searchResults.value[0]
-    startTypewriter(first.interpretation || first.summary)
+    startTypewriter(searchResults.value[0].summary)
   }
 }
 
 function handleSkip() {
   if (searchResults.value.length > 0) {
-    const first = searchResults.value[0]
-    skipTypewriter(first.interpretation || first.summary)
+    skipTypewriter(searchResults.value[0].summary)
   }
 }
 
@@ -204,7 +206,10 @@ watch(() => route.query, () => {
             <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1.5">
               <span class="eyebrow">检索核心词</span>
               <strong class="text-foreground text-[15px]">「{{ query || '历代通览' }}」</strong>
-              <span class="index-meta">寻得相关文献 <span v-count-up="{ to: searchResults.length, duration: 700 }" class="tabular-nums"></span> 卷</span>
+              <span class="index-meta">
+                寻得相关文献 <span v-count-up="{ to: totalCount, duration: 700 }" class="tabular-nums"></span> 卷
+                <span v-if="totalCount > searchResults.length">（呈现前 {{ searchResults.length }} 卷）</span>
+              </span>
             </div>
             <div class="flex items-center space-x-4">
               <span v-if="isTyping" class="inline-flex items-center text-primary font-bold tracking-wider">
@@ -272,7 +277,7 @@ watch(() => route.query, () => {
 
               <!-- 若有历史配图，在检索卡片中展示缩略图版 -->
               <div v-if="entry.image" class="mt-4 py-3.5 border-y border-border/60 flex items-center gap-4">
-                <img :src="entry.image.src" :alt="entry.image.caption" class="w-32 h-20 object-contain border border-border/60 bg-card/40 shrink-0" />
+                <img :src="entry.image.src" :alt="entry.image.caption" loading="lazy" decoding="async" class="w-32 h-20 object-contain border border-border/60 bg-card/40 shrink-0" />
                 <div class="text-[13px] font-serif text-muted-foreground">
                   <span class="text-foreground font-bold block mb-0.5">【历史插图资料】</span>
                   <span>{{ entry.image.caption }}</span>

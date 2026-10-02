@@ -38,14 +38,24 @@ const catalogSources = [...catalog.matchAll(/"detailSource":\s*"([^"]+)"/g)].map
 const expectedSources = new Set(entryFiles.map(file => file.replace(/\.ts$/, '')))
 const badCatalogSources = catalogSources.filter(source => !expectedSources.has(source))
 
+// 派生文件：史册残页池的 entryId 不得指向不存在的词条
+const chronicleBad = []
+const chronicleMatch = textOf('chronicle.ts').match(/chroniclePool[^=]*=\s*(\[[\s\S]*\])/)
+if (chronicleMatch) {
+  for (const node of JSON.parse(chronicleMatch[1])) {
+    if (!ids.has(node.entryId)) chronicleBad.push(`chronicle -> ${node.entryId}`)
+  }
+}
+
 console.log(`词条 ID：${ids.size}｜目录 ID：${catalogIds.length}｜重复 ID：${duplicates.length}`)
-console.log(`跨模块坏链：${bad.length}｜目录来源异常：${badCatalogSources.length}`)
+console.log(`跨模块坏链：${bad.length}｜目录来源异常：${badCatalogSources.length}｜残页池坏链：${chronicleBad.length}`)
 for (const item of duplicates) console.log(`  ✗ duplicate ${item}`)
 for (const item of bad) console.log(`  ✗ ${item}`)
 for (const item of badCatalogSources) console.log(`  ✗ catalog source ${item}`)
+for (const item of chronicleBad) console.log(`  ✗ ${item}`)
 
-if (duplicates.length || bad.length || badCatalogSources.length || catalogIds.length !== ids.size) {
+if (duplicates.length || bad.length || badCatalogSources.length || chronicleBad.length || catalogIds.length !== ids.size) {
   process.exitCode = 1
 } else {
-  console.log('✔ 数据 ID、跨模块引用与目录来源均正常')
+  console.log('✔ 数据 ID、跨模块引用、目录来源与残页池均正常')
 }

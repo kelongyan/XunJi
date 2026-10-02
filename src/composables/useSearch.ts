@@ -4,7 +4,8 @@ import type { HistoryEntryCatalog } from '../types/history'
 
 const miniSearch = new MiniSearch<HistoryEntryCatalog>({
     fields: ['name', 'summary', 'pinyin', 'initials', 'aliases', 'tags'],
-    storeFields: ['id', 'name', 'type', 'dynasty', 'era', 'summary', 'tags', 'pinyin'],
+    // 命中后全部经 getEntryById 回表取数，store 只需存 id
+    storeFields: ['id'],
     searchOptions: {
       boost: { name: 3, aliases: 2, tags: 2, summary: 1 },
       prefix: true,

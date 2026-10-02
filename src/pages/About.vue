@@ -12,6 +12,7 @@ import DataBand from '../components/common/DataBand.vue'
 import IndexList from '../components/common/IndexList.vue'
 import SealStamp from '../components/common/SealStamp.vue'
 import { allHistoryEntries, getEntriesByType } from '../data'
+import { siteStats } from '../data/siteStats'
 import { graphData } from '../data/graph'
 import { dynastyTimelines } from '../data/timelines'
 
@@ -24,16 +25,8 @@ const typeCounts = computed(() => [
   { label: '典章制度', n: getEntriesByType('system').length }
 ])
 
-/** 引用史料种数（运行时从 sources 字段统计） */
-const sourceCount = computed(() => {
-  const set = new Set<string>()
-  for (const e of allHistoryEntries) {
-    for (const s of e.sources ?? []) {
-      for (const m of s.matchAll(/《[^》]*》/g)) set.add(m[0])
-    }
-  }
-  return set.size
-})
+/** 引用史料种数（构建期与源数据同源生成，见 tools/generate-catalog.mjs） */
+const sourceCount = siteStats.sourceTitleCount
 
 /** 长卷纪事总数 */
 const timelineCount = computed(() => Object.values(dynastyTimelines).reduce((n, list) => n + list.length, 0))
@@ -43,7 +36,7 @@ const stats = computed(() => [
   { value: String(allHistoryEntries.length), label: '收录词条' },
   { value: String(graphData.edges.filter(e => e.kind === 'relation').length), label: '人物关系' },
   { value: String(timelineCount.value), label: '编年纪事' },
-  { value: String(sourceCount.value), label: '引用史料（种）' }
+  { value: String(sourceCount), label: '引用史料（种）' }
 ])
 
 /** 主要引用史籍（编目式索引） */

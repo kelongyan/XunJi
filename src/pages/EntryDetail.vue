@@ -569,7 +569,7 @@ onBeforeUnmount(() => {
                   <span class="seal-stamp text-[12px] py-0.5 px-1">图版</span>
                 </div>
                 <div class="bg-background border border-border/70 p-2 overflow-hidden flex justify-center">
-                  <img ref="plateImgRef" :src="entry.image.src" :alt="entry.image.caption" class="w-full max-w-lg h-auto object-contain" crossorigin="anonymous" />
+                  <img ref="plateImgRef" :src="entry.image.src" :alt="entry.image.caption" loading="lazy" decoding="async" class="w-full max-w-lg h-auto object-contain" crossorigin="anonymous" />
                 </div>
                 <p class="textbook-caption text-center">
                   {{ entry.image.caption }}

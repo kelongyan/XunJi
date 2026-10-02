@@ -18,12 +18,12 @@ export interface WenPassage {
   /** 喂给模型的目录摘要 */
   text: string
 }
-/** 模块级索引（全站一份） */
+/** 模块级索引（全站一份，首问前懒构建） */
 let mini: MiniSearch | null = null
+let indexReady: Promise<MiniSearch> | null = null
 
-function ensureIndex(): MiniSearch {
-  if (mini) return mini
-  mini = new MiniSearch({
+function buildIndex(ext: Record<string, { interpretation?: string }>): MiniSearch {
+  const m = new MiniSearch({
     // background 是幽灵字段（目录不含 background，写了也不生效）——勿再加回
     fields: ['name', 'summary', 'interpretation', 'aliases', 'tags'],
     storeFields: ['id', 'name', 'dynasty', 'summary'],
@@ -33,15 +33,32 @@ function ensureIndex(): MiniSearch {
       fuzzy: 0.2
     }
   })
-  mini.addAll(allHistoryEntries)
-  return mini
+  m.addAll(
+    allHistoryEntries.map(e => {
+      const interp = ext[e.id]?.interpretation
+      return interp ? { ...e, interpretation: interp } : e
+    })
+  )
+  return m
+}
+
+function ensureIndex(): Promise<MiniSearch> {
+  if (mini) return Promise.resolve(mini)
+  if (!indexReady) {
+    // interpretation 在懒加载扩展包（已从首屏目录拆出）：RAG 首问前取回，召回不受拆分影响
+    indexReady = import('../data/catalog-ext').then(mod => {
+      mini = buildIndex(mod.catalogExt)
+      return mini
+    })
+  }
+  return indexReady
 }
 
 /** 检索 top-k 卷目（中文长句做 2-gram 扩充，MiniSearch 对连续中文无空格分词召回差——实测踩坑） */
-export function retrieve(question: string, k = 4): WenPassage[] {
+export async function retrieve(question: string, k = 4): Promise<WenPassage[]> {
   const trimmed = question.trim()
   if (!trimmed) return []
-  const idx = ensureIndex()
+  const idx = await ensureIndex()
 
   // 中文 2-gram 扩充：取问句中的关键片段，提升 BM25 命中
   const han = trimmed.replace(/[^\u4e00-\u9fa5A-Za-z0-9]/g, '')
@@ -86,7 +103,7 @@ export async function askWen(
   onDelta: (s: string) => void,
   opts: { replayText?: string; signal?: AbortSignal } = {}
 ): Promise<{ source: 'ai' | 'replay' }> {
-  const passages = retrieve(question)
+  const passages = await retrieve(question)
   if (!passages.length) {
     // 站内无相关卷目：直接告知，不硬答
     onDelta('卷中未载——站内现收汉、唐、宋、明、清五朝，此问所涉或尚未修入，可换个问法再试。')
