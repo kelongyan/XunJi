@@ -9,9 +9,8 @@
  */
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Search as SearchIcon } from 'lucide-vue-next'
-import { pinyin } from 'pinyin-pro'
 import { allHistoryEntries } from '../../data'
-import type { HistoryEntry } from '../../types/history'
+import type { HistoryEntryCatalog } from '../../types/history'
 import { splitHighlight } from '../../utils/highlight'
 
 const props = withDefaults(
@@ -30,7 +29,7 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
-  select: [entry: HistoryEntry]
+  select: [entry: HistoryEntryCatalog]
   submit: []
 }>()
 
@@ -63,28 +62,17 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', onViewportChange)
 })
 
-/* 拼音首字母缓存（懒构建一次） */
-const firstLetterCache = new Map<string, string>()
-function firstLetters(name: string): string {
-  if (!firstLetterCache.has(name)) {
-    const seq = pinyin(name, { pattern: 'first', toneType: 'none', type: 'array' }).join('')
-    firstLetterCache.set(name, seq)
-  }
-  return firstLetterCache.get(name)!
-}
-
-const suggestions = computed<HistoryEntry[]>(() => {
+const suggestions = computed<HistoryEntryCatalog[]>(() => {
   const q = props.modelValue.trim().toLowerCase()
   if (!q) return []
-  const py = pinyin(q, { toneType: 'none', type: 'array' }).join('')
-  const scored: Array<{ entry: HistoryEntry; score: number }> = []
+  const scored: Array<{ entry: HistoryEntryCatalog; score: number }> = []
   for (const entry of allHistoryEntries) {
     let score = 0
     if (entry.name.toLowerCase().includes(q)) score = 5
     else if (entry.aliases?.some(a => a.toLowerCase().includes(q))) score = 4
     else if (entry.tags.some(t => t.toLowerCase().includes(q))) score = 3
-    else if (py && entry.pinyin.startsWith(py)) score = 2
-    else if (q.length >= 2 && firstLetters(entry.name).startsWith(q)) score = 2
+    else if (entry.pinyin.startsWith(q)) score = 2
+    else if (q.length >= 2 && entry.initials.startsWith(q)) score = 2
     if (score) scored.push({ entry, score: score * 100 - entry.name.length })
   }
   return scored
@@ -137,12 +125,12 @@ function onKeydown(e: KeyboardEvent) {
   }
 }
 
-function doSelect(entry: HistoryEntry) {
+function doSelect(entry: HistoryEntryCatalog) {
   activeIndex.value = -1
   emit('select', entry)
 }
 
-function typeLabel(entry: HistoryEntry): string {
+function typeLabel(entry: HistoryEntryCatalog): string {
   return entry.type === 'emperor' ? '帝王' : entry.type === 'figure' ? '人物' : entry.type === 'event' ? '事件' : entry.type === 'classic' ? '典籍' : '制度'
 }
 

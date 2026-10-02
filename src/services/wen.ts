@@ -6,19 +6,18 @@
  * 检索与引用全部来自站内静态数据，模型只做"转述与组织"，不凭空作答。
  */
 import MiniSearch from 'minisearch'
-import { allHistoryEntries } from '../data'
-import { chatJson, createChatStream, llmEnabled, MODEL_FAST } from '../services/llm'
-import { askPrompt, interpretPrompt } from '../services/prompts'
+import { allHistoryEntries, getEntryById } from '../data'
+import { createChatStream, llmEnabled, MODEL_FAST } from '../services/llm'
+import { askPrompt } from '../services/prompts'
 import type { ChatMessage } from '../services/llm'
 
 export interface WenPassage {
   id: string
   name: string
   dynasty: string
-  /** 喂给模型的正文（summary + background 截断） */
+  /** 喂给模型的目录摘要 */
   text: string
 }
-
 /** 模块级索引（全站一份） */
 let mini: MiniSearch | null = null
 
@@ -52,14 +51,15 @@ export function retrieve(question: string, k = 4): WenPassage[] {
 
   const hits = idx.search(query).slice(0, k)
   const out: WenPassage[] = hits.map(h => {
-    const e = allHistoryEntries.find(x => x.id === h.id)!
+    const e = getEntryById(h.id)
+    if (!e) return null
     return {
       id: e.id,
       name: e.name,
       dynasty: e.dynasty,
-      text: [e.summary, e.background].filter(Boolean).join(' ').slice(0, 420)
+      text: e.summary.slice(0, 420)
     }
-  })
+  }).filter((passage): passage is WenPassage => Boolean(passage))
   return out.filter(p => p.text.length > 40)
 }
 
@@ -107,12 +107,7 @@ export function extractCitations(answer: string, passages: WenPassage[]): WenPas
   const cited = passages.filter(p => m[1].includes(p.name))
   return cited.length ? cited : passages.slice(0, 3)
 }
-
 /** 测试辅助：不触发网络的结构化生成（回放文本） */
 export async function askWenReplay(question: string, replayText: string, onDelta: (s: string) => void): Promise<void> {
   await askWen(question, onDelta, { replayText })
 }
-
-// 防 tree-shake 误删：interpretPrompt 供后续「继续追问」扩展用（B6 预留）
-void interpretPrompt
-void chatJson

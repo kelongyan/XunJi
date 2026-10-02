@@ -4,7 +4,7 @@
  * 本地检索 top-k 卷目 → AI 史官流式作答 → 站内引用卡（可溯源直达）。
  * 断网/失败出墨尽态；检索与引用永远来自站内数据。
  */
-import { ref } from 'vue'
+import { onBeforeUnmount, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { Search as SearchIcon, PenLine } from 'lucide-vue-next'
 import InkOut from '../common/InkOut.vue'
@@ -14,7 +14,7 @@ const question = ref('')
 const answer = ref('')
 const citations = ref<WenPassage[]>([])
 const state = ref<'idle' | 'loading' | 'done' | 'inkout'>('idle')
-const abort = new AbortController()
+let abort: AbortController | null = null
 
 /** 预置示例问（引导首次使用） */
 const EXAMPLES = [
@@ -26,6 +26,8 @@ const EXAMPLES = [
 async function ask(q?: string) {
   const query = (q ?? question.value).trim()
   if (!query || state.value === 'loading') return
+  abort?.abort()
+  abort = new AbortController()
   question.value = query
   state.value = 'loading'
   answer.value = ''
@@ -50,19 +52,10 @@ async function ask(q?: string) {
   }
 }
 
-function reset() {
-  abort.abort()
-  state.value = 'idle'
-  answer.value = ''
-  citations.value = []
-}
+onBeforeUnmount(() => {
+  abort?.abort()
+})
 
-const passages = ref<WenPassage[]>([])
-function previewPassages(q: string) {
-  passages.value = retrieve(q)
-}
-void passages
-void reset
 </script>
 
 <template>
@@ -97,7 +90,7 @@ void reset
         :key="ex"
         type="button"
         class="px-3 py-1 border border-border/70 text-[13px] font-serif text-muted-foreground hover:text-[var(--dynasty-accent)] hover:border-[var(--dynasty-accent)] transition-colors cursor-pointer"
-        @click="ask(ex); previewPassages(ex)"
+        @click="ask(ex)"
       >{{ ex }}</button>
     </div>
 

@@ -1,22 +1,26 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from '../pages/Home.vue'
-import Search from '../pages/Search.vue'
-import EntryDetail from '../pages/EntryDetail.vue'
-import Timeline from '../pages/Timeline.vue'
-import Compare from '../pages/Compare.vue'
-import Graph from '../pages/Graph.vue'
-import Exam from '../pages/Exam.vue'
-import About from '../pages/About.vue'
+import type { RouteLocationNormalized } from 'vue-router'
 
 const routes = [
-  { path: '/', name: 'Home', component: Home },
-  { path: '/search', name: 'Search', component: Search },
-  { path: '/entry/:id', name: 'EntryDetail', component: EntryDetail, props: true },
-  { path: '/timeline', name: 'Timeline', component: Timeline },
-  { path: '/compare', name: 'Compare', component: Compare },
-  { path: '/graph', name: 'Graph', component: Graph },
-  { path: '/exam', name: 'Exam', component: Exam },
-  { path: '/about', name: 'About', component: About },
+  { path: '/', name: 'Home', component: () => import('../pages/Home.vue') },
+  { path: '/search', name: 'Search', component: () => import('../pages/Search.vue') },
+  {
+    path: '/entry/:id',
+    name: 'EntryDetail',
+    component: () => import('../pages/EntryDetail.vue'),
+    props: true,
+    beforeEnter: async (to: RouteLocationNormalized) => {
+      const id = String(to.params.id)
+      const { getEntryById, preloadEntryById } = await import('../data/details')
+      await preloadEntryById(id)
+      return getEntryById(id) ? true : { name: 'Search', query: { q: id } }
+    }
+  },
+  { path: '/timeline', name: 'Timeline', component: () => import('../pages/Timeline.vue') },
+  { path: '/compare', name: 'Compare', component: () => import('../pages/Compare.vue') },
+  { path: '/graph', name: 'Graph', component: () => import('../pages/Graph.vue') },
+  { path: '/exam', name: 'Exam', component: () => import('../pages/Exam.vue') },
+  { path: '/about', name: 'About', component: () => import('../pages/About.vue') },
   { path: '/:pathMatch(.*)*', redirect: '/' }
 ]
 
@@ -26,4 +30,12 @@ export const router = createRouter({
   scrollBehavior() {
     return { top: 0 }
   }
+})
+
+// 同一路由仅切换 :id 时组件可能复用，统一在导航阶段预加载新的完整词条。
+router.beforeEach(async to => {
+  if (to.name !== 'EntryDetail') return true
+  const id = String(to.params.id)
+  const { preloadEntryById } = await import('../data/details')
+  return (await preloadEntryById(id)) ? true : { name: 'Search', query: { q: id } }
 })

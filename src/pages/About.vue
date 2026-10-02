@@ -112,7 +112,7 @@ const primarySources = [
               </li>
               <li class="flex gap-4">
                 <span class="index-no shrink-0">四</span>
-                <span><strong class="text-foreground">关系织网</strong>：为每条词条标注人物关系（940 条，归一为十族），供万卷星图寻脉。</span>
+                <span><strong class="text-foreground">关系织网</strong>：为每条词条标注人物关系（{{ graphData.edges.filter(e => e.kind === 'relation').length }} 条，归一为十族），供万卷星图寻脉。</span>
               </li>
               <li class="flex gap-4">
                 <span class="index-no shrink-0">五</span>

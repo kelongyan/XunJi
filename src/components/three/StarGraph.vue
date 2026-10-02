@@ -2,7 +2,7 @@
 /**
  * 万卷星图 · 3D 关系图谱场景
  *
- * 构图：五朝锚点沿编年巨弧排开，339 词条如星群环拱本朝锚点，940 条关系为星光。
+ * 构图：五朝锚点沿编年巨弧排开，词条如星群环拱本朝锚点，关系化为星光。
  * 技术：自写确定性 3D 力导向（初始化螺旋 + O(n²) 松弛，一次性预计算）；
  *       节点 Points 单 draw call（形状 SDF + 假光晕）；边为弧形 LineSegments（顶点色）。
  * 双态：uNight uniform 与 CSS token 同步（日读墨色星图 / 夜读灯火夜空）。
@@ -847,6 +847,11 @@ function buildPathParticles(edgeIndices: number[]) {
 
 function removePathParticles() {
   if (pathParticles && sceneRef) sceneRef.remove(pathParticles)
+  pathParticleGeo?.dispose()
+  if (pathParticles?.material) {
+    const material = pathParticles.material as THREE.Material
+    material.dispose()
+  }
   pathParticles = null
   pathParticleGeo = null
   particleState = []
@@ -1009,6 +1014,8 @@ onBeforeUnmount(() => {
   anchorLabels = []
   starDust = null
   material = null
+  dotTexture?.dispose()
+  dotTexture = null
   focusIdx = -1
   hoverIdx = -1
 })

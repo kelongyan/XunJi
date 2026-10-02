@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import TextbookHeader from '../components/common/TextbookHeader.vue'
 import SealStamp from '../components/common/SealStamp.vue'
 import Masthead from '../components/common/Masthead.vue'
 import { comparisons } from '../data/comparisons'
-import { getEntryById } from '../data'
+import { getEntryById } from '../data/details'
+import { preloadEntries } from '../data/details'
 import { dynastyIdFromHanzi, getDynastyTheme, defaultDynasty } from '../data/dynastyThemes'
 import { useUiStore } from '../stores/ui'
 import { onBeforeUnmount } from 'vue'
@@ -19,8 +20,25 @@ const currentId = computed(() => {
   return comparisons.some(c => c.id === q) ? q : comparisons[0].id
 })
 const current = computed(() => comparisons.find(c => c.id === currentId.value)!)
-const entryA = computed(() => getEntryById(current.value.aEntryId))
-const entryB = computed(() => getEntryById(current.value.bEntryId))
+const detailsReady = ref(false)
+const entryA = computed(() => {
+  void detailsReady.value
+  return getEntryById(current.value.aEntryId)
+})
+const entryB = computed(() => {
+  void detailsReady.value
+  return getEntryById(current.value.bEntryId)
+})
+
+watch(
+  () => current.value,
+  async comparison => {
+    detailsReady.value = false
+    await preloadEntries([comparison.aEntryId, comparison.bEntryId])
+    detailsReady.value = true
+  },
+  { immediate: true }
+)
 
 const themeOf = (hanzi: string | undefined) => getDynastyTheme(dynastyIdFromHanzi(hanzi))
 /** 夜读用提亮版朝代色（accentNight），避免深底上发暗 */
@@ -86,7 +104,7 @@ function select(id: string) {
         </div>
 
         <!-- 双栏对照（切组时甲/乙卷相向合拢，中缝线缝合、骑缝印落定） -->
-        <div v-if="entryA && entryB" :key="currentId" class="relative grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+         <div v-if="detailsReady && entryA && entryB" :key="currentId" class="relative grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
           <!-- 中缝缝合线（合拢后自上而下画出；仅桌面） -->
           <div class="hidden md:block absolute left-1/2 top-0 bottom-0 w-px -ml-px pointer-events-none duo-seam" aria-hidden="true"></div>
           <!-- 骑缝印（两卷接缝处的压印，合拢后落下；仅桌面） -->

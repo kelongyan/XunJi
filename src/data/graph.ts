@@ -2,10 +2,10 @@
  * 关系图谱数据构建层（「万卷星图」唯一数据源）
  *
  * 由全站静态词条派生图谱的三类要素：
- * - 词条节点：339 个（类型/朝代/度数，供形状、大小、色彩编码）
+ * - 词条节点：全站词条（类型/朝代/度数，供形状、大小、色彩编码）
  * - 朝代锚点：5 个（固定坐标骨架，沿编年序排开）
- * - 边：词条关系（940 条，经 relationTaxonomy 归一化为 10 族）
- *       + 朝代归属（339 条）——构图骨架，渲染时可降噪
+ * - 边：词条关系（经 relationTaxonomy 归一化为 10 族）
+ *       + 朝代归属边——构图骨架，渲染时可降噪
  *
  * 布局约束（供力导向使用）：词条轻微吸附本朝锚点 + 显式关系强弹簧，
  * 从而既有编年骨架感、又有有机星群感（方案 §3.2）。
@@ -13,19 +13,19 @@
 import { allHistoryEntries } from './index'
 import { dynastyThemes, dynastyIdFromHanzi, type DynastyTheme } from './dynastyThemes'
 import { classifyRelation, type RelationFamily } from './relationTaxonomy'
-import type { HistoryEntry } from '../types/history'
+import type { HistoryEntryCatalog } from '../types/history'
 
 export interface GraphNode {
   id: string
   name: string
   /** 'entry' 词条 | 'dynasty' 朝代锚点 */
   kind: 'entry' | 'dynasty'
-  type: HistoryEntry['type'] | 'dynasty'
+  type: HistoryEntryCatalog['type'] | 'dynasty'
   dynasty: string
   dynastyId: string
   /** 度数（节点尺寸映射） */
   degree: number
-  entry?: HistoryEntry
+  entry?: HistoryEntryCatalog
   theme?: DynastyTheme
 }
 
@@ -64,7 +64,7 @@ export function dynastyAnchorPosition(dynastyId: string): [number, number, numbe
 function build(): GraphData {
   const nodes: GraphNode[] = []
   const edges: GraphEdge[] = []
-  const byId = new Map<string, HistoryEntry>(allHistoryEntries.map(e => [e.id, e]))
+  const byId = new Map<string, HistoryEntryCatalog>(allHistoryEntries.map(e => [e.id, e]))
 
   // ── 度数先行（并入向与出向） ──
   const degree = new Map<string, number>()

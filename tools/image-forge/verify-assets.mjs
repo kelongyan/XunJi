@@ -31,6 +31,7 @@ console.log('各朝代分布:', JSON.stringify(byDynasty))
 console.log('======================================')
 for (const x of missing) console.log('  ✗ ' + x)
 if (!missing.length) console.log('✔ 全部图片引用均指向真实有效的文件')
+if (missing.length) process.exitCode = 1
 
 // 统计磁盘上的资产
 const entriesDir = path.join(ROOT, 'public/images/entries')

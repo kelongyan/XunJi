@@ -43,3 +43,4 @@ const tlLinks = [...tl.matchAll(/entryId:\s*["']([^"']+)["']/g)]
 const tlBad = tlLinks.filter(m => !ids.has(m[1]))
 console.log(`\n长卷节点 entryId 总数：${tlLinks.length}｜坏链接：${tlBad.length}`)
 for (const m of tlBad) console.log('  ✗ → ' + m[1])
+if (badRel.length || tlBad.length) process.exitCode = 1

@@ -66,6 +66,8 @@ export interface StreamOptions {
   replayText?: string
   /** 中止信号 */
   signal?: AbortSignal
+  /** 请求超时毫秒数（默认 90 秒；视觉任务可单独提高） */
+  timeoutMs?: number
 }
 
 /* ── 回放模式 ── */
@@ -114,6 +116,18 @@ function extractDelta(payload: string): string {
   }
 }
 
+function consumeSseLine(line: string, onDelta: (s: string) => void, state: { full: string }) {
+  const normalized = line.endsWith('\r') ? line.slice(0, -1) : line
+  if (!normalized.startsWith('data:')) return
+  const payload = normalized.slice(5).trim()
+  if (!payload || payload === '[DONE]') return
+  const delta = extractDelta(payload)
+  if (delta) {
+    state.full += delta
+    onDelta(delta)
+  }
+}
+
 /* ── 核心流式接口 ── */
 
 /**
@@ -130,7 +144,8 @@ export async function createChatStream(
     temperature = 0.7,
     maxTokens = 1600,
     json = false,
-    signal
+    signal,
+    timeoutMs = 90_000
   } = opts
 
   // 回放模式：本地逐字回放，零网络
@@ -140,67 +155,74 @@ export async function createChatStream(
 
   if (!KEY) throw new InkOutError('nokey')
 
+  const requestController = new AbortController()
+  let timeoutId: number | undefined
+  const abortRequest = () => requestController.abort()
+  if (signal?.aborted) throw new DOMException('Aborted', 'AbortError')
+  signal?.addEventListener('abort', abortRequest, { once: true })
+  timeoutId = window.setTimeout(() => requestController.abort(), timeoutMs)
+
   let res: Response
   try {
-    res = await fetch(`${BASE}/chat/completions`, {
-      method: 'POST',
-      signal,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${KEY}`
-      },
-      body: JSON.stringify({
-        model,
-        stream: true,
-        temperature,
-        max_tokens: maxTokens,
-        // 主力为 reasoning 模型：关闭思考链，否则正文被推理预算挤占（实测 §0.3）
-        reasoning: false,
-        ...(json ? { response_format: { type: 'json_object' } } : {}),
-        messages
-      })
-    })
-  } catch (e) {
-    if ((e as Error).name === 'AbortError') throw e
-    throw new InkOutError('network')
-  }
-
-  if (!res.ok) throw new InkOutError('http')
-
-  const reader = res.body?.getReader()
-  if (!reader) throw new InkOutError('network')
-
-  const decoder = new TextDecoder()
-  let buf = ''
-  let full = ''
-  while (true) {
-    let done: boolean
-    let chunk: Uint8Array
     try {
-      const r = await reader.read()
-      done = r.done
-      chunk = r.value ?? new Uint8Array()
+      res = await fetch(`${BASE}/chat/completions`, {
+        method: 'POST',
+        signal: requestController.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${KEY}`
+        },
+        body: JSON.stringify({
+          model,
+          stream: true,
+          temperature,
+          max_tokens: maxTokens,
+          // 主力为 reasoning 模型：关闭思考链，否则正文被推理预算挤占（实测 §0.3）
+          reasoning: false,
+          ...(json ? { response_format: { type: 'json_object' } } : {}),
+          messages
+        })
+      })
     } catch (e) {
       if ((e as Error).name === 'AbortError') throw e
       throw new InkOutError('network')
     }
-    if (done) break
-    buf += decoder.decode(chunk, { stream: true })
-    const lines = buf.split('\n')
-    buf = lines.pop() ?? ''
-    for (const line of lines) {
-      if (!line.startsWith('data: ')) continue
-      const payload = line.slice(6).trim()
-      if (payload === '[DONE]') continue
-      const delta = extractDelta(payload)
-      if (delta) {
-        full += delta
-        onDelta(delta)
+
+    if (!res.ok) throw new InkOutError('http')
+
+    const reader = res.body?.getReader()
+    if (!reader) throw new InkOutError('network')
+
+    const decoder = new TextDecoder()
+    let buf = ''
+    const state = { full: '' }
+    while (true) {
+      let done: boolean
+      let chunk: Uint8Array
+      try {
+        const r = await reader.read()
+        done = r.done
+        chunk = r.value ?? new Uint8Array()
+      } catch (e) {
+        if ((e as Error).name === 'AbortError') throw e
+        throw new InkOutError('network')
       }
+      if (done) break
+      buf += decoder.decode(chunk, { stream: true })
+      const lines = buf.split('\n')
+      buf = lines.pop() ?? ''
+      for (const line of lines) consumeSseLine(line, onDelta, state)
     }
+
+    // Flush split UTF-8 code points and process a final line without a newline.
+    buf += decoder.decode()
+    if (buf) consumeSseLine(buf, onDelta, state)
+    if (!state.full.trim()) throw new InkOutError('empty')
+    return state.full
+  } finally {
+    if (timeoutId !== undefined) window.clearTimeout(timeoutId)
+    signal?.removeEventListener('abort', abortRequest)
   }
-  if (!full.trim()) throw new InkOutError('empty')
-  return full
 }
 
 /** 非流式便捷封装（结构化输出场景：推演树、出题等） */

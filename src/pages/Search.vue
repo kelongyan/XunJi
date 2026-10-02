@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, onMounted } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { RefreshCw, ExternalLink } from 'lucide-vue-next'
 import TextbookHeader from '../components/common/TextbookHeader.vue'
@@ -11,7 +11,7 @@ import { useSearch } from '../composables/useSearch'
 import { useTypewriter } from '../composables/useTypewriter'
 import { splitHighlight } from '../utils/highlight'
 import { allHistoryEntries } from '../data'
-import type { HistoryEntry } from '../types/history'
+import type { HistoryEntryCatalog } from '../types/history'
 
 const route = useRoute()
 const router = useRouter()
@@ -21,7 +21,7 @@ const query = ref((route.query.q as string) || '')
 const currentType = ref((route.query.type as string) || 'all')
 /** 模式页签：考索（传统检索）/ 问典（AI RAG） */
 const mode = ref<'search' | 'wen'>('search')
-const searchResults = ref<HistoryEntry[]>([])
+const searchResults = ref<HistoryEntryCatalog[]>([])
 
 // 第一条重点结果专属的打字机流式呈现
 const { displayedText, isTyping, start: startTypewriter, skip: skipTypewriter } = useTypewriter()
@@ -35,7 +35,7 @@ const hotTags = computed(() => {
   return [...counter.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8).map(([tag]) => tag)
 })
 
-function handleSelect(entry: HistoryEntry) {
+function handleSelect(entry: HistoryEntryCatalog) {
   router.push(`/entry/${entry.id}`)
 }
 
@@ -55,7 +55,6 @@ function handleSearchSubmit() {
       type: currentType.value !== 'all' ? currentType.value : undefined
     }
   })
-  doSearch()
 }
 
 function selectType(type: string) {
@@ -83,9 +82,6 @@ watch(() => route.query, () => {
   doSearch()
 })
 
-onMounted(() => {
-  doSearch()
-})
 </script>
 
 <template>

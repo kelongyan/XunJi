@@ -70,3 +70,40 @@ export interface HistoryEntry {
   /** 史家朱批（页边竖排批语，静态评点 / 后续 AI 批语共用） */
   comment?: string
 }
+
+/** 首页、检索与图谱使用的轻量词条目录，不含长篇正文。 */
+export type HistoryEntryCatalog = Pick<
+  HistoryEntry,
+  | 'id'
+  | 'type'
+  | 'name'
+  | 'pinyin'
+  | 'aliases'
+  | 'dynasty'
+  | 'era'
+  | 'lifespan'
+  | 'year'
+  | 'roles'
+  | 'summary'
+  | 'interpretation'
+  | 'timeline'
+  | 'relations'
+  | 'quotes'
+  | 'sources'
+  | 'tags'
+  | 'location'
+  | 'impact'
+  | 'image'
+  | 'relic'
+  | 'comment'
+> & { initials: string; detailSource: DetailSource }
+
+export type DetailSource =
+  | 'emperors'
+  | 'figures'
+  | 'events'
+  | 'classics-systems'
+  | 'tang'
+  | 'song'
+  | 'han'
+  | 'qing'

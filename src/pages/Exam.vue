@@ -74,7 +74,7 @@ function retake() {
 
 /** 结果页按对题数着印色：满红为状元 */
 const rankTone = computed(() =>
-  correctCount.value >= 4 ? 'var(--dynasty-accent)' : 'var(--ink-soft)'
+  correctCount.value >= 3 ? 'var(--dynasty-accent)' : 'var(--ink-soft)'
 )
 </script>
 

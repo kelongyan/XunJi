@@ -535,7 +535,7 @@ function buildScene() {
       // 悬停描框：可入卷的点亮朱砂，修典中的用灰墨弱描
       const ringTarget = isHover ? (isl.theme.live ? 0.55 : 0.22) : 0
       isl.ringMat.opacity += (ringTarget - isl.ringMat.opacity) * Math.min(1, dt * 6)
-      isl.ringMat.color.set(isl.theme.live ? 0xa8352a : 0x8c8378)
+      isl.ringMat.color.set(isl.theme.live ? isl.theme.accent : '#8c8378')
       // 倒影：日读淡、夜读浓（灯影落水），悬停再亮一档
       const reflTarget = (0.14 + nightValue * 0.24) * (isHover ? 1.6 : 1)
       isl.reflectMat.opacity += (reflTarget - isl.reflectMat.opacity) * Math.min(1, dt * 3)

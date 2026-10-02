@@ -24,6 +24,25 @@ function detectWebGL(): boolean {
   }
 }
 
+function disposeMaterial(material: THREE.Material, textures: Set<THREE.Texture>) {
+  const candidate = material as THREE.Material & Record<string, unknown>
+  const textureKeys = [
+    'map', 'alphaMap', 'aoMap', 'bumpMap', 'displacementMap', 'emissiveMap',
+    'envMap', 'lightMap', 'metalnessMap', 'normalMap', 'roughnessMap', 'specularMap'
+  ]
+  for (const key of textureKeys) {
+    const value = candidate[key.trim()]
+    if (value instanceof THREE.Texture) textures.add(value)
+  }
+  const shader = material as THREE.ShaderMaterial
+  if (shader.uniforms) {
+    for (const uniform of Object.values(shader.uniforms)) {
+      if (uniform.value instanceof THREE.Texture) textures.add(uniform.value)
+    }
+  }
+  material.dispose()
+}
+
 /**
  * Three.js 场景生命周期封装：初始化 / 自适应尺寸 / 渲染循环 / 资源销毁。
  * DPR 上限 1.75；页面不可见时暂停渲染；prefers-reduced-motion 交由调用方降级动效。
@@ -86,17 +105,17 @@ export function useThreeScene(container: Ref<HTMLElement | undefined>, opts: Use
     renderer?.setAnimationLoop(null)
     timer?.disconnect()
     timer = null
+    const textures = new Set<THREE.Texture>()
     if (scene) {
       scene.traverse(obj => {
-        const mesh = obj as THREE.Mesh
-        if (mesh.geometry) mesh.geometry.dispose()
-        const mat = mesh.material as THREE.Material | THREE.Material[] | undefined
-        if (Array.isArray(mat)) mat.forEach(m => m.dispose())
-        else mat?.dispose()
-        const anyMat = mesh.material as { map?: THREE.Texture } | undefined
-        anyMat?.map?.dispose()
+        const renderable = obj as THREE.Mesh & { geometry?: THREE.BufferGeometry; material?: THREE.Material | THREE.Material[] }
+        renderable.geometry?.dispose()
+        const material = renderable.material
+        if (Array.isArray(material)) material.forEach(m => disposeMaterial(m, textures))
+        else if (material) disposeMaterial(material, textures)
       })
     }
+    textures.forEach(texture => texture.dispose())
     renderer?.dispose()
     renderer?.forceContextLoss()
     if (renderer?.domElement.parentElement) renderer.domElement.parentElement.removeChild(renderer.domElement)

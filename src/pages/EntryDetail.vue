@@ -4,7 +4,8 @@ import { useRoute, RouterLink } from 'vue-router'
 import { ArrowLeft, ArrowRight } from 'lucide-vue-next'
 import TextbookHeader from '../components/common/TextbookHeader.vue'
 import SealStamp from '../components/common/SealStamp.vue'
-import { getEntryById, allHistoryEntries } from '../data'
+import { allHistoryEntries, getEntryById as getCatalogEntryById, getIncomingRelatedEntries } from '../data'
+import { getEntryById } from '../data/details'
 import { dynastyIdFromHanzi, defaultDynasty } from '../data/dynastyThemes'
 import { useTypewriter } from '../composables/useTypewriter'
 import { useFootprint } from '../composables/useFootprint'
@@ -14,6 +15,7 @@ import { createChatStream, userWithImage, llmEnabled, REPLAY_MODE, MODEL_VISION,
 import { interpretPrompt, commentPrompt, relicPrompt } from '../services/prompts'
 import InkOut from '../components/common/InkOut.vue'
 import AnnotateText from '../components/common/AnnotateText.vue'
+import type { HistoryEntry, HistoryEntryCatalog } from '../types/history'
 
 const VoyageMap = defineAsyncComponent(() => import('../components/three/VoyageMap.vue'))
 const RelicViewer = defineAsyncComponent(() => import('../components/three/RelicViewer.vue'))
@@ -28,7 +30,7 @@ const voyage = computed(() => VOYAGE_MOUNT[entry.value.id] ?? null)
 
 const route = useRoute()
 const entryId = computed(() => (route.params.id as string) || 'zhang-juzheng')
-const entry = computed(() => getEntryById(entryId.value) || getEntryById('zhang-juzheng')!)
+const entry = computed(() => getEntryById(entryId.value)!)
 
 /* 足迹：到访即留痕 */
 const { record, toggleCollect, isCollected } = useFootprint()
@@ -67,7 +69,19 @@ const related = computed(() => {
   const self = entry.value
   const selfTags = new Set(self.tags)
   const direct = new Set((self.relations ?? []).map(r => r.targetId))
-  return allHistoryEntries
+  const candidates = new Map<string, HistoryEntry | HistoryEntryCatalog>()
+  for (const relatedId of getIncomingRelatedEntries(self.id)) {
+    const related = getCatalogEntryById(relatedId)
+    if (related) candidates.set(related.id, related)
+  }
+  for (const targetId of direct) {
+    const related = getCatalogEntryById(targetId)
+    if (related) candidates.set(related.id, related)
+  }
+  for (const related of allHistoryEntries) {
+    if (related.id !== self.id && related.tags.some(tag => selfTags.has(tag))) candidates.set(related.id, related)
+  }
+  return [...candidates.values()]
     .filter(e => e.id !== self.id)
     .map(e => {
       let score = (e.relations ?? []).some(r => r.targetId === self.id) || direct.has(e.id) ? 3 : 0
@@ -111,6 +125,19 @@ const interpMode = ref<InterpMode>('static')
 const interpSource = ref<'static' | 'ai' | 'replay'>('static')
 let liveBuffer = ''
 let liveAbort: AbortController | null = null
+let commentAbort: AbortController | null = null
+let entryMounted = false
+
+function resetInterpretation() {
+  liveAbort?.abort()
+  liveAbort = null
+  stopInterp()
+  liveBuffer = ''
+  displayedText.value = ''
+  isTypingManual.value = false
+  interpMode.value = 'static'
+  interpSource.value = 'static'
+}
 
 /** 静态回放（fallback 与 reduced-motion 路径） */
 function runStatic() {
@@ -207,6 +234,9 @@ const commentRequested = new Set<string>()
 async function genComment() {
   const e = entry.value
   if (!e || e.comment || !llmEnabled()) return
+  commentAbort?.abort()
+  commentAbort = new AbortController()
+  const requestEntryId = e.id
   commentState.value = 'loading'
   commentRequested.add(e.id)
   let buf = ''
@@ -221,13 +251,16 @@ async function genComment() {
       {
         model: MODEL_FAST,
         maxTokens: 400,
+        signal: commentAbort.signal,
         // 演示回放：预录一条张居正批语（录制/断网兜底；真模型时忽略）
         replayText: entry.value.comment ?? '史臣曰：功冠一时，而祸发身后；威震九重，而名毁于酷。刚愎之失，惜哉。'
       }
     )
+    if (entry.value.id !== requestEntryId) return
     commentState.value = 'done'
   } catch (err) {
     if ((err as Error).name === 'AbortError') return
+    if (entry.value.id !== requestEntryId) return
     aiComment.value = ''
     commentState.value = 'inkout'
   }
@@ -251,19 +284,18 @@ function resetStudy() {
 watch(
   () => entry.value.id,
   () => {
-    liveAbort?.abort()
+    resetInterpretation()
+    commentAbort?.abort()
     resetStudy()
+    aiComment.value = ''
+    commentState.value = 'idle'
     if (entry.value.comment) {
-      aiComment.value = ''
-      commentState.value = 'idle'
     } else if (llmEnabled() && !commentRequested.has(entry.value.id)) {
       commentRequested.add(entry.value.id)
       aiComment.value = ''
       genComment()
-    } else if (!llmEnabled()) {
-      aiComment.value = ''
-      commentState.value = 'idle'
     }
+    if (entryMounted) runFlow()
   },
   { immediate: true }
 )
@@ -289,7 +321,7 @@ async function studyPlate() {
       dataUrl = canvas.toDataURL('image/png')
       if (dataUrl.length < 2000) throw new Error('empty raster') // SVG 未渲染兜底
     } catch {
-      const blob = await (await fetch(e.image.src)).blob()
+      const blob = await (await fetch(e.image.src, { signal: studyAbort.signal })).blob()
       dataUrl = await new Promise<string>((resolve, reject) => {
         const fr = new FileReader()
         fr.onload = () => resolve(fr.result as string)
@@ -328,6 +360,7 @@ function relicStudyInstruction(e: NonNullable<typeof entry.value>): string {
 }
 
 onMounted(() => {
+  entryMounted = true
   runFlow()
 })
 
@@ -357,6 +390,9 @@ onMounted(() => {
   updateReadProgress()
 })
 onBeforeUnmount(() => {
+  liveAbort?.abort()
+  commentAbort?.abort()
+  studyAbort?.abort()
   window.removeEventListener('scroll', onReadScroll)
   window.removeEventListener('resize', onReadScroll)
   if (readRaf) cancelAnimationFrame(readRaf)
@@ -471,7 +507,7 @@ onBeforeUnmount(() => {
              沉浸式（2026-10-01 精修）：全视口宽破格 + 无框 + 四边羽化融入纸色，
              题签/钤印/注记浮于画面、与版心对齐。 -->
         <section v-if="voyage" v-reveal class="hidden md:block relative my-4 full-bleed">
-          <VoyageMap :chart-id="voyage.chartId" />
+           <VoyageMap :key="entry.id + '-' + voyage.chartId" :chart-id="voyage.chartId" />
           <div class="absolute inset-0 z-10 pointer-events-none select-none">
             <div class="relative h-full max-w-7xl mx-auto px-6">
               <!-- 题签（左上）：栏目 + 图名 -->
@@ -613,7 +649,7 @@ onBeforeUnmount(() => {
                 <span class="eyebrow whitespace-nowrap">器物展台 · {{ entry.relic.name }}</span>
                 <span class="seal-stamp seal-stamp-sm shrink-0">器</span>
               </div>
-              <RelicViewer :kind="entry.relic.kind" />
+               <RelicViewer :key="entry.id + '-' + entry.relic.kind" :kind="entry.relic.kind" />
               <p class="text-[13px] font-serif text-muted-foreground leading-relaxed">{{ entry.relic.caption }}</p>
             </aside>
 

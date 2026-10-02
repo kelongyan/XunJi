@@ -146,17 +146,16 @@ export interface RankResult {
   comment: string
 }
 
-/** 0=落第 1=秀才 2=举人 3=进士 4=状元（三题全对） */
+/** 三题制：0=落第 1=秀才 2=举人 3=状元（三题全对） */
 const RANKS: RankResult[] = [
   { rank: '落第', seal: '再读', comment: '此卷尚生，长河漫漫，且再展读几卷，来科再试。' },
   { rank: '秀才', seal: '秀才', comment: '初入门径，已识长河流向。功名尚远，志学可期。' },
   { rank: '举人', seal: '举人', comment: '颇有史识，脉络分明。再进一步，可望甲科。' },
-  { rank: '进士', seal: '进士', comment: '通晓五朝大务，答问有条不紊。金榜题名，实至名归。' },
   { rank: '状元', seal: '状元', comment: '三问皆中，才思如长河奔涌。殿试头名，天下扬名！' }
 ]
 
 export function rankOf(correct: number): RankResult {
-  return RANKS[Math.max(0, Math.min(4, correct))]
+  return RANKS[Math.max(0, Math.min(RANKS.length - 1, correct))]
 }
 
 /** localStorage：历史最高功名（0-4） */

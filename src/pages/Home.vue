@@ -459,7 +459,7 @@ onBeforeUnmount(() => {
               <div class="eyebrow mb-2">专题专栏</div>
               <RouterLink to="/timeline?dynasty=ming" class="index-row items-center group">
                 <span class="index-name">历代编年长卷</span>
-                <span class="index-meta hidden sm:inline">唐 · 宋 · 明 三卷已展</span>
+                <span class="index-meta hidden sm:inline">汉 · 唐 · 宋 · 明 · 清 五卷已展</span>
                 <ArrowRight class="w-3.5 h-3.5 text-[var(--dynasty-accent)]" />
               </RouterLink>
               <RouterLink to="/compare" class="index-row items-center group">

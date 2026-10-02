@@ -154,12 +154,28 @@ export function getGraphLayout(): GraphLayout {
   }
 
   const vel = nodes.map(() => ({ x: 0, y: 0, z: 0 }))
+  const CELL_SIZE = 12
+  const cellKey = (x: number, y: number, z: number) => `${x}|${y}|${z}`
   for (let tick = 0; tick < ITER; tick++) {
-    // 斥力（O(n²)，一次性预算）
+    // 斥力：空间网格只比较 12 单位作用半径内的邻格，避免全量 O(n²)。
+    const grid = new Map<string, number[]>()
+    for (let i = 0; i < nodes.length; i++) {
+      const p = nodes[i]
+      const key = cellKey(Math.floor(p.x / CELL_SIZE), Math.floor(p.y / CELL_SIZE), Math.floor(p.z / CELL_SIZE))
+      const bucket = grid.get(key) ?? []
+      bucket.push(i)
+      grid.set(key, bucket)
+    }
     for (let i = 0; i < nodes.length; i++) {
       const pi = nodes[i]
-      for (let j = i + 1; j < nodes.length; j++) {
-        const pj = nodes[j]
+      const cx = Math.floor(pi.x / CELL_SIZE)
+      const cy = Math.floor(pi.y / CELL_SIZE)
+      const cz = Math.floor(pi.z / CELL_SIZE)
+      for (let ox = -1; ox <= 1; ox++) for (let oy = -1; oy <= 1; oy++) for (let oz = -1; oz <= 1; oz++) {
+        const nearby = grid.get(cellKey(cx + ox, cy + oy, cz + oz)) ?? []
+        for (const j of nearby) {
+          if (j <= i) continue
+          const pj = nodes[j]
         let dx = pi.x - pj.x
         let dy = pi.y - pj.y
         let dz = pi.z - pj.z
@@ -181,6 +197,7 @@ export function getGraphLayout(): GraphLayout {
         const fz = dz * f
         vel[i].x += fx; vel[i].y += fy; vel[i].z += fz
         vel[j].x -= fx; vel[j].y -= fy; vel[j].z -= fz
+        }
       }
     }
     // 弹簧（关系边）
