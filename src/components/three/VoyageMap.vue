@@ -272,6 +272,9 @@ function buildScene() {
 
   /* 主航线巡游曲线（按 chart.mainPath） */
   const mainPath = new THREE.CatmullRomCurve3(chart.mainPath.map(i => portPos(PORTS[i])))
+  /** 复用的采样目标（每帧 getPointAt/getTangentAt 不再各自分配向量） */
+  const _pt = new THREE.Vector3()
+  const _tan = new THREE.Vector3()
 
   onFrame((dt, t) => {
     flowUniforms.uTime.value = t
@@ -279,8 +282,8 @@ function buildScene() {
       // 巡游主体往复巡游
       const span = 7
       const phase = Math.abs(((t * 0.035) % (span * 2)) - span) / span
-      traveler.position.copy(mainPath.getPointAt(phase))
-      const tangent = mainPath.getTangentAt(phase)
+      traveler.position.copy(mainPath.getPointAt(phase, _pt))
+      const tangent = mainPath.getTangentAt(phase, _tan)
       traveler.rotation.y = Math.atan2(tangent.x, tangent.z)
       // idle 缓慢自转
       if (!dragging) cam.yawT += dt * 0.045

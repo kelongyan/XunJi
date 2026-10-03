@@ -696,6 +696,8 @@ function update(dt: number, t: number, camera: THREE.PerspectiveCamera) {
 }
 
 /* ── 拾取（屏幕空间最近节点）── */
+/** 复用的投影向量（每次 pointermove 全量投影 430 节点，避免逐事件分配） */
+const _pickV = new THREE.Vector3()
 function pickNode(clientX: number, clientY: number, camera: THREE.PerspectiveCamera): number {
   const el = container.value
   if (!el) return -1
@@ -704,13 +706,12 @@ function pickNode(clientX: number, clientY: number, camera: THREE.PerspectiveCam
   const y = -((clientY - rect.top) / rect.height) * 2 + 1
   let best = -1
   let bestD = Infinity
-  const v = new THREE.Vector3()
   for (let i = 0; i < packed.length; i++) {
-    v.copy(packed[i].pos)
-    v.project(camera)
-    if (v.z > 1) continue
-    const dx = v.x - x
-    const dy = v.y - y
+    _pickV.copy(packed[i].pos)
+    _pickV.project(camera)
+    if (_pickV.z > 1) continue
+    const dx = _pickV.x - x
+    const dy = _pickV.y - y
     const d = dx * dx + dy * dy
     // 节点越大越易拾取
     const th = 0.0016 + packed[i].size * 0.00085
@@ -920,14 +921,29 @@ function onPointerMove(e: PointerEvent) {
     dragStart = { x: e.clientX, y: e.clientY }
     return
   }
-  // hover 拾取（节流于帧内自然频率即可）
-  const idx = pickNode(e.clientX, e.clientY, cam)
-  if (idx !== hoverIdx) {
-    hoverIdx = idx
-    container.value && (container.value.style.cursor = idx >= 0 ? 'pointer' : 'grab')
-    refreshHighlight()
-    emit('hover', idx >= 0 ? packed[idx].node : null)
-  }
+  schedulePick(e.clientX, e.clientY, cam)
+}
+
+/** hover 拾取的合帧状态（坐标随事件刷新，投帧执行） */
+let pickPending = false
+let pickX = 0
+let pickY = 0
+function schedulePick(clientX: number, clientY: number, cam: THREE.PerspectiveCamera) {
+  pickX = clientX
+  pickY = clientY
+  if (pickPending) return
+  pickPending = true
+  requestAnimationFrame(() => {
+    pickPending = false
+    if (!container.value) return
+    const idx = pickNode(pickX, pickY, cam)
+    if (idx !== hoverIdx) {
+      hoverIdx = idx
+      container.value && (container.value.style.cursor = idx >= 0 ? 'pointer' : 'grab')
+      refreshHighlight()
+      emit('hover', idx >= 0 ? packed[idx].node : null)
+    }
+  })
 }
 
 function onPointerDown(e: PointerEvent) {

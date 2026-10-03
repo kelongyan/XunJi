@@ -452,9 +452,9 @@ function buildScene() {
     glow.position.set(x, y + 0.4, z - 0.2)
     scene!.add(glow)
 
-    // 悬停朱砂描框（默认全透明，hover 时浮现）
+    // 悬停描框（默认全透明，hover 时浮现；色值创建时定死——可入卷用本朝 accent，修典中灰墨）
     const ringMat = new THREE.MeshBasicMaterial({
-      color: 0xa8352a,
+      color: theme.live ? theme.accent : SCENE_MUTED,
       transparent: true,
       opacity: 0,
       depthWrite: false,
@@ -500,6 +500,7 @@ function buildScene() {
 
     return { theme, mesh, baseY: y, baseScale: cfg.scale, glowMat, lampMat, paperMat, ringMat, reflectMat, wobbleRemaining: 0 }
   })
+  const islandMeshes = islands.map(i => i.mesh)
 
   onFrame((dt, t) => {
     islands.forEach((isl, i) => {
@@ -520,10 +521,9 @@ function buildScene() {
       isl.lampMat.opacity += (lampTarget - isl.lampMat.opacity) * Math.min(1, dt * 3)
       const glowTarget = (isl.theme.live ? 0.3 : 0.14) + nightValue * 0.22 + (isHover ? 0.16 : 0)
       isl.glowMat.opacity += (glowTarget - isl.glowMat.opacity) * Math.min(1, dt * 3)
-      // 悬停描框：可入卷的点亮朱砂，修典中的用灰墨弱描
+      // 悬停描框：可入卷的点亮朱砂，修典中的用灰墨弱描（色值创建时已定，此处只动透明度）
       const ringTarget = isHover ? (isl.theme.live ? 0.55 : 0.22) : 0
       isl.ringMat.opacity += (ringTarget - isl.ringMat.opacity) * Math.min(1, dt * 6)
-      isl.ringMat.color.set(isl.theme.live ? isl.theme.accent : SCENE_MUTED)
       // 倒影：日读淡、夜读浓（灯影落水），悬停再亮一档
       const reflTarget = (0.14 + nightValue * 0.24) * (isHover ? 1.6 : 1)
       isl.reflectMat.opacity += (reflTarget - isl.reflectMat.opacity) * Math.min(1, dt * 3)
@@ -633,10 +633,10 @@ function buildScene() {
     }
     if (intro) intro.mat.color.lerp(nightTarget ? NIGHT.intro : DAY.intro, Math.min(1, dt * 2))
 
-    // hover 拾取
+    // hover 拾取（目标数组缓存一次，避免每帧 map 分配）
     if (raycaster && !dragging) {
       raycaster.setFromCamera(pointerNdc, camera)
-      const hits = raycaster.intersectObjects(islands.map(i => i.mesh), false)
+      const hits = raycaster.intersectObjects(islandMeshes, false)
       const first = hits[0]?.object
       const found = islands.find(i => i.mesh === first) ?? null
       if (found !== hoverIsland) {
